@@ -46,20 +46,11 @@ def admin_logout(): session.pop('is_admin',None); return redirect(url_for('index
 @admin_req
 def admin():
     prods = Product.query.all()
-    return render_template('admin.html', products=prods, settings=settings(),
-        total_downloads=sum(p.download_count for p in prods), 
-        total_products=len(prods),
-        total_purchases=Purchase.query.count(),
-        current_user={'id': 'admin'})
-        
-@app.route('/new_product')
-@admin_req
-def new_product():
-    return render_template('edit_product.html', product=None, settings=settings())
-
-@app.route('/health')
-def health():
-    return "OK"  # Test endpoint        
+    stars = 0
+    return render_template('admin.html',products=prods,settings=settings(),
+        total_downloads=sum(p.download_count for p in prods),total_products=len(prods),
+        total_purchases=Purchase.query.count(),total_stars=stars,
+        current_user={'id': 'admin'})  # FIXED: current_user for template
 
 @app.route('/')
 def index():
