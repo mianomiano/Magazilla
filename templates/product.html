@@ -1,0 +1,22 @@
+{%extends 'base.html'%}{%block content%}
+<div class="content">
+<a href="{{url_for('index')}}" class="back-btn">← Back</a>
+<div class="product-detail">
+<div class="product-detail-image">{%if product.thumbnail%}{%set thumb_url=r2_url(product.thumbnail)%}{%if product.thumbnail.endswith('.webm')%}<video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"><source src="{{thumb_url}}" type="video/webm"></video>{%else%}<img src="{{thumb_url}}">{%endif%}{%else%}<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem;color:var(--tm)">🎨</div>{%endif%}</div>
+<h1 class="product-detail-title">{{product.name}}</h1>
+<p class="product-detail-category">{{product.category}}</p>
+{%if product.description%}<p class="product-detail-description">{{product.description}}</p>{%endif%}
+<div class="product-detail-price {%if product.is_free%}free{%else%}paid{%endif%}">{%if product.is_free%}🆓 Free{%else%}⭐ {{product.price}} Stars{%endif%}</div>
+<div class="neu-card-inset" style="margin-bottom:16px"><div style="display:flex;justify-content:space-around;text-align:center"><div><div style="font-size:1.2rem;font-weight:700;color:var(--s)">{{product.download_count}}</div><div style="font-size:0.7rem;color:var(--tm)">Downloads</div></div><div><div style="font-size:1.2rem;font-weight:700;color:var(--a)">{{product.category}}</div><div style="font-size:0.7rem;color:var(--tm)">Category</div></div></div></div>
+<div class="product-detail-actions">
+{%if product.is_free%}
+  {%if product.file_path%}<button onclick="downloadProduct({{product.id}})" class="neu-btn neu-btn-primary neu-btn-full">⬇️ Download Free</button>{%else%}<button class="neu-btn neu-btn-full" disabled style="opacity:0.5">No file</button>{%endif%}
+{%elif purchased%}
+  {%if product.file_path%}<button onclick="downloadProduct({{product.id}})" class="neu-btn neu-btn-primary neu-btn-full">⬇️ Download (Purchased)</button>{%else%}<button class="neu-btn neu-btn-full" disabled style="opacity:0.5">No file</button>{%endif%}
+{%else%}
+  <button class="neu-btn neu-btn-accent neu-btn-full" onclick="buyProduct({{product.id}},{{product.price}})">⭐ Buy for {{product.price}} Stars</button>
+{%endif%}
+</div>
+</div>
+</div>
+{%endblock%}

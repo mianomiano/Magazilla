@@ -1,0 +1,149 @@
+{%extends 'base.html'%}{%block content%}
+<div class="content">
+<!-- ⭐ NEUMORPHIC STARS SIMULATOR -->
+<div class="stars-simulator">
+    <h2 class="sim-title">🎭 Stars Simulator</h2>
+    <div class="sim-input-group">
+        <label>User ID (optional)</label>
+        <input id="simUserId" class="neu-input sim-input" placeholder="Leave empty for current user">
+    </div>
+    <div class="sim-input-group">
+        <label>Product ID</label>
+        <input id="simProductId" class="neu-input sim-input" placeholder="Enter Stars product ID">
+    </div>
+    <div class="sim-buttons">
+        <button onclick="runStarsSimulation()" class="neu-btn neu-btn-primary sim-btn">🚀 Simulate Purchase</button>
+        <button onclick="clearSim()" class="neu-btn sim-btn">🧹 Clear</button>
+    </div>
+    <div id="simResult" class="sim-result"></div>
+</div>
+
+<div class="admin-header"><h1 class="admin-title">📊 Admin</h1><a href="{{url_for('new_product')}}" class="neu-btn neu-btn-primary">+ Add</a></div>
+<div class="stats-grid"><div class="stat-card"><div class="stat-value">{{total_products}}</div><div class="stat-label">Products</div></div><div class="stat-card"><div class="stat-value">{{total_downloads}}</div><div class="stat-label">Downloads</div></div><div class="stat-card"><div class="stat-value">⭐️{{total_stars}}</div><div class="stat-label">Earned</div></div></div>
+<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap"><a href="{{url_for('index')}}" class="neu-btn">👁 Store</a><a href="{{url_for('admin_settings')}}" class="neu-btn">⚙️ Settings</a><a href="{{url_for('admin_logout')}}" class="neu-btn">🚪 Logout</a></div>
+<h2 style="margin-bottom:10px;font-size:0.9rem;color:var(--td)">Products ({{total_purchases}} sales)</h2>
+{%if products%}<div class="admin-product-list">{%for p in products%}
+<div class="admin-product-item">
+<div class="admin-product-thumb">{%if p.thumbnail%}{%set thumb_url=r2_url(p.thumbnail)%}{%if p.thumbnail.endswith('.webm')%}<video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"><source src="{{thumb_url}}" type="video/webm"></video>{%else%}<img src="{{thumb_url}}">{%endif%}{%else%}<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:1rem">🎨</div>{%endif%}</div>
+<div class="admin-product-info"><div class="admin-product-name">{{p.name}}{%if not p.is_active%} <span style="color:var(--tm)">(Hidden)</span>{%endif%}{%if not p.file_path%} <span style="color:#ff4757">(No file!)</span>{%endif%}</div><div class="admin-product-meta">{{p.category}} • {%if p.is_free%}<span style="color:var(--s)">Free</span>{%else%}<span style="color:var(--a)">⭐️{{p.price}}</span>{%endif%} • {{p.download_count}}↓</div></div>
+<div class="admin-product-actions">
+    <a href="{{url_for('edit_product',pid=p.id)}}" class="admin-btn-sm">Edit</a>
+    <button class="admin-btn-sm delete" onclick="deleteProduct({{p.id}},'{{p.name}}')">Del</button>
+    {%if not p.is_free%}<button class="admin-btn-sm sim-quick-btn" onclick="quickSim({{p.id}})">⭐ Sim</button>{%endif%}
+</div>
+</div>
+{%endfor%}</div>{%else%}<div class="empty-state"><p>No products</p></div>{%endif%}
+</div>
+
+<!-- ⭐ SIMULATION JAVASCRIPT -->
+<script>
+async function runStarsSimulation(){
+    const uid = document.getElementById('simUserId').value || '{{current_user.id}}';
+    const pid = document.getElementById('simProductId').value;
+    const resultDiv = document.getElementById('simResult');
+    
+    if(!pid){ resultDiv.className = 'sim-result error'; resultDiv.innerHTML = '❌ Enter Product ID'; return; }
+    
+    resultDiv.className = 'sim-result loading';
+    resultDiv.innerHTML = `🎭 Simulating Stars purchase for user <strong>${uid}</strong>, product <strong>${pid}</strong>...`;
+    
+    try{
+        await runStarsSimulation(pid, uid);
+        resultDiv.className = 'sim-result success';
+        resultDiv.innerHTML = `✅ SUCCESS! User ${uid} can now download product ${pid}<br><a href="/product/${pid}?user_id=${uid}" class="neu-btn neu-btn-sm" style="margin-top:8px;">Test Download</a>`;
+    }catch(e){
+        resultDiv.className = 'sim-result error';
+        resultDiv.innerHTML = `❌ Error: ${e.message}`;
+    }
+}
+
+function quickSim(pid){
+    document.getElementById('simProductId').value = pid;
+    document.getElementById('simUserId').focus();
+}
+
+function clearSim(){
+    document.getElementById('simUserId').value = '';
+    document.getElementById('simProductId').value = '';
+    document.getElementById('simResult').innerHTML = '';
+    document.getElementById('simResult').className = 'sim-result';
+}
+</script>
+
+<style>
+/* ⭐ NEUMORPHIC STARS SIMULATOR STYLES */
+.stars-simulator {
+    background: var(--pl);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 6px 6px 16px var(--sd), -6px -6px 16px var(--sl);
+}
+.sim-title {
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--s), var(--a));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.sim-input-group {
+    margin-bottom: 18px;
+}
+.sim-input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    color: var(--td);
+    font-weight: 500;
+}
+.sim-input {
+    font-size: 16px !important;
+}
+.sim-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.sim-btn {
+    flex: 1;
+    min-width: 140px;
+}
+.sim-quick-btn {
+    background: linear-gradient(135deg, var(--s), #8bc418) !important;
+    color: var(--p) !important;
+    box-shadow: 2px 2px 6px rgba(175,232,31,0.3), -2px -2px 6px rgba(139,196,24,0.3) !important;
+}
+.sim-quick-btn:active {
+    box-shadow: inset 2px 2px 4px rgba(175,232,31,0.3), inset -2px -2px 4px rgba(139,196,24,0.3) !important;
+}
+.sim-result {
+    min-height: 50px;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    box-shadow: inset 2px 2px 6px rgba(0,0,0,0.3), inset -2px -2px 6px rgba(40,50,70,0.2);
+}
+.sim-result.loading {
+    background: var(--pl);
+    color: var(--a);
+    border: 1px solid rgba(21,52,254,0.3);
+}
+.sim-result.success {
+    background: rgba(175,232,31,0.1);
+    color: var(--s);
+    border: 1px solid rgba(175,232,31,0.3);
+}
+.sim-result.error {
+    background: rgba(255,71,87,0.1);
+    color: #ff4757;
+    border: 1px solid rgba(255,71,87,0.3);
+}
+.neu-btn-sm {
+    padding: 6px 12px !important;
+    font-size: 0.75rem !important;
+}
+</style>
+{%endblock%}

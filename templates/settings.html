@@ -1,0 +1,35 @@
+{%extends 'base.html'%}{%block content%}
+<div class="content">
+<a href="{{url_for('admin')}}" class="back-btn">← Back</a>
+<h1 class="admin-title" style="margin-bottom:16px">⚙️ Settings</h1>
+<form method="POST" enctype="multipart/form-data" class="neu-card">
+<div class="neu-input-group"><label>App Name (fallback if no logo)</label><input type="text" name="app_name" class="neu-input" value="{{settings.app_name}}"></div>
+<div class="neu-input-group">
+<label>Header Logo (PNG, GIF, WebM)</label>
+<p style="font-size:0.7rem;color:var(--tm);margin-bottom:10px">Full width on mobile, centered on desktop.</p>
+<div class="file-upload" style="padding:40px 20px">
+<input type="file" name="logo" accept="image/*,video/webm" onchange="previewLogo(this)">
+<div class="file-upload-icon" style="font-size:2.5rem">🎨</div>
+<div class="file-upload-text" id="logo_label">{%if settings.logo_path%}Current: uploaded{%else%}Upload logo{%endif%}</div>
+<div class="file-upload-hint">Recommended: 400x120px</div>
+</div>
+<div class="logo-upload-preview" id="logo_preview">
+{%if settings.logo_path%}{%set logo_url=r2_url(settings.logo_path)%}
+{%if settings.logo_path.endswith('.webm')%}<video autoplay loop muted playsinline style="max-width:100%;max-height:150px;border-radius:12px"><source src="{{logo_url}}" type="video/webm"></video>
+{%else%}<img src="{{logo_url}}" style="max-width:100%;max-height:150px;border-radius:12px">{%endif%}
+{%endif%}
+</div>
+</div>
+<h2 style="margin:20px 0 12px;font-size:0.85rem;color:var(--td)">🎨 Colors</h2>
+<div class="neu-input-group"><label>Primary</label><div class="color-picker-group"><div class="color-preview" id="pp" style="background:{{settings.primary_color}}"></div><input type="text" name="primary_color" class="neu-input color-input" value="{{settings.primary_color}}" oninput="document.getElementById('pp').style.background=this.value"></div></div>
+<div class="neu-input-group"><label>Secondary</label><div class="color-picker-group"><div class="color-preview" id="sp" style="background:{{settings.secondary_color}}"></div><input type="text" name="secondary_color" class="neu-input color-input" value="{{settings.secondary_color}}" oninput="document.getElementById('sp').style.background=this.value"></div></div>
+<div class="neu-input-group"><label>Accent</label><div class="color-picker-group"><div class="color-preview" id="ap" style="background:{{settings.accent_color}}"></div><input type="text" name="accent_color" class="neu-input color-input" value="{{settings.accent_color}}" oninput="document.getElementById('ap').style.background=this.value"></div></div>
+<div class="neu-input-group"><label>Presets</label><div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="admin-btn-sm" onclick="setPre('#090c11','#afe81f','#1534fe')">Default</button><button type="button" class="admin-btn-sm" onclick="setPre('#1a1a2e','#e94560','#16213e')">Neon</button><button type="button" class="admin-btn-sm" onclick="setPre('#0d1117','#58a6ff','#238636')">GitHub</button></div></div>
+<button type="submit" class="neu-btn neu-btn-primary neu-btn-full" style="margin-top:12px">💾 Save</button>
+</form>
+</div>
+<script>
+function setPre(p,s,a){document.querySelector('[name="primary_color"]').value=p;document.querySelector('[name="secondary_color"]').value=s;document.querySelector('[name="accent_color"]').value=a;document.getElementById('pp').style.background=p;document.getElementById('sp').style.background=s;document.getElementById('ap').style.background=a;}
+function previewLogo(i){if(i.files&&i.files[0]){const f=i.files[0],c=document.getElementById('logo_preview');document.getElementById('logo_label').textContent=f.name;c.innerHTML=f.type.startsWith('video/')?'<video autoplay loop muted playsinline style="max-width:100%;max-height:150px;border-radius:12px"><source src="'+URL.createObjectURL(f)+'" type="'+f.type+'"></video>':'<img src="'+URL.createObjectURL(f)+'" style="max-width:100%;max-height:150px;border-radius:12px">';}}
+</script>
+{%endblock%}
