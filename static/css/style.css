@@ -19,7 +19,7 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--p);color:var(
 .filter-btn.active{background:linear-gradient(135deg,var(--s),#8bc418);color:var(--p)}
 .products-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(150px, 180px));
+  grid-template-columns:repeat(auto-fit, minmax(140px, 150px));
   gap:12px;
   justify-content:center;
 }
@@ -65,7 +65,7 @@ textarea.neu-input{min-height:80px;resize:vertical}
 .product-detail-image{
   width:100%;
   max-width:420px;          /* controls visual size on desktop */
-  aspect-ratio:3 / 4;       /* portrait */
+  aspect-ratio:1 / 1;       /* portrait */
   background:var(--pl);
   border-radius:14px;
   overflow:hidden;
