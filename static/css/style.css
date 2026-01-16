@@ -9,8 +9,8 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--p);color:var(
 .header{padding:12px 16px;background:var(--p);border-bottom:1px solid rgba(175,232,31,0.1);position:sticky;top:0;z-index:100}
 .header-inner{max-width:400px;margin:0 auto;position:relative;min-height:60px}
 .admin-link{position:absolute;top:5px;right:5px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--pl);text-decoration:none;font-size:1.1rem;box-shadow:2px 2px 6px var(--sd),-2px -2px 6px var(--sl);z-index:10}
-.logo-area{width:100%;display:flex;justify-content:center;align-items:center;min-height:80px;padding:10px 50px}
-.logo-area img,.logo-area video{max-width:100%;max-height:120px;height:auto;width:auto;object-fit:contain;border-radius:12px}
+.logo-area{width:100%;display:flex;justify-content:center;align-items:center;min-height:80px;padding:1px 10px}
+.logo-area img,.logo-area video{max-width:100%;max-height:160px;height:auto;width:auto;object-fit:contain;border-radius:12px}
 .logo-text{font-size:1.4rem;font-weight:700;background:linear-gradient(135deg,var(--s),var(--a));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center}
 .content{padding:16px}
 .category-filter{display:flex;gap:8px;padding:10px 16px;overflow-x:auto;scrollbar-width:none}
@@ -19,7 +19,7 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--p);color:var(
 .filter-btn.active{background:linear-gradient(135deg,var(--s),#8bc418);color:var(--p)}
 .products-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(140px, 150px));
+  grid-template-columns:repeat(auto-fit, minmax(140px, 160px));
   gap:12px;
   justify-content:center;
 }
