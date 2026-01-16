@@ -32,7 +32,10 @@ class Config:
             "postgres://", "postgresql://", 1
         )
 
-    SQLALCHEMY_DATABASE_URI = DATABASE_URL
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL.replace(
+    "postgresql://", "postgresql+psycopg://", 1
+)
+
 
     # ---------- Upload rules ----------
     ALLOWED_EXTENSIONS = {
