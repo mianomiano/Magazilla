@@ -7,3 +7,5 @@ werkzeug>=3.0.1
 requests>=2.31.0
 gunicorn>=21.0.0
 boto3>=1.34.0
+psycopg[binary]
+
