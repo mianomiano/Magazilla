@@ -91,8 +91,10 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--p);color:var(
   gap:12px;
   justify-content:center;
 }
-./* ===============================
-   PRODUCT CARD – BASE
+
+
+/* ===============================
+   PRODUCT CARD – BASE (UNCHANGED)
    =============================== */
 
 .product-card {
@@ -112,29 +114,34 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--p);color:var(
 }
 
 /* ===============================
-   HOVER – KEEP EXISTING + ADD STROKE
+   HOVER – KEEP ALL SHADOWS + ADD STROKE
    =============================== */
 
 .product-card:hover {
-  /* keep your current lift */
   transform: translateY(-2px);
 
   box-shadow:
-    0 0 0 2px rgba(175, 232, 31, 0.55), /* NEW stroke */
+    /* NEW stroke */
+    0 0 0 2px rgba(175, 232, 31, 0.55),
+
+    /* ORIGINAL hover shadows */
     6px 6px 18px rgba(0,0,0,0.6),
     -6px -6px 18px rgba(40,50,70,0.35);
 }
 
 /* ===============================
-   PRESSED / ACTIVE – PHYSICAL PRESS
+   PRESSED – KEEP FEEL + ADD STROKE
    =============================== */
 
 .product-card:active {
   transform: scale(0.97);
 
   box-shadow:
+    /* inset press */
     inset 3px 3px 6px rgba(0,0,0,0.6),
     inset -3px -3px 6px rgba(40,50,70,0.25),
+
+    /* stroke stays */
     0 0 0 2px rgba(175, 232, 31, 0.75);
 }
 
