@@ -15,26 +15,129 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--p);color:var(
 .content{padding:16px}
 .category-filter{display:flex;gap:8px;padding:10px 16px;overflow-x:auto;scrollbar-width:none}
 .category-filter::-webkit-scrollbar{display:none}
-.filter-btn{padding:6px 12px;border:none;border-radius:16px;background:var(--pl);color:var(--td);font-size:0.75rem;font-weight:500;cursor:pointer;white-space:nowrap;box-shadow:2px 2px 6px var(--sd),-2px -2px 6px var(--sl)}
-.filter-btn.active{background:linear-gradient(135deg,var(--s),#8bc418);color:var(--p)}
+/* ===============================
+   FILTER BUTTON – BASE
+   =============================== */
+
+.filter-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 16px;
+  background: var(--pl);
+  color: var(--td);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+
+  box-shadow:
+    2px 2px 6px var(--sd),
+    -2px -2px 6px var(--sl);
+
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.1s ease,
+    filter 0.15s ease;
+}
+
+/* ===============================
+   HOVER – COLORED STROKE
+   =============================== */
+
 .filter-btn:hover {
   color: var(--t);
-  background: linear-gradient(135deg, rgba(175,232,31,0.15), rgba(175,232,31,0.05));
+  box-shadow:
+    0 0 0 2px rgba(175, 232, 31, 0.6),
+    3px 3px 8px var(--sd),
+    -3px -3px 8px var(--sl);
 }
+
+/* ===============================
+   PRESSED / ACTIVE (PHYSICAL PRESS)
+   =============================== */
+
+.filter-btn:active {
+  transform: scale(0.95);
+  box-shadow:
+    inset 2px 2px 4px rgba(0, 0, 0, 0.6),
+    inset -2px -2px 4px rgba(40, 50, 70, 0.25),
+    0 0 0 2px rgba(175, 232, 31, 0.8);
+}
+
+/* ===============================
+   ACTIVE FILTER (SELECTED STATE)
+   =============================== */
+
+.filter-btn.active {
+  background: linear-gradient(135deg, var(--s), #8bc418);
+  color: var(--p);
+  box-shadow:
+    0 0 0 2px rgba(175, 232, 31, 0.9),
+    inset 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ===============================
+   ACTIVE + HOVER (NO FLICKER)
+   =============================== */
+
+.filter-btn.active:hover {
+  filter: brightness(1.05);
+}
+
+
 .products-grid{
   display:grid;
   grid-template-columns:repeat(auto-fit, minmax(140px, 160px));
   gap:12px;
   justify-content:center;
 }
-.product-card{background:var(--pl);border-radius:12px;overflow:hidden;cursor:pointer;box-shadow:4px 4px 12px var(--sd),-4px -4px 12px var(--sl);transition:transform 0.15s}
-.product-card:active{transform:scale(0.97)}
-.product-card:hover {
-  transform: translateY(-2px);
+./* ===============================
+   PRODUCT CARD – BASE
+   =============================== */
+
+.product-card {
+  background: var(--pl);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+
   box-shadow:
+    4px 4px 12px var(--sd),
+    -4px -4px 12px var(--sl);
+
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.1s ease,
+    filter 0.15s ease;
+}
+
+/* ===============================
+   HOVER – KEEP EXISTING + ADD STROKE
+   =============================== */
+
+.product-card:hover {
+  /* keep your current lift */
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 0 0 2px rgba(175, 232, 31, 0.55), /* NEW stroke */
     6px 6px 18px rgba(0,0,0,0.6),
     -6px -6px 18px rgba(40,50,70,0.35);
 }
+
+/* ===============================
+   PRESSED / ACTIVE – PHYSICAL PRESS
+   =============================== */
+
+.product-card:active {
+  transform: scale(0.97);
+
+  box-shadow:
+    inset 3px 3px 6px rgba(0,0,0,0.6),
+    inset -3px -3px 6px rgba(40,50,70,0.25),
+    0 0 0 2px rgba(175, 232, 31, 0.75);
+}
+
 
 .product-thumbnail{width:100%;aspect-ratio:1;background:var(--p);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .product-thumbnail img,.product-thumbnail video{width:100%;height:100%;object-fit:cover}
