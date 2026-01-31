@@ -1,1 +1,31 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>{{settings.app_name}}</title><script src="https://telegram.org/js/telegram-web-app.js"></script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="{{url_for('static',filename='css/style.css')}}"><style>:root{--p:{{settings.primary_color}};--s:{{settings.secondary_color}};--a:{{settings.accent_color}}}</style></head><body><div class="app-container">{%block content%}{%endblock%}</div><script src="{{url_for('static',filename='js/app.js')}}"></script></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="csrf-token" content="{{csrf_token()}}">
+    <title>{{settings.app_name}}</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{url_for('static',filename='css/style.css')}}">
+    <style>
+        :root{
+            --p:{{settings.primary_color}};
+            --s:{{settings.secondary_color}};
+            --a:{{settings.accent_color}};
+            --pl:#0f1419;
+            --t:#e8eaed;
+            --td:#9aa0a6;
+            --tm:#5f6368;
+            --sd:rgba(0,0,0,0.5);
+            --sl:rgba(30,40,55,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        {%block content%}{%endblock%}
+    </div>
+    <script src="{{url_for('static',filename='js/app.js')}}"></script>
+</body>
+</html>

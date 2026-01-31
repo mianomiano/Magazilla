@@ -1,23 +1,69 @@
-{%extends 'base.html'%}{%block content%}
+{%extends 'base.html'%}
+{%block content%}
 <header class="header">
 <div class="header-inner">
-{%if is_admin%}<a href="{{url_for('admin')}}" class="admin-link">⚙️</a>{%endif%}
 <div class="logo-area">
 {%if settings.logo_path%}
-  {%set logo_url=r2_url(settings.logo_path)%}
-  {%if settings.logo_path.endswith('.webm')%}
-  <video autoplay loop muted playsinline><source src="{{logo_url}}" type="video/webm"></video>
-  {%elif settings.logo_path.endswith('.gif')%}
-  <img src="{{logo_url}}">
-  {%else%}
-  <img src="{{logo_url}}" onerror="this.parentNode.innerHTML='<span class=logo-text>{{settings.app_name}}</span>'">
-  {%endif%}
+{%set logo_url=r2_url(settings.logo_path)%}
+{%if settings.logo_path.endswith('.webm')%}
+<video autoplay loop muted playsinline>
+<source src="{{logo_url}}" type="video/webm">
+</video>
+{%else%}
+<img src="{{logo_url}}" onerror="this.parentNode.innerHTML='<span class=logo-text>{{settings.app_name}}</span>'">
+{%endif%}
 {%else%}
 <span class="logo-text">{{settings.app_name}}</span>
 {%endif%}
 </div>
 </div>
 </header>
-<div class="category-filter"><button class="filter-btn active" data-category="all">All</button><button class="filter-btn" data-category="free">🆓 Free</button>{%for c in categories%}<button class="filter-btn" data-category="{{c}}">{{c}}</button>{%endfor%}</div>
-<div class="content">{%if products%}<div class="products-grid">{%for p in products%}<div class="product-card" data-category="{{p.category}}" data-free="{{'true' if p.is_free else 'false'}}" onclick="viewProduct({{p.id}})"><div class="product-thumbnail">{%if p.thumbnail%}{%set thumb_url=r2_url(p.thumbnail)%}{%if p.thumbnail.endswith('.webm')%}<video autoplay loop muted playsinline><source src="{{thumb_url}}" type="video/webm"></video>{%else%}<img src="{{thumb_url}}">{%endif%}{%else%}<span class="placeholder-icon">🎨</span>{%endif%}<span class="product-badge {%if p.is_free%}badge-free{%else%}badge-paid{%endif%}">{%if p.is_free%}FREE{%else%}⭐{{p.price}}{%endif%}</span></div><div class="product-info"><h3 class="product-name">{{p.name}}</h3><p class="product-category">{{p.category}}</p><div class="product-price {%if p.is_free%}free{%else%}paid{%endif%}">{%if p.is_free%}Free{%else%}⭐{{p.price}}{%endif%}</div></div></div>{%endfor%}</div>{%else%}<div class="empty-state"><div class="empty-state-icon">📦</div><p class="empty-state-text">No products</p><a href="{{url_for('admin_login')}}" class="neu-btn neu-btn-primary">Admin</a></div>{%endif%}</div>
+
+<div class="category-filter">
+<button class="filter-btn active" data-category="all">All</button>
+<button class="filter-btn" data-category="free">🆓 Free</button>
+{%for c in categories%}
+<button class="filter-btn" data-category="{{c}}">{{c}}</button>
+{%endfor%}
+</div>
+
+<div class="content">
+{%if products%}
+<div class="products-grid">
+{%for p in products%}
+<div class="product-card" data-category="{{p.category}}" data-free="{{'true' if p.is_free else 'false'}}" onclick="viewProduct({{p.id}})">
+<div class="product-thumbnail">
+{%if p.thumbnail%}
+{%set thumb_url=r2_url(p.thumbnail)%}
+{%if p.thumbnail.endswith('.webm')%}
+<video autoplay loop muted playsinline>
+<source src="{{thumb_url}}" type="video/webm">
+</video>
+{%else%}
+<img src="{{thumb_url}}" alt="{{p.name}}">
+{%endif%}
+{%else%}
+<span class="placeholder-icon">🎨</span>
+{%endif%}
+<span class="product-badge {%if p.is_free%}badge-free{%else%}badge-paid{%endif%}">
+{%if p.is_free%}FREE{%else%}⭐{{p.price}}{%endif%}
+</span>
+</div>
+<div class="product-info">
+<h3 class="product-name">{{p.name}}</h3>
+<p class="product-category">{{p.category}}</p>
+<div class="product-price {%if p.is_free%}free{%else%}paid{%endif%}">
+{%if p.is_free%}Free{%else%}⭐{{p.price}}{%endif%}
+</div>
+</div>
+</div>
+{%endfor%}
+</div>
+{%else%}
+<div class="empty-state">
+<div class="empty-state-icon">📦</div>
+<p class="empty-state-text">No products available</p>
+</div>
+{%endif%}
+</div>
 {%endblock%}
