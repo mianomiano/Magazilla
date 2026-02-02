@@ -8,17 +8,17 @@ if not os.getenv("RAILWAY_ENVIRONMENT"):
 
 
 class Config:
-    # ---------- Environment (define this FIRST) ----------
+    # ---------- Environment ----------
     ENV = os.getenv("FLASK_ENV", "development")
     DEBUG = ENV == "development"
-    TESTING = os.getenv("TESTING", "false").lower() == "true"
+    TESTING = os.getenv("TESTING", "true").lower() == "true"
     
     # ---------- Core ----------
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
     
     BOT_TOKEN = os.getenv("BOT_TOKEN")
     if not BOT_TOKEN:
-        raise RuntimeError("BOT_TOKEN is not set in .env file")
+        raise RuntimeError("❌ BOT_TOKEN is not set. Add it to .env file")
 
     MAX_CONTENT_LENGTH = 50 * 1024 * 1024
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -27,27 +27,24 @@ class Config:
     SESSION_COOKIE_SECURE = ENV == "production"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
-    PERMANENT_SESSION_LIFETIME = 3600  # 1 hour
+    PERMANENT_SESSION_LIFETIME = 3600
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = None
     
     # ---------- Admin Authentication ----------
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
-    ADMIN_TELEGRAM_IDS = [7165489081]  # Your Telegram ID
+    ADMIN_TELEGRAM_IDS = [7165489081]
     
     # ---------- App URL ----------
     APP_URL = os.getenv("APP_URL", "http://localhost:5000")
 
-    # ---------- Database ----------
+    # ---------- Database (SQLite for local, PostgreSQL for Railway) ----------
     DATABASE_URL = os.getenv("DATABASE_URL")
     
-    # Allow SQLite for local development
     if not DATABASE_URL:
-        if ENV == "development":
-            DATABASE_URL = "sqlite:///app.db"
-            print("⚠️ Using SQLite for local development")
-        else:
-            raise RuntimeError("DATABASE_URL is not set")
+        # Use SQLite for local development
+        DATABASE_URL = "sqlite:///app.db"
+        print("⚠️ Using SQLite for local development (data will be in app.db)")
     
     # Handle postgres:// vs postgresql://
     if DATABASE_URL.startswith("postgres://"):
@@ -69,14 +66,15 @@ class Config:
     }
 
     # ---------- Cloudflare R2 ----------
-    R2_ACCOUNT_ID = os.getenv("R2_ACCOUNT_ID")
-    R2_ACCESS_KEY = os.getenv("R2_ACCESS_KEY")
-    R2_SECRET_KEY = os.getenv("R2_SECRET_KEY")
-    R2_BUCKET = os.getenv("R2_BUCKET")
+    R2_ACCOUNT_ID = os.getenv("R2_ACCOUNT_ID", "")
+    R2_ACCESS_KEY = os.getenv("R2_ACCESS_KEY", "")
+    R2_SECRET_KEY = os.getenv("R2_SECRET_KEY", "")
+    R2_BUCKET = os.getenv("R2_BUCKET", "")
     R2_PUBLIC_URL = os.getenv("R2_PUBLIC_URL", "")
 
     if not all([R2_ACCOUNT_ID, R2_ACCESS_KEY, R2_SECRET_KEY, R2_BUCKET]):
-        print("⚠️ Warning: R2 credentials not set - uploads disabled")
+        print("⚠️ R2 not configured - file uploads will fail")
+        print("   Add R2 credentials to .env file")
     
     # ---------- Rate Limiting ----------
     RATELIMIT_STORAGE_URL = "memory://"

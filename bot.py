@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
-BOT_TOKEN = os.getenv('BOT_TOKEN')
+BOT_TOKEN = os.getenv('BOT_TOKEN', '8291332731:AAGO4WCsshqXWiMymXm_bdbuXTAr2xHVE10')
 WEBAPP_URL = os.getenv('APP_URL', 'https://web-production-36eec.up.railway.app')
 WEBHOOK_URL = f"{WEBAPP_URL}/api/webhook/telegram"
 
@@ -29,6 +29,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode='Markdown'
     )
+
 
 
 async def free_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
