@@ -1,70 +1,15 @@
+import os
 from flask import Flask, render_template
 from flask_wtf.csrf import CSRFProtect
 from config import Config
 from models import db, AppSettings
 from utils.decorators import limiter
 from r2_storage import get_r2_url
-import os
 
 # Import blueprints
 from blueprints.admin import admin_bp
 from blueprints.api import api_bp
 from blueprints.public import public_bp
-
-
-def migrate_database():
-    """Add missing columns to existing database - with error handling"""
-    print("🔄 Checking database schema...")
-    
-    temp_app = Flask(__name__)
-    temp_app.config.from_object(Config)
-    db.init_app(temp_app)
-    
-    with temp_app.app_context():
-        try:
-            # Just create all tables - SQLAlchemy will skip existing ones
-            db.create_all()
-            
-            # Try to add missing columns using raw SQL
-            try:
-                with db.engine.begin() as conn:
-                    # Add is_verified column if missing
-                    try:
-                        conn.execute(db.text(
-                            "ALTER TABLE purchase ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT TRUE"
-                        ))
-                        print("  ✅ Added is_verified column")
-                    except Exception as e:
-                        print(f"  ℹ️ is_verified: {e}")
-                    
-                    # Add is_test column if missing
-                    try:
-                        conn.execute(db.text(
-                            "ALTER TABLE purchase ADD COLUMN IF NOT EXISTS is_test BOOLEAN DEFAULT FALSE"
-                        ))
-                        print("  ✅ Added is_test column")
-                    except Exception as e:
-                        print(f"  ℹ️ is_test: {e}")
-                    
-                    # Set existing purchases as verified
-                    try:
-                        conn.execute(db.text(
-                            "UPDATE purchase SET is_verified = TRUE WHERE is_verified IS NULL"
-                        ))
-                        print("  ✅ Updated existing purchases")
-                    except Exception as e:
-                        print(f"  ℹ️ update: {e}")
-                
-                print("✅ Database migration complete")
-            
-            except Exception as e:
-                print(f"⚠️ Migration error (non-fatal): {e}")
-                print("  Continuing with app startup...")
-        
-        except Exception as e:
-            print(f"❌ Critical migration error: {e}")
-            # Don't crash - let app continue
-            print("  App will start anyway...")
 
 
 def create_app():
@@ -100,8 +45,11 @@ def create_app():
         
         return dict(r2_url=r2_url, settings=get_settings())
     
-    # Create tables
+    # Create/migrate tables
     with app.app_context():
+        # Run database migration
+        migrate_database()
+        # Create any missing tables
         db.create_all()
     
     # Health check
@@ -112,4 +60,59 @@ def create_app():
     return app
 
 
-# Run
+def migrate_database():
+    """Add missing columns to existing database"""
+    import sqlalchemy as sa
+    
+    try:
+        print("🔄 Checking database schema...")
+        
+        # Get database inspector
+        inspector = sa.inspect(db.engine)
+        
+        # Check Purchase table columns
+        if inspector.has_table('purchase'):
+            columns = {col['name'] for col in inspector.get_columns('purchase')}
+            
+            # Add is_verified if missing
+            if 'is_verified' not in columns:
+                print("  ➕ Adding is_verified column...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text(
+                        'ALTER TABLE purchase ADD COLUMN is_verified BOOLEAN DEFAULT TRUE'
+                    ))
+                    conn.execute(sa.text(
+                        'UPDATE purchase SET is_verified = TRUE WHERE is_verified IS NULL'
+                    ))
+                print("  ✅ is_verified column added")
+            
+            # Add is_test if missing
+            if 'is_test' not in columns:
+                print("  ➕ Adding is_test column...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text(
+                        'ALTER TABLE purchase ADD COLUMN is_test BOOLEAN DEFAULT FALSE'
+                    ))
+                print("  ✅ is_test column added")
+        
+        # Check AdminAuditLog table exists
+        if not inspector.has_table('admin_audit_log'):
+            print("  ➕ Creating admin_audit_log table...")
+        
+        print("✅ Database schema up to date")
+    
+    except Exception as e:
+        print(f"⚠️ Migration warning: {e}")
+        # Don't crash if migration fails
+
+
+# Create the app instance
+app = create_app()
+
+
+if __name__ == '__main__':
+    app.run(
+        host='0.0.0.0',
+        port=int(os.getenv('PORT', 5000)),
+        debug=Config.DEBUG
+    )
