@@ -184,7 +184,11 @@ def my_purchases():
             'stars_paid': p.stars_paid,
             'purchased_at': p.purchased_at.isoformat() if p.purchased_at else None
         })
- @api_bp.route('/check-admin', methods=['POST'])
+    
+    return jsonify({'purchases': result})
+
+
+@api_bp.route('/check-admin', methods=['POST'])
 @limiter.limit("30 per minute")
 def check_admin():
     """Check if current user is admin - requires Telegram auth"""
@@ -204,5 +208,3 @@ def check_admin():
     is_admin = user_id in Config.ADMIN_TELEGRAM_IDS
     
     return jsonify({'is_admin': is_admin})
-   
-    return jsonify({'purchases': result})
