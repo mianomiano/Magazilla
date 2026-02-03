@@ -69,7 +69,6 @@ def log_admin_action(action: str, details: str = None):
         details: Additional details about the action
     """
     try:
-        # Try to import and use AdminAuditLog model if it exists
         from models import db, AdminAuditLog
         
         log_entry = AdminAuditLog(
@@ -82,10 +81,6 @@ def log_admin_action(action: str, details: str = None):
         db.session.add(log_entry)
         db.session.commit()
         
-    except ImportError:
-        # AdminAuditLog model doesn't exist, just print to console
-        print(f"📝 Admin Action: {action} | Details: {details} | IP: {request.remote_addr}")
-    
     except Exception as e:
         # If logging fails, don't crash the app - just print error
         print(f"⚠️ Failed to log admin action: {e}")

@@ -1,8 +1,8 @@
 """Public routes for the shop frontend"""
 from flask import Blueprint, render_template, request, jsonify, redirect
-from models import db, Product, Purchase, Category
+from models import db, Product, Purchase
 from utils.decorators import limiter
-from utils.telegram_auth import validate_telegram_init_data, get_telegram_user_id
+from utils.telegram_auth import validate_telegram_init_data
 from utils.r2 import get_r2_url
 from config import Config
 
@@ -13,7 +13,13 @@ public_bp = Blueprint('public_bp', __name__)
 def index():
     """Main shop page"""
     products = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).all()
-    categories = Category.query.all()
+    
+    # Get unique categories from products
+    categories = set()
+    for p in products:
+        if p.category:
+            categories.add(p.category)
+    categories = sorted(list(categories))
     
     # Get user_id from initData if available (for showing purchase status)
     user_id = None
@@ -129,22 +135,27 @@ def _process_download(product):
         return jsonify({'error': 'Download failed'}), 500
 
 
-@public_bp.route('/category/<int:cid>')
-def category_products(cid):
+@public_bp.route('/category/<string:cat_name>')
+def category_products(cat_name):
     """Products filtered by category"""
-    category = Category.query.get_or_404(cid)
     products = Product.query.filter_by(
-        category_id=cid,
+        category=cat_name,
         is_active=True
     ).order_by(Product.created_at.desc()).all()
     
-    categories = Category.query.all()
+    # Get all categories
+    all_products = Product.query.filter_by(is_active=True).all()
+    categories = set()
+    for p in all_products:
+        if p.category:
+            categories.add(p.category)
+    categories = sorted(list(categories))
     
     return render_template(
         'index.html',
         products=products,
         categories=categories,
-        current_category=category,
+        current_category=cat_name,
         purchased_ids=set()
     )
 

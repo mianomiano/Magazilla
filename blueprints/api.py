@@ -175,14 +175,14 @@ def my_purchases():
         is_verified=True
     ).all()
     
-    return jsonify({
-        'purchases': [
-            {
-                'product_id': p.product_id,
-                'product_name': p.product.name if p.product else 'Unknown',
-                'stars_paid': p.stars_paid,
-                'purchased_at': p.created_at.isoformat() if p.created_at else None
-            }
-            for p in purchases
-        ]
-    })
+    result = []
+    for p in purchases:
+        product = Product.query.get(p.product_id)
+        result.append({
+            'product_id': p.product_id,
+            'product_name': product.name if product else 'Unknown',
+            'stars_paid': p.stars_paid,
+            'purchased_at': p.purchased_at.isoformat() if p.purchased_at else None
+        })
+    
+    return jsonify({'purchases': result})
