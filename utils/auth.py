@@ -58,3 +58,35 @@ def admin_api_required(f):
         return jsonify({'error': 'Admin access required'}), 403
     
     return decorated_function
+
+
+def log_admin_action(action: str, details: str = None):
+    """
+    Log admin action for audit trail.
+    
+    Args:
+        action: The action performed (e.g., 'create_product', 'delete_product')
+        details: Additional details about the action
+    """
+    try:
+        # Try to import and use AdminAuditLog model if it exists
+        from models import db, AdminAuditLog
+        
+        log_entry = AdminAuditLog(
+            admin_user_id=session.get('admin_user_id'),
+            action=action,
+            details=details,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent', '')[:500]
+        )
+        db.session.add(log_entry)
+        db.session.commit()
+        
+    except ImportError:
+        # AdminAuditLog model doesn't exist, just print to console
+        print(f"📝 Admin Action: {action} | Details: {details} | IP: {request.remote_addr}")
+    
+    except Exception as e:
+        # If logging fails, don't crash the app - just print error
+        print(f"⚠️ Failed to log admin action: {e}")
+        print(f"📝 Admin Action: {action} | Details: {details}")
