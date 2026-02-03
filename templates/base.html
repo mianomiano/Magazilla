@@ -18,7 +18,7 @@
             --p: {{settings.primary_color}};
             --s: {{settings.secondary_color}};
             --a: {{settings.accent_color}};
-            --pl: #0f1419;
+            --pl: {{settings.primary_color}}dd;
             --t: #e8eaed;
             --td: #9aa0a6;
             --tm: #5f6368;
@@ -26,69 +26,299 @@
             --sl: rgba(30,40,55,0.3);
         }
         
-        /* Font Family */
+        /* ========== CORE COLOR OVERRIDES ========== */
+        
+        /* Background */
+        body, .app-container {
+            background: var(--p) !important;
+        }
+        
+        /* Cards & Containers */
+        .product-card,
+        .category-card,
+        .settings-card,
+        .stat-card {
+            background: color-mix(in srgb, var(--p) 85%, white 15%) !important;
+            border: 1px solid color-mix(in srgb, var(--p) 70%, white 30%) !important;
+        }
+        
+        /* For older browsers without color-mix */
+        @supports not (color: color-mix(in srgb, red, blue)) {
+            .product-card,
+            .category-card,
+            .settings-card,
+            .stat-card {
+                background: var(--p) !important;
+                border: 1px solid rgba(255,255,255,0.1) !important;
+            }
+        }
+        
+        /* Primary Buttons - Use Secondary Color */
+        .neu-btn-primary,
+        .btn-primary,
+        .download-btn,
+        .buy-btn,
+        .save-btn,
+        button[type="submit"] {
+            background: var(--s) !important;
+            color: var(--p) !important;
+            border: none !important;
+        }
+        
+        .neu-btn-primary:hover,
+        .btn-primary:hover,
+        .download-btn:hover,
+        .buy-btn:hover {
+            background: color-mix(in srgb, var(--s) 85%, white 15%) !important;
+            box-shadow: 0 4px 20px color-mix(in srgb, var(--s) 50%, transparent) !important;
+        }
+        
+        /* Secondary/Ghost Buttons */
+        .neu-btn,
+        .btn-secondary,
+        .btn-ghost {
+            background: color-mix(in srgb, var(--p) 80%, white 20%) !important;
+            color: var(--t) !important;
+            border: 1px solid color-mix(in srgb, var(--p) 60%, white 40%) !important;
+        }
+        
+        /* Filter Buttons */
+        .filter-btn,
+        .category-btn {
+            background: color-mix(in srgb, var(--p) 85%, white 15%) !important;
+            color: var(--td) !important;
+            border: 1px solid color-mix(in srgb, var(--p) 70%, white 30%) !important;
+        }
+        
+        .filter-btn.active,
+        .filter-btn:hover,
+        .category-btn.active,
+        .category-btn:hover {
+            background: var(--s) !important;
+            color: var(--p) !important;
+            border-color: var(--s) !important;
+        }
+        
+        /* Accent Color Usage */
+        .product-badge.premium,
+        .badge-premium,
+        .accent-badge {
+            background: var(--a) !important;
+            color: white !important;
+        }
+        
+        /* Price & Highlights use Accent */
+        .product-price,
+        .price,
+        .stars-amount,
+        .stat-value,
+        .highlight {
+            color: var(--s) !important;
+        }
+        
+        /* Links use Accent */
+        a.accent-link,
+        .link-accent {
+            color: var(--a) !important;
+        }
+        
+        /* Header/Logo Area */
+        .logo-area,
+        .header-area {
+            background: linear-gradient(180deg, color-mix(in srgb, var(--p) 90%, var(--s) 10%), var(--p)) !important;
+            border-bottom: 1px solid color-mix(in srgb, var(--s) 30%, transparent) !important;
+        }
+        
+        /* Product Thumbnail Placeholder */
+        .product-thumbnail {
+            background: color-mix(in srgb, var(--p) 70%, black 30%) !important;
+        }
+        
+        /* Input Fields */
+        input, textarea, select {
+            background: color-mix(in srgb, var(--p) 80%, black 20%) !important;
+            border: 1px solid color-mix(in srgb, var(--p) 60%, white 40%) !important;
+            color: var(--t) !important;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--s) !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--s) 30%, transparent) !important;
+        }
+        
+        /* Modal & Overlay */
+        .modal-content,
+        .popup-content,
+        .dropdown-menu {
+            background: color-mix(in srgb, var(--p) 95%, white 5%) !important;
+            border: 1px solid color-mix(in srgb, var(--p) 70%, white 30%) !important;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar-track {
+            background: var(--p);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: color-mix(in srgb, var(--p) 60%, white 40%);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--s);
+        }
+        
+        /* Free Badge - uses Secondary */
+        .product-badge.free,
+        .badge-free {
+            background: color-mix(in srgb, var(--s) 20%, transparent) !important;
+            color: var(--s) !important;
+        }
+        
+        /* Paid Badge - uses Accent */
+        .product-badge.paid,
+        .badge-paid {
+            background: color-mix(in srgb, var(--a) 20%, transparent) !important;
+            color: var(--a) !important;
+        }
+        
+        /* Navigation */
+        .nav-item.active,
+        .tab.active {
+            color: var(--s) !important;
+            border-color: var(--s) !important;
+        }
+        
+        /* Progress bars */
+        .progress-fill {
+            background: linear-gradient(90deg, var(--s), var(--a)) !important;
+        }
+        
+        /* Dividers */
+        hr, .divider {
+            border-color: color-mix(in srgb, var(--p) 70%, white 30%) !important;
+        }
+        
+        /* ========== FONT FAMILY ========== */
         {% if settings.font_family == 'balsamiq' %}
-        body { font-family: 'Balsamiq Sans', cursive; }
+        body, button, input, textarea, select { font-family: 'Balsamiq Sans', cursive !important; }
         {% elif settings.font_family == 'grandstander' %}
-        body { font-family: 'Grandstander', cursive; }
+        body, button, input, textarea, select { font-family: 'Grandstander', cursive !important; }
         {% elif settings.font_family == 'montserrat' %}
-        body { font-family: 'Montserrat', sans-serif; }
+        body, button, input, textarea, select { font-family: 'Montserrat', sans-serif !important; }
         {% elif settings.font_family == 'russo' %}
-        body { font-family: 'Russo One', sans-serif; }
+        body, button, input, textarea, select { font-family: 'Russo One', sans-serif !important; }
         {% else %}
-        body { font-family: 'Inter', -apple-system, sans-serif; }
+        body, button, input, textarea, select { font-family: 'Inter', -apple-system, sans-serif !important; }
         {% endif %}
         
-        /* Button Roundness */
+        /* ========== BUTTON ROUNDNESS ========== */
         {% if settings.button_roundness == 'sharp' %}
-        .neu-btn, .filter-btn, .product-card, .product-badge { border-radius: 4px !important; }
+        .neu-btn, .filter-btn, .product-card, .product-badge, 
+        .btn-primary, .btn-secondary, input, textarea, select,
+        .modal-content, .dropdown-menu { 
+            border-radius: 4px !important; 
+        }
         {% elif settings.button_roundness == 'pill' %}
-        .neu-btn, .filter-btn { border-radius: 50px !important; }
-        .product-card { border-radius: 20px !important; }
-        .product-badge { border-radius: 12px !important; }
+        .neu-btn, .filter-btn, .btn-primary, .btn-secondary { 
+            border-radius: 50px !important; 
+        }
+        .product-card, .modal-content { 
+            border-radius: 20px !important; 
+        }
+        .product-badge { 
+            border-radius: 12px !important; 
+        }
+        input, textarea, select {
+            border-radius: 12px !important;
+        }
+        {% else %}
+        .neu-btn, .filter-btn, .btn-primary, .btn-secondary { 
+            border-radius: 12px !important; 
+        }
+        .product-card { 
+            border-radius: 16px !important; 
+        }
+        input, textarea, select {
+            border-radius: 8px !important;
+        }
         {% endif %}
         
-        /* Button Style */
+        /* ========== BUTTON STYLE ========== */
         {% if settings.button_style == 'flat' %}
-        .neu-btn {
+        .neu-btn, .btn-secondary {
             box-shadow: none !important;
             border: 2px solid var(--s) !important;
             background: transparent !important;
+            color: var(--s) !important;
         }
-        .neu-btn-primary {
+        .neu-btn-primary, .btn-primary, .download-btn, .buy-btn {
+            box-shadow: none !important;
             background: var(--s) !important;
-            border-color: var(--s) !important;
+            border: 2px solid var(--s) !important;
         }
-        .neu-btn:active { transform: scale(0.97); }
+        .neu-btn:active, .btn-secondary:active { 
+            transform: scale(0.97); 
+        }
+        
         {% elif settings.button_style == 'bubble' %}
-        .neu-btn {
+        .neu-btn, .btn-secondary {
             box-shadow: 0 4px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1) !important;
             border: 2px solid rgba(255,255,255,0.1) !important;
         }
-        .neu-btn:active {
+        .neu-btn:active, .btn-secondary:active {
             box-shadow: 0 1px 0 rgba(0,0,0,0.3) !important;
             transform: translateY(3px);
         }
-        .neu-btn-primary {
-            box-shadow: 0 4px 0 #6a9410, inset 0 1px 0 rgba(255,255,255,0.2) !important;
+        .neu-btn-primary, .btn-primary, .download-btn, .buy-btn {
+            box-shadow: 0 4px 0 color-mix(in srgb, var(--s) 50%, black 50%), 
+                        inset 0 1px 0 rgba(255,255,255,0.2) !important;
         }
+        .neu-btn-primary:active, .btn-primary:active {
+            box-shadow: 0 1px 0 color-mix(in srgb, var(--s) 50%, black 50%) !important;
+            transform: translateY(3px);
+        }
+        
         {% elif settings.button_style == 'glow' %}
-        .neu-btn {
+        .neu-btn, .btn-secondary {
             box-shadow: 0 0 15px rgba(255,255,255,0.1) !important;
         }
-        .neu-btn:hover {
-            box-shadow: 0 0 25px var(--s) !important;
+        .neu-btn:hover, .btn-secondary:hover {
+            box-shadow: 0 0 25px color-mix(in srgb, var(--s) 50%, transparent) !important;
         }
-        .neu-btn-primary {
-            box-shadow: 0 0 20px var(--s) !important;
+        .neu-btn-primary, .btn-primary, .download-btn, .buy-btn {
+            box-shadow: 0 0 20px color-mix(in srgb, var(--s) 50%, transparent) !important;
+        }
+        .neu-btn-primary:hover, .btn-primary:hover {
+            box-shadow: 0 0 35px color-mix(in srgb, var(--s) 70%, transparent) !important;
+        }
+        
+        {% else %}
+        /* Soft (Neumorphic) - Default */
+        .neu-btn, .btn-secondary {
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.4), 
+                        -2px -2px 5px color-mix(in srgb, var(--p) 80%, white 20%) !important;
+        }
+        .neu-btn:active, .btn-secondary:active {
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3),
+                        inset -1px -1px 3px color-mix(in srgb, var(--p) 80%, white 20%) !important;
+        }
+        .neu-btn-primary, .btn-primary, .download-btn, .buy-btn {
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.3), 
+                        -2px -2px 5px color-mix(in srgb, var(--s) 80%, white 20%),
+                        0 0 20px color-mix(in srgb, var(--s) 30%, transparent) !important;
         }
         {% endif %}
         
-        /* Card Size */
+        /* ========== CARD SIZE ========== */
         {% if settings.card_size == 'small' %}
         .products-grid {
             grid-template-columns: repeat(3, 1fr) !important;
             gap: 8px !important;
+        }
+        .product-name {
+            font-size: 12px !important;
         }
         {% elif settings.card_size == 'large' %}
         .products-grid {
@@ -102,33 +332,54 @@
         }
         {% endif %}
         
-        /* Card Shape */
+        /* ========== CARD SHAPE ========== */
         {% if settings.card_shape == 'rectangle' %}
-        .product-thumbnail { aspect-ratio: 3/4 !important; }
+        .product-thumbnail { 
+            aspect-ratio: 3/4 !important; 
+        }
         {% endif %}
         
-        /* Card Info */
+        /* ========== CARD INFO ========== */
         {% if settings.card_info == 'image' %}
-        .product-info { display: none !important; }
+        .product-info { 
+            display: none !important; 
+        }
+        .product-card {
+            overflow: hidden;
+        }
         {% elif settings.card_info == 'minimal' %}
-        .product-category, .product-price { display: none !important; }
+        .product-category, .product-price, .product-description { 
+            display: none !important; 
+        }
         {% endif %}
         
-        /* Header Size */
+        /* ========== HEADER SIZE ========== */
         {% if settings.header_size == 'compact' %}
-        .logo-area { min-height: 40px !important; padding: 5px 10px !important; }
-        .logo-area img, .logo-area video { max-height: 50px !important; }
+        .logo-area { 
+            min-height: 40px !important; 
+            padding: 8px 16px !important; 
+        }
+        .logo-area img, .logo-area video { 
+            max-height: 50px !important; 
+        }
         {% elif settings.header_size == 'tall' %}
-        .logo-area { min-height: 120px !important; padding: 20px 10px !important; }
-        .logo-area img, .logo-area video { max-height: 180px !important; }
+        .logo-area { 
+            min-height: 120px !important; 
+            padding: 24px 16px !important; 
+        }
+        .logo-area img, .logo-area video { 
+            max-height: 180px !important; 
+        }
         {% endif %}
         
-        /* Show/Hide Filters */
+        /* ========== SHOW/HIDE FILTERS ========== */
         {% if not settings.show_filters %}
-        .category-filter { display: none !important; }
+        .category-filter, .filters-container { 
+            display: none !important; 
+        }
         {% endif %}
         
-        /* Admin Floating Button Styles */
+        /* ========== ADMIN FAB STYLES ========== */
         #admin-fab {
             position: fixed;
             bottom: 80px;
@@ -167,7 +418,7 @@
             position: absolute;
             bottom: 65px;
             right: 0;
-            background: #1e2733;
+            background: color-mix(in srgb, var(--p) 95%, white 5%);
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             overflow: hidden;
@@ -180,7 +431,7 @@
             align-items: center;
             gap: 10px;
             padding: 14px 18px;
-            color: #e8eaed;
+            color: var(--t);
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
@@ -208,6 +459,23 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+        
+        /* ========== FALLBACK FOR OLDER BROWSERS ========== */
+        @supports not (color: color-mix(in srgb, red, blue)) {
+            .neu-btn, .btn-secondary {
+                background: rgba(255,255,255,0.05) !important;
+            }
+            .filter-btn, .category-btn {
+                background: rgba(255,255,255,0.05) !important;
+            }
+            .product-card {
+                background: rgba(255,255,255,0.03) !important;
+            }
+            input, textarea, select {
+                background: rgba(0,0,0,0.2) !important;
+                border-color: rgba(255,255,255,0.1) !important;
+            }
         }
     </style>
 </head>
