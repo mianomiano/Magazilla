@@ -52,9 +52,21 @@ class AppSettings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     app_name = db.Column(db.String(200), default='Magazilla')
     logo_path = db.Column(db.String(500), default='')
+    
+    # Colors
     primary_color = db.Column(db.String(20), default='#090c11')
     secondary_color = db.Column(db.String(20), default='#afe81f')
     accent_color = db.Column(db.String(20), default='#1534fe')
+    
+    # Appearance settings
+    font_family = db.Column(db.String(50), default='inter')  # inter, balsamiq, grandstander, montserrat, russo
+    button_style = db.Column(db.String(20), default='soft')  # soft, flat, bubble, glow
+    button_roundness = db.Column(db.String(20), default='rounded')  # sharp, rounded, pill
+    card_size = db.Column(db.String(20), default='medium')  # small, medium, large
+    card_shape = db.Column(db.String(20), default='square')  # square, rectangle
+    card_info = db.Column(db.String(20), default='full')  # full, minimal, image
+    header_size = db.Column(db.String(20), default='normal')  # compact, normal, tall
+    show_filters = db.Column(db.Boolean, default=True)
 
 
 class AdminAuditLog(db.Model):

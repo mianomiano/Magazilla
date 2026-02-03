@@ -6,20 +6,127 @@
     <meta name="csrf-token" content="{{csrf_token()}}">
     <title>{{settings.app_name}}</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Balsamiq+Sans:wght@400;700&family=Grandstander:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Russo+One&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="{{url_for('static',filename='css/style.css')}}">
     <style>
-        :root{
-            --p:{{settings.primary_color}};
-            --s:{{settings.secondary_color}};
-            --a:{{settings.accent_color}};
-            --pl:#0f1419;
-            --t:#e8eaed;
-            --td:#9aa0a6;
-            --tm:#5f6368;
-            --sd:rgba(0,0,0,0.5);
-            --sl:rgba(30,40,55,0.3);
+        :root {
+            --p: {{settings.primary_color}};
+            --s: {{settings.secondary_color}};
+            --a: {{settings.accent_color}};
+            --pl: #0f1419;
+            --t: #e8eaed;
+            --td: #9aa0a6;
+            --tm: #5f6368;
+            --sd: rgba(0,0,0,0.5);
+            --sl: rgba(30,40,55,0.3);
         }
+        
+        /* Font Family */
+        {% if settings.font_family == 'balsamiq' %}
+        body { font-family: 'Balsamiq Sans', cursive; }
+        {% elif settings.font_family == 'grandstander' %}
+        body { font-family: 'Grandstander', cursive; }
+        {% elif settings.font_family == 'montserrat' %}
+        body { font-family: 'Montserrat', sans-serif; }
+        {% elif settings.font_family == 'russo' %}
+        body { font-family: 'Russo One', sans-serif; }
+        {% else %}
+        body { font-family: 'Inter', -apple-system, sans-serif; }
+        {% endif %}
+        
+        /* Button Roundness */
+        {% if settings.button_roundness == 'sharp' %}
+        .neu-btn, .filter-btn, .product-card, .product-badge { border-radius: 4px !important; }
+        {% elif settings.button_roundness == 'pill' %}
+        .neu-btn, .filter-btn { border-radius: 50px !important; }
+        .product-card { border-radius: 20px !important; }
+        .product-badge { border-radius: 12px !important; }
+        {% endif %}
+        
+        /* Button Style */
+        {% if settings.button_style == 'flat' %}
+        .neu-btn {
+            box-shadow: none !important;
+            border: 2px solid var(--s) !important;
+            background: transparent !important;
+        }
+        .neu-btn-primary {
+            background: var(--s) !important;
+            border-color: var(--s) !important;
+        }
+        .neu-btn:active { transform: scale(0.97); }
+        {% elif settings.button_style == 'bubble' %}
+        .neu-btn {
+            box-shadow: 0 4px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1) !important;
+            border: 2px solid rgba(255,255,255,0.1) !important;
+        }
+        .neu-btn:active {
+            box-shadow: 0 1px 0 rgba(0,0,0,0.3) !important;
+            transform: translateY(3px);
+        }
+        .neu-btn-primary {
+            box-shadow: 0 4px 0 #6a9410, inset 0 1px 0 rgba(255,255,255,0.2) !important;
+        }
+        {% elif settings.button_style == 'glow' %}
+        .neu-btn {
+            box-shadow: 0 0 15px rgba(255,255,255,0.1) !important;
+        }
+        .neu-btn:hover {
+            box-shadow: 0 0 25px var(--s) !important;
+        }
+        .neu-btn-primary {
+            box-shadow: 0 0 20px var(--s) !important;
+        }
+        {% endif %}
+        
+        /* Card Size */
+        {% if settings.card_size == 'small' %}
+        .products-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 8px !important;
+        }
+        {% elif settings.card_size == 'large' %}
+        .products-grid {
+            grid-template-columns: 1fr !important;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        {% else %}
+        .products-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        {% endif %}
+        
+        /* Card Shape */
+        {% if settings.card_shape == 'rectangle' %}
+        .product-thumbnail { aspect-ratio: 3/4 !important; }
+        {% endif %}
+        
+        /* Card Info */
+        {% if settings.card_info == 'image' %}
+        .product-info { display: none !important; }
+        {% elif settings.card_info == 'minimal' %}
+        .product-category, .product-price { display: none !important; }
+        {% endif %}
+        
+        /* Header Size */
+        {% if settings.header_size == 'compact' %}
+        .logo-area { min-height: 40px !important; padding: 5px 10px !important; }
+        .logo-area img, .logo-area video { max-height: 50px !important; }
+        {% elif settings.header_size == 'tall' %}
+        .logo-area { min-height: 120px !important; padding: 20px 10px !important; }
+        .logo-area img, .logo-area video { max-height: 180px !important; }
+        {% endif %}
+        
+        /* Show/Hide Filters */
+        {% if not settings.show_filters %}
+        .category-filter { display: none !important; }
+        {% endif %}
         
         /* Admin Floating Button Styles */
         #admin-fab {
@@ -120,14 +227,14 @@
             <a href="/admin">
                 <span class="icon">📊</span> Dashboard
             </a>
-            <a href="/admin/products">
-                <span class="icon">📦</span> Products
-            </a>
-            <a href="/admin/products/new">
-                <span class="icon">➕</span> Add Product
-            </a>
             <a href="/admin/purchases">
                 <span class="icon">💰</span> Purchases
+            </a>
+            <a href="/admin/product/new">
+                <span class="icon">➕</span> Add Product
+            </a>
+            <a href="/admin/appearance">
+                <span class="icon">🎨</span> Appearance
             </a>
             <a href="/admin/settings">
                 <span class="icon">⚙️</span> Settings
@@ -142,14 +249,12 @@
     (function() {
         let menuOpen = false;
         
-        // Toggle admin menu
         window.toggleAdminMenu = function() {
             const menu = document.getElementById('admin-menu');
             menuOpen = !menuOpen;
             menu.style.display = menuOpen ? 'block' : 'none';
         };
         
-        // Close menu when clicking outside
         document.addEventListener('click', function(e) {
             const fab = document.getElementById('admin-fab');
             if (fab && !fab.contains(e.target) && menuOpen) {
@@ -158,7 +263,6 @@
             }
         });
         
-        // Check if user is admin via API
         async function checkAdminStatus() {
             try {
                 const tg = window.Telegram?.WebApp;
@@ -177,21 +281,18 @@
                 
                 if (data.is_admin) {
                     document.getElementById('admin-fab').style.display = 'block';
-                    console.log('✅ Admin access granted');
                 }
             } catch (e) {
                 console.error('Admin check failed:', e);
             }
         }
         
-        // Initialize when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', checkAdminStatus);
         } else {
             checkAdminStatus();
         }
         
-        // Also check when Telegram WebApp is ready
         if (window.Telegram?.WebApp) {
             window.Telegram.WebApp.ready();
         }

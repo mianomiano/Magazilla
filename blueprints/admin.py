@@ -357,6 +357,77 @@ def settings():
         return redirect(url_for('admin_bp.dashboard'))
     
     return render_template('settings.html', settings=app_settings)
+    
+@admin_bp.route('/appearance', methods=['GET', 'POST'])
+@admin_required
+def appearance():
+    """Appearance customization"""
+    app_settings = AppSettings.query.first()
+    if not app_settings:
+        app_settings = AppSettings()
+        db.session.add(app_settings)
+        db.session.commit()
+    
+    if request.method == 'POST':
+        # Colors
+        primary_color = request.form.get('primary_color', '#090c11')
+        secondary_color = request.form.get('secondary_color', '#afe81f')
+        accent_color = request.form.get('accent_color', '#1534fe')
+        
+        for color in [primary_color, secondary_color, accent_color]:
+            valid, error = validate_color(color)
+            if not valid:
+                flash(error, 'error')
+                return render_template('appearance.html', settings=app_settings)
+        
+        app_settings.primary_color = primary_color
+        app_settings.secondary_color = secondary_color
+        app_settings.accent_color = accent_color
+        
+        # Font
+        font = request.form.get('font_family', 'inter')
+        if font in ['inter', 'balsamiq', 'grandstander', 'montserrat', 'russo']:
+            app_settings.font_family = font
+        
+        # Button style
+        btn_style = request.form.get('button_style', 'soft')
+        if btn_style in ['soft', 'flat', 'bubble', 'glow']:
+            app_settings.button_style = btn_style
+        
+        # Button roundness
+        btn_round = request.form.get('button_roundness', 'rounded')
+        if btn_round in ['sharp', 'rounded', 'pill']:
+            app_settings.button_roundness = btn_round
+        
+        # Card size
+        card_size = request.form.get('card_size', 'medium')
+        if card_size in ['small', 'medium', 'large']:
+            app_settings.card_size = card_size
+        
+        # Card shape
+        card_shape = request.form.get('card_shape', 'square')
+        if card_shape in ['square', 'rectangle']:
+            app_settings.card_shape = card_shape
+        
+        # Card info
+        card_info = request.form.get('card_info', 'full')
+        if card_info in ['full', 'minimal', 'image']:
+            app_settings.card_info = card_info
+        
+        # Header size
+        header_size = request.form.get('header_size', 'normal')
+        if header_size in ['compact', 'normal', 'tall']:
+            app_settings.header_size = header_size
+        
+        # Show filters
+        app_settings.show_filters = request.form.get('show_filters') == 'on'
+        
+        db.session.commit()
+        log_admin_action('update_appearance', 'Appearance settings updated')
+        flash('Appearance updated!', 'success')
+        return redirect(url_for('admin_bp.appearance'))
+    
+    return render_template('appearance.html', settings=app_settings)
 
 
 @admin_bp.route('/test-purchase', methods=['POST'])

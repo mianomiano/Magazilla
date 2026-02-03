@@ -70,7 +70,7 @@ def migrate_database():
         # Get database inspector
         inspector = sa.inspect(db.engine)
         
-        # Check Purchase table columns
+        # ===== PURCHASE TABLE =====
         if inspector.has_table('purchase'):
             columns = {col['name'] for col in inspector.get_columns('purchase')}
             
@@ -95,7 +95,32 @@ def migrate_database():
                     ))
                 print("  ✅ is_test column added")
         
-        # Check AdminAuditLog table exists
+        # ===== APP_SETTINGS TABLE =====
+        if inspector.has_table('app_settings'):
+            columns = {col['name'] for col in inspector.get_columns('app_settings')}
+            
+            # Appearance settings columns to add
+            appearance_columns = {
+                'font_family': "VARCHAR(50) DEFAULT 'inter'",
+                'button_style': "VARCHAR(20) DEFAULT 'soft'",
+                'button_roundness': "VARCHAR(20) DEFAULT 'rounded'",
+                'card_size': "VARCHAR(20) DEFAULT 'medium'",
+                'card_shape': "VARCHAR(20) DEFAULT 'square'",
+                'card_info': "VARCHAR(20) DEFAULT 'full'",
+                'header_size': "VARCHAR(20) DEFAULT 'normal'",
+                'show_filters': "BOOLEAN DEFAULT TRUE"
+            }
+            
+            for col_name, col_type in appearance_columns.items():
+                if col_name not in columns:
+                    print(f"  ➕ Adding {col_name} column...")
+                    with db.engine.begin() as conn:
+                        conn.execute(sa.text(
+                            f'ALTER TABLE app_settings ADD COLUMN {col_name} {col_type}'
+                        ))
+                    print(f"  ✅ {col_name} column added")
+        
+        # ===== ADMIN_AUDIT_LOG TABLE =====
         if not inspector.has_table('admin_audit_log'):
             print("  ➕ Creating admin_audit_log table...")
         
