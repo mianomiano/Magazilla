@@ -20,12 +20,182 @@
             --sd:rgba(0,0,0,0.5);
             --sl:rgba(30,40,55,0.3);
         }
+        
+        /* Admin Floating Button Styles */
+        #admin-fab {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 9999;
+            display: none;
+        }
+        
+        #admin-fab-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        #admin-fab-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        #admin-fab-btn:active {
+            transform: scale(0.95);
+        }
+        
+        #admin-menu {
+            display: none;
+            position: absolute;
+            bottom: 65px;
+            right: 0;
+            background: #1e2733;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            overflow: hidden;
+            min-width: 200px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        #admin-menu a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            color: #e8eaed;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.2s;
+        }
+        
+        #admin-menu a:last-child {
+            border-bottom: none;
+        }
+        
+        #admin-menu a:hover {
+            background: rgba(255,255,255,0.08);
+        }
+        
+        #admin-menu a span.icon {
+            font-size: 18px;
+        }
+        
+        #admin-menu-header {
+            padding: 12px 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
         {%block content%}{%endblock%}
     </div>
+    
+    <!-- Admin Floating Action Button -->
+    <div id="admin-fab">
+        <button id="admin-fab-btn" onclick="toggleAdminMenu()">
+            ⚙️
+        </button>
+        
+        <div id="admin-menu">
+            <div id="admin-menu-header">🔐 Admin Panel</div>
+            <a href="/admin">
+                <span class="icon">📊</span> Dashboard
+            </a>
+            <a href="/admin/products">
+                <span class="icon">📦</span> Products
+            </a>
+            <a href="/admin/products/new">
+                <span class="icon">➕</span> Add Product
+            </a>
+            <a href="/admin/purchases">
+                <span class="icon">💰</span> Purchases
+            </a>
+            <a href="/admin/settings">
+                <span class="icon">⚙️</span> Settings
+            </a>
+        </div>
+    </div>
+    
     <script src="{{url_for('static',filename='js/app.js')}}"></script>
+    
+    <script>
+    // Admin Panel Functionality
+    (function() {
+        let menuOpen = false;
+        
+        // Toggle admin menu
+        window.toggleAdminMenu = function() {
+            const menu = document.getElementById('admin-menu');
+            menuOpen = !menuOpen;
+            menu.style.display = menuOpen ? 'block' : 'none';
+        };
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const fab = document.getElementById('admin-fab');
+            if (fab && !fab.contains(e.target) && menuOpen) {
+                document.getElementById('admin-menu').style.display = 'none';
+                menuOpen = false;
+            }
+        });
+        
+        // Check if user is admin via API
+        async function checkAdminStatus() {
+            try {
+                const tg = window.Telegram?.WebApp;
+                if (!tg || !tg.initData) return;
+                
+                const response = await fetch('/api/check-admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Telegram-Init-Data': tg.initData
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                const data = await response.json();
+                
+                if (data.is_admin) {
+                    document.getElementById('admin-fab').style.display = 'block';
+                    console.log('✅ Admin access granted');
+                }
+            } catch (e) {
+                console.error('Admin check failed:', e);
+            }
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkAdminStatus);
+        } else {
+            checkAdminStatus();
+        }
+        
+        // Also check when Telegram WebApp is ready
+        if (window.Telegram?.WebApp) {
+            window.Telegram.WebApp.ready();
+        }
+    })();
+    </script>
 </body>
 </html>
