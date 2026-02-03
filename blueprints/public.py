@@ -1,27 +1,40 @@
-"""Public-facing routes"""
-from flask import Blueprint, render_template, request, redirect, jsonify
-from models import db, Product, Purchase
-from r2_storage import get_r2_url
+"""Public routes for the shop frontend"""
+from flask import Blueprint, render_template, request, jsonify, redirect
+from models import db, Product, Purchase, Category
 from utils.decorators import limiter
+from utils.telegram_auth import validate_telegram_init_data, get_telegram_user_id
+from utils.r2 import get_r2_url
+from config import Config
 
 public_bp = Blueprint('public_bp', __name__)
 
 
 @public_bp.route('/')
 def index():
-    """Homepage - product listing"""
-    products = Product.query.filter_by(is_active=True).order_by(
-        Product.created_at.desc()
-    ).all()
+    """Main shop page"""
+    products = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).all()
+    categories = Category.query.all()
     
-    categories = [
-        c[0] for c in db.session.query(Product.category).distinct().all()
-    ]
+    # Get user_id from initData if available (for showing purchase status)
+    user_id = None
+    init_data = request.args.get('initData')
+    if init_data:
+        user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
+        if user_data:
+            user_id = user_data.get('id')
+    
+    # Get purchased product IDs for this user
+    purchased_ids = set()
+    if user_id:
+        purchases = Purchase.query.filter_by(user_id=user_id, is_verified=True).all()
+        purchased_ids = {p.product_id for p in purchases}
     
     return render_template(
         'index.html',
         products=products,
-        categories=categories
+        categories=categories,
+        purchased_ids=purchased_ids,
+        user_id=user_id
     )
 
 
@@ -29,23 +42,28 @@ def index():
 def product_detail(pid):
     """Product detail page"""
     product = Product.query.get_or_404(pid)
-    user_id = request.args.get('user_id')
     
-    purchased = False
-    if user_id:
-        try:
-            purchased = Purchase.query.filter_by(
-                user_id=int(user_id),
-                product_id=pid,
-                is_verified=True
-            ).first() is not None
-        except ValueError:
-            pass
+    # Check if user has purchased (from initData)
+    has_purchased = False
+    user_id = None
+    init_data = request.args.get('initData')
+    
+    if init_data:
+        user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
+        if user_data:
+            user_id = user_data.get('id')
+            if user_id:
+                purchase = Purchase.query.filter_by(
+                    user_id=user_id,
+                    product_id=pid,
+                    is_verified=True
+                ).first()
+                has_purchased = purchase is not None
     
     return render_template(
         'product.html',
         product=product,
-        purchased=purchased,
+        has_purchased=has_purchased,
         user_id=user_id
     )
 
@@ -53,34 +71,85 @@ def product_detail(pid):
 @public_bp.route('/download/<int:pid>')
 @limiter.limit("20 per minute")
 def download(pid):
-    """Download product file"""
+    """Download product file - requires Telegram auth for paid products"""
     product = Product.query.get_or_404(pid)
-    user_id = request.args.get('user_id')
     
     if not product.file_path:
         return jsonify({'error': 'No file available'}), 404
     
-    can_download = product.is_free
+    # Free products - allow download without auth
+    if product.is_free:
+        return _process_download(product)
     
-    if not can_download and user_id:
-        try:
-            user_id_int = int(user_id)
-            can_download = Purchase.query.filter_by(
-                user_id=user_id_int,
-                product_id=pid,
-                is_verified=True
-            ).first() is not None
-        except ValueError:
-            pass
+    # Paid products - require valid Telegram auth
+    init_data = (
+        request.headers.get('X-Telegram-Init-Data') or
+        request.args.get('initData')
+    )
     
-    if not can_download:
+    if not init_data:
+        return jsonify({'error': 'Authentication required. Please open from Telegram.'}), 401
+    
+    user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
+    if not user_data:
+        return jsonify({'error': 'Invalid authentication'}), 401
+    
+    user_id = user_data.get('id')
+    
+    # Check purchase
+    purchase = Purchase.query.filter_by(
+        user_id=user_id,
+        product_id=pid,
+        is_verified=True
+    ).first()
+    
+    if not purchase:
         return jsonify({'error': 'Purchase required'}), 403
     
-    download_url = get_r2_url(product.file_path, expires=300)
-    if not download_url:
-        return jsonify({'error': 'File unavailable'}), 500
+    return _process_download(product)
+
+
+def _process_download(product):
+    """Process the actual download - generates signed URL"""
+    try:
+        # Generate signed URL that expires in 5 minutes
+        download_url = get_r2_url(product.file_path, expires=300)
+        
+        if not download_url:
+            return jsonify({'error': 'File temporarily unavailable'}), 500
+        
+        # Increment download count
+        product.download_count = (product.download_count or 0) + 1
+        db.session.commit()
+        
+        return redirect(download_url)
     
-    product.download_count += 1
-    db.session.commit()
+    except Exception as e:
+        print(f"Download error: {e}")
+        return jsonify({'error': 'Download failed'}), 500
+
+
+@public_bp.route('/category/<int:cid>')
+def category_products(cid):
+    """Products filtered by category"""
+    category = Category.query.get_or_404(cid)
+    products = Product.query.filter_by(
+        category_id=cid,
+        is_active=True
+    ).order_by(Product.created_at.desc()).all()
     
-    return redirect(download_url)
+    categories = Category.query.all()
+    
+    return render_template(
+        'index.html',
+        products=products,
+        categories=categories,
+        current_category=category,
+        purchased_ids=set()
+    )
+
+
+@public_bp.route('/health')
+def health_check():
+    """Health check endpoint for Railway"""
+    return jsonify({'status': 'ok'}), 200

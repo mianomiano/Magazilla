@@ -1,8 +1,9 @@
-"""API routes with rate limiting and validation"""
+"""API routes with rate limiting and Telegram auth validation"""
 from flask import Blueprint, request, jsonify
 from config import Config
 from models import db, Product, Purchase
-from utils.decorators import limiter, telegram_user_required
+from utils.decorators import limiter
+from utils.telegram_auth import telegram_auth_required, get_telegram_user_id, validate_telegram_init_data
 import requests
 import json
 
@@ -12,15 +13,16 @@ api_bp = Blueprint('api_bp', __name__)
 @api_bp.route('/product/<int:pid>')
 @limiter.limit("30 per minute")
 def get_product(pid):
-    """Get product details"""
+    """Get product details - public endpoint"""
     product = Product.query.get_or_404(pid)
     return jsonify(product.to_dict())
 
 
 @api_bp.route('/create-invoice-link', methods=['POST'])
 @limiter.limit("10 per minute")
+@telegram_auth_required
 def create_invoice():
-    """Create Telegram Stars invoice"""
+    """Create Telegram Stars invoice - requires Telegram auth"""
     try:
         data = request.json
         product_id = data.get('product_id')
@@ -28,7 +30,9 @@ def create_invoice():
         if not product_id:
             return jsonify({'error': 'product_id required'}), 400
         
-        product = Product.query.get_or_404(product_id)
+        product = Product.query.get(product_id)
+        if not product:
+            return jsonify({'error': 'Product not found'}), 404
         
         if product.is_free:
             return jsonify({'error': 'Product is free'}), 400
@@ -36,10 +40,16 @@ def create_invoice():
         bot_token = Config.BOT_TOKEN
         url = f"https://api.telegram.org/bot{bot_token}/createInvoiceLink"
         
+        # Include user_id in payload for tracking
+        user_id = get_telegram_user_id()
+        
         payload = {
             'title': product.name[:32],
             'description': (product.description or product.name)[:255],
-            'payload': f"product_{product.id}",
+            'payload': json.dumps({
+                'product_id': product.id,
+                'user_id': user_id
+            }),
             'provider_token': '',
             'currency': 'XTR',
             'prices': json.dumps([{
@@ -65,7 +75,7 @@ def create_invoice():
 
 @api_bp.route('/webhook/telegram', methods=['POST'])
 def telegram_webhook():
-    """Secure Telegram webhook endpoint for payment verification"""
+    """Telegram webhook - verified by Telegram's servers"""
     try:
         update = request.json
         
@@ -74,19 +84,26 @@ def telegram_webhook():
             payment = message['successful_payment']
             user_id = message['from']['id']
             
-            payload = payment.get('invoice_payload', '')
-            if not payload.startswith('product_'):
-                return jsonify({'ok': True})
-            
+            # Parse payload
+            payload_str = payment.get('invoice_payload', '')
             try:
-                product_id = int(payload.split('_')[1])
-            except (IndexError, ValueError):
+                payload = json.loads(payload_str)
+                product_id = payload.get('product_id')
+            except json.JSONDecodeError:
+                # Fallback for old format
+                if payload_str.startswith('product_'):
+                    product_id = int(payload_str.split('_')[1])
+                else:
+                    return jsonify({'ok': True})
+            
+            if not product_id:
                 return jsonify({'ok': True})
             
             product = Product.query.get(product_id)
             if not product:
                 return jsonify({'ok': True})
             
+            # Prevent duplicate purchases
             existing = Purchase.query.filter_by(
                 telegram_payment_id=payment['telegram_payment_charge_id']
             ).first()
@@ -127,11 +144,11 @@ def telegram_webhook():
 
 @api_bp.route('/check-purchase', methods=['POST'])
 @limiter.limit("20 per minute")
-@telegram_user_required
+@telegram_auth_required
 def check_purchase():
-    """Check if user has purchased a product"""
+    """Check if user has purchased a product - requires Telegram auth"""
     data = request.json
-    user_id = int(data.get('user_id'))
+    user_id = get_telegram_user_id()  # Get verified user ID from initData
     product_id = data.get('product_id')
     
     if not product_id:
@@ -144,3 +161,28 @@ def check_purchase():
     ).first()
     
     return jsonify({'purchased': purchase is not None})
+
+
+@api_bp.route('/my-purchases', methods=['GET'])
+@limiter.limit("20 per minute")
+@telegram_auth_required
+def my_purchases():
+    """Get current user's purchases - requires Telegram auth"""
+    user_id = get_telegram_user_id()
+    
+    purchases = Purchase.query.filter_by(
+        user_id=user_id,
+        is_verified=True
+    ).all()
+    
+    return jsonify({
+        'purchases': [
+            {
+                'product_id': p.product_id,
+                'product_name': p.product.name if p.product else 'Unknown',
+                'stars_paid': p.stars_paid,
+                'purchased_at': p.created_at.isoformat() if p.created_at else None
+            }
+            for p in purchases
+        ]
+    })
