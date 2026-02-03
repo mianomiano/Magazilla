@@ -7,6 +7,7 @@ from r2_storage import upload_to_r2, delete_from_r2
 from utils.auth import admin_required, verify_admin_password, log_admin_action
 from utils.validation import allowed_file, validate_product_name, validate_price, validate_category, validate_color
 from utils.decorators import limiter
+from sqlalchemy import func
 import json
 
 admin_bp = Blueprint('admin_bp', __name__)
@@ -64,6 +65,90 @@ def dashboard():
         total_products=len(products),
         total_purchases=total_purchases,
         total_stars=total_stars
+    )
+
+
+@admin_bp.route('/purchases')
+@admin_required
+def purchases():
+    """Purchases analytics page"""
+    # Get sort parameters
+    sort_by = request.args.get('sort', 'sales')  # default sort by sales
+    order = request.args.get('order', 'desc')  # default descending
+    
+    # Get all paid products with their stats
+    paid_products = Product.query.filter(Product.is_free == False).all()
+    
+    product_stats = []
+    now = datetime.utcnow()
+    
+    for product in paid_products:
+        # Get purchase stats for this product
+        purchases = Purchase.query.filter_by(
+            product_id=product.id,
+            is_verified=True
+        ).all()
+        
+        sales_count = len(purchases)
+        total_stars = sum(p.stars_paid for p in purchases)
+        
+        # Get last purchase date
+        last_purchase = Purchase.query.filter_by(
+            product_id=product.id,
+            is_verified=True
+        ).order_by(Purchase.purchased_at.desc()).first()
+        
+        last_purchase_date = last_purchase.purchased_at if last_purchase else None
+        
+        # Calculate days since product was added
+        days_since_added = (now - product.created_at).days if product.created_at else 0
+        days_since_added = max(days_since_added, 1)  # Minimum 1 day to avoid division by zero
+        
+        # Calculate ratio (sales per day)
+        ratio = round(sales_count / days_since_added, 2)
+        
+        product_stats.append({
+            'id': product.id,
+            'name': product.name,
+            'price': product.price,
+            'sales_count': sales_count,
+            'total_stars': total_stars,
+            'date_added': product.created_at,
+            'last_purchase': last_purchase_date,
+            'days_active': days_since_added,
+            'ratio': ratio,
+            'is_active': product.is_active
+        })
+    
+    # Sort the results
+    reverse = (order == 'desc')
+    
+    if sort_by == 'name':
+        product_stats.sort(key=lambda x: x['name'].lower(), reverse=reverse)
+    elif sort_by == 'price':
+        product_stats.sort(key=lambda x: x['price'], reverse=reverse)
+    elif sort_by == 'sales':
+        product_stats.sort(key=lambda x: x['sales_count'], reverse=reverse)
+    elif sort_by == 'date_added':
+        product_stats.sort(key=lambda x: x['date_added'] or datetime.min, reverse=reverse)
+    elif sort_by == 'last_purchase':
+        product_stats.sort(key=lambda x: x['last_purchase'] or datetime.min, reverse=reverse)
+    elif sort_by == 'ratio':
+        product_stats.sort(key=lambda x: x['ratio'], reverse=reverse)
+    elif sort_by == 'stars':
+        product_stats.sort(key=lambda x: x['total_stars'], reverse=reverse)
+    
+    # Calculate totals
+    total_sales = sum(p['sales_count'] for p in product_stats)
+    total_stars_earned = sum(p['total_stars'] for p in product_stats)
+    
+    return render_template(
+        'purchases.html',
+        products=product_stats,
+        total_sales=total_sales,
+        total_stars=total_stars_earned,
+        sort_by=sort_by,
+        order=order
     )
 
 
