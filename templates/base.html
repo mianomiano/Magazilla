@@ -13,194 +13,294 @@
     <link href="https://fonts.googleapis.com/css2?family=Balsamiq+Sans:wght@400;700&family=Grandstander:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Russo+One&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="{{url_for('static',filename='css/style.css')}}">
+    
+    {% set primary = settings.primary_color %}
+    {% set secondary = settings.secondary_color %}
+    {% set accent = settings.accent_color %}
+    
+    {# Calculate if primary is dark or light for auto text color #}
+    {% set pr = primary[1:3]|int(base=16) %}
+    {% set pg = primary[3:5]|int(base=16) %}
+    {% set pb = primary[5:7]|int(base=16) %}
+    {% set brightness = (pr * 299 + pg * 587 + pb * 114) / 1000 %}
+    {% set is_dark = brightness < 128 %}
+    
+    {# Calculate if secondary is dark or light #}
+    {% set sr = secondary[1:3]|int(base=16) %}
+    {% set sg = secondary[3:5]|int(base=16) %}
+    {% set sb = secondary[5:7]|int(base=16) %}
+    {% set sec_brightness = (sr * 299 + sg * 587 + sb * 114) / 1000 %}
+    {% set sec_is_dark = sec_brightness < 128 %}
+    
     <style>
         :root {
-            --p: {{settings.primary_color}};
-            --s: {{settings.secondary_color}};
-            --a: {{settings.accent_color}};
-            --pl: {{settings.primary_color}}dd;
-            --t: #e8eaed;
-            --td: #9aa0a6;
-            --tm: #5f6368;
-            --sd: rgba(0,0,0,0.5);
-            --sl: rgba(30,40,55,0.3);
+            /* Main Colors */
+            --primary: {{primary}};
+            --secondary: {{secondary}};
+            --accent: {{accent}};
+            
+            /* Auto Text Colors based on background */
+            --text-on-primary: {% if is_dark %}#ffffff{% else %}#1a1a1a{% endif %};
+            --text-muted: {% if is_dark %}#a0a0a0{% else %}#666666{% endif %};
+            --text-on-secondary: {% if sec_is_dark %}#ffffff{% else %}#1a1a1a{% endif %};
+            
+            /* Derived Colors */
+            --card-bg: {% if is_dark %}rgba(255,255,255,0.06){% else %}rgba(0,0,0,0.04){% endif %};
+            --card-border: {% if is_dark %}rgba(255,255,255,0.1){% else %}rgba(0,0,0,0.1){% endif %};
+            --input-bg: {% if is_dark %}rgba(0,0,0,0.3){% else %}rgba(0,0,0,0.05){% endif %};
+            --hover-overlay: {% if is_dark %}rgba(255,255,255,0.05){% else %}rgba(0,0,0,0.05){% endif %};
+            --shadow-color: {% if is_dark %}rgba(0,0,0,0.5){% else %}rgba(0,0,0,0.15){% endif %};
         }
         
-        /* ========== CORE COLOR OVERRIDES ========== */
+        /* ==================== RESET ALL COLORS ==================== */
         
-        /* Background */
-        body, .app-container {
-            background: var(--p) !important;
+        * {
+            box-sizing: border-box;
         }
         
-        /* Cards & Containers */
-        .product-card,
-        .category-card,
-        .settings-card,
-        .stat-card {
-            background: color-mix(in srgb, var(--p) 85%, white 15%) !important;
-            border: 1px solid color-mix(in srgb, var(--p) 70%, white 30%) !important;
+        /* ==================== BACKGROUND ==================== */
+        
+        body, 
+        html,
+        .app-container {
+            background: var(--primary) !important;
+            color: var(--text-on-primary) !important;
         }
         
-        /* For older browsers without color-mix */
-        @supports not (color: color-mix(in srgb, red, blue)) {
-            .product-card,
-            .category-card,
-            .settings-card,
-            .stat-card {
-                background: var(--p) !important;
-                border: 1px solid rgba(255,255,255,0.1) !important;
-            }
+        /* ==================== TEXT - Uses ACCENT ==================== */
+        
+        /* Main text */
+        body,
+        p,
+        span,
+        div,
+        label,
+        .product-name,
+        .product-description,
+        .category-name {
+            color: var(--text-on-primary) !important;
         }
         
-        /* Primary Buttons - Use Secondary Color */
+        /* Muted/secondary text */
+        .text-muted,
+        .product-category,
+        .meta-info,
+        .subtitle,
+        small {
+            color: var(--text-muted) !important;
+        }
+        
+        /* Highlighted text, prices, important numbers - ACCENT */
+        .product-price,
+        .price,
+        .stars-amount,
+        .stat-value,
+        .highlight,
+        .accent-text,
+        h1, h2, h3 {
+            color: var(--accent) !important;
+        }
+        
+        /* ==================== BUTTONS - ALL use SECONDARY ==================== */
+        
+        /* All buttons base */
+        button,
+        .btn,
+        .neu-btn,
         .neu-btn-primary,
         .btn-primary,
+        .btn-secondary,
         .download-btn,
         .buy-btn,
         .save-btn,
-        button[type="submit"] {
-            background: var(--s) !important;
-            color: var(--p) !important;
+        .filter-btn,
+        .category-btn,
+        input[type="submit"],
+        input[type="button"] {
+            background: var(--secondary) !important;
+            color: var(--text-on-secondary) !important;
             border: none !important;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
         
+        /* Button hover */
+        button:hover,
+        .btn:hover,
+        .neu-btn:hover,
         .neu-btn-primary:hover,
         .btn-primary:hover,
         .download-btn:hover,
-        .buy-btn:hover {
-            background: color-mix(in srgb, var(--s) 85%, white 15%) !important;
-            box-shadow: 0 4px 20px color-mix(in srgb, var(--s) 50%, transparent) !important;
+        .buy-btn:hover,
+        .filter-btn:hover,
+        .category-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
         }
         
-        /* Secondary/Ghost Buttons */
-        .neu-btn,
-        .btn-secondary,
-        .btn-ghost {
-            background: color-mix(in srgb, var(--p) 80%, white 20%) !important;
-            color: var(--t) !important;
-            border: 1px solid color-mix(in srgb, var(--p) 60%, white 40%) !important;
+        /* Button active/pressed */
+        button:active,
+        .btn:active,
+        .neu-btn:active {
+            filter: brightness(0.95);
+            transform: translateY(1px);
         }
         
-        /* Filter Buttons */
+        /* Ghost/outline buttons - transparent with accent border */
+        .btn-ghost,
+        .btn-outline {
+            background: transparent !important;
+            color: var(--accent) !important;
+            border: 2px solid var(--accent) !important;
+        }
+        
+        .btn-ghost:hover,
+        .btn-outline:hover {
+            background: var(--accent) !important;
+            color: var(--primary) !important;
+        }
+        
+        /* Filter buttons - special case, shows active state */
         .filter-btn,
         .category-btn {
-            background: color-mix(in srgb, var(--p) 85%, white 15%) !important;
-            color: var(--td) !important;
-            border: 1px solid color-mix(in srgb, var(--p) 70%, white 30%) !important;
+            background: var(--card-bg) !important;
+            color: var(--text-on-primary) !important;
+            border: 1px solid var(--card-border) !important;
         }
         
         .filter-btn.active,
         .filter-btn:hover,
         .category-btn.active,
         .category-btn:hover {
-            background: var(--s) !important;
-            color: var(--p) !important;
-            border-color: var(--s) !important;
+            background: var(--secondary) !important;
+            color: var(--text-on-secondary) !important;
+            border-color: var(--secondary) !important;
         }
         
-        /* Accent Color Usage */
+        /* ==================== CARDS ==================== */
+        
+        .product-card,
+        .category-card,
+        .settings-card,
+        .stat-card,
+        .card {
+            background: var(--card-bg) !important;
+            border: 1px solid var(--card-border) !important;
+            color: var(--text-on-primary) !important;
+        }
+        
+        /* ==================== BADGES - Use ACCENT ==================== */
+        
+        .product-badge,
+        .badge {
+            background: var(--accent) !important;
+            color: var(--primary) !important;
+            font-weight: 600;
+        }
+        
+        .product-badge.free,
+        .badge-free {
+            background: transparent !important;
+            color: var(--accent) !important;
+            border: 1px solid var(--accent) !important;
+        }
+        
+        .product-badge.paid,
         .product-badge.premium,
-        .badge-premium,
-        .accent-badge {
-            background: var(--a) !important;
-            color: white !important;
+        .badge-paid,
+        .badge-premium {
+            background: var(--accent) !important;
+            color: {% if is_dark %}var(--primary){% else %}#ffffff{% endif %} !important;
         }
         
-        /* Price & Highlights use Accent */
-        .product-price,
-        .price,
-        .stars-amount,
-        .stat-value,
-        .highlight {
-            color: var(--s) !important;
+        /* ==================== INPUTS ==================== */
+        
+        input,
+        textarea,
+        select {
+            background: var(--input-bg) !important;
+            border: 1px solid var(--card-border) !important;
+            color: var(--text-on-primary) !important;
         }
         
-        /* Links use Accent */
-        a.accent-link,
-        .link-accent {
-            color: var(--a) !important;
+        input::placeholder,
+        textarea::placeholder {
+            color: var(--text-muted) !important;
         }
         
-        /* Header/Logo Area */
-        .logo-area,
-        .header-area {
-            background: linear-gradient(180deg, color-mix(in srgb, var(--p) 90%, var(--s) 10%), var(--p)) !important;
-            border-bottom: 1px solid color-mix(in srgb, var(--s) 30%, transparent) !important;
-        }
-        
-        /* Product Thumbnail Placeholder */
-        .product-thumbnail {
-            background: color-mix(in srgb, var(--p) 70%, black 30%) !important;
-        }
-        
-        /* Input Fields */
-        input, textarea, select {
-            background: color-mix(in srgb, var(--p) 80%, black 20%) !important;
-            border: 1px solid color-mix(in srgb, var(--p) 60%, white 40%) !important;
-            color: var(--t) !important;
-        }
-        
-        input:focus, textarea:focus, select:focus {
-            border-color: var(--s) !important;
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--accent) !important;
             outline: none !important;
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--s) 30%, transparent) !important;
+            box-shadow: 0 0 0 3px {% if is_dark %}rgba(255,255,255,0.1){% else %}rgba(0,0,0,0.1){% endif %} !important;
         }
         
-        /* Modal & Overlay */
+        /* ==================== HEADER/LOGO ==================== */
+        
+        .logo-area,
+        .header-area,
+        header {
+            background: var(--primary) !important;
+            border-bottom: 1px solid var(--card-border) !important;
+        }
+        
+        /* ==================== MODALS & DROPDOWNS ==================== */
+        
         .modal-content,
         .popup-content,
         .dropdown-menu {
-            background: color-mix(in srgb, var(--p) 95%, white 5%) !important;
-            border: 1px solid color-mix(in srgb, var(--p) 70%, white 30%) !important;
+            background: var(--primary) !important;
+            border: 1px solid var(--card-border) !important;
+            box-shadow: 0 10px 40px var(--shadow-color) !important;
         }
         
-        /* Scrollbar */
+        /* ==================== LINKS ==================== */
+        
+        a {
+            color: var(--accent) !important;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            filter: brightness(1.2);
+        }
+        
+        /* ==================== DIVIDERS ==================== */
+        
+        hr,
+        .divider {
+            border-color: var(--card-border) !important;
+            background: var(--card-border) !important;
+        }
+        
+        /* ==================== THUMBNAILS ==================== */
+        
+        .product-thumbnail {
+            background: {% if is_dark %}rgba(0,0,0,0.3){% else %}rgba(0,0,0,0.08){% endif %} !important;
+        }
+        
+        /* ==================== SCROLLBAR ==================== */
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
         ::-webkit-scrollbar-track {
-            background: var(--p);
+            background: var(--primary);
         }
         
         ::-webkit-scrollbar-thumb {
-            background: color-mix(in srgb, var(--p) 60%, white 40%);
+            background: var(--card-border);
             border-radius: 10px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: var(--s);
+            background: var(--secondary);
         }
         
-        /* Free Badge - uses Secondary */
-        .product-badge.free,
-        .badge-free {
-            background: color-mix(in srgb, var(--s) 20%, transparent) !important;
-            color: var(--s) !important;
-        }
+        /* ==================== FONT FAMILY ==================== */
         
-        /* Paid Badge - uses Accent */
-        .product-badge.paid,
-        .badge-paid {
-            background: color-mix(in srgb, var(--a) 20%, transparent) !important;
-            color: var(--a) !important;
-        }
-        
-        /* Navigation */
-        .nav-item.active,
-        .tab.active {
-            color: var(--s) !important;
-            border-color: var(--s) !important;
-        }
-        
-        /* Progress bars */
-        .progress-fill {
-            background: linear-gradient(90deg, var(--s), var(--a)) !important;
-        }
-        
-        /* Dividers */
-        hr, .divider {
-            border-color: color-mix(in srgb, var(--p) 70%, white 30%) !important;
-        }
-        
-        /* ========== FONT FAMILY ========== */
         {% if settings.font_family == 'balsamiq' %}
         body, button, input, textarea, select { font-family: 'Balsamiq Sans', cursive !important; }
         {% elif settings.font_family == 'grandstander' %}
@@ -213,28 +313,62 @@
         body, button, input, textarea, select { font-family: 'Inter', -apple-system, sans-serif !important; }
         {% endif %}
         
-        /* ========== BUTTON ROUNDNESS ========== */
+        /* ==================== BUTTON STYLE ==================== */
+        
+        {% if settings.button_style == 'flat' %}
+        button, .btn, .neu-btn, .neu-btn-primary, .filter-btn {
+            box-shadow: none !important;
+        }
+        
+        {% elif settings.button_style == 'bubble' %}
+        button, .btn, .neu-btn, .neu-btn-primary {
+            box-shadow: 0 4px 0 rgba(0,0,0,0.3) !important;
+        }
+        button:active, .btn:active, .neu-btn:active {
+            box-shadow: 0 1px 0 rgba(0,0,0,0.3) !important;
+            transform: translateY(3px) !important;
+        }
+        
+        {% elif settings.button_style == 'glow' %}
+        button, .btn, .neu-btn, .neu-btn-primary, .download-btn, .buy-btn {
+            box-shadow: 0 0 20px {{secondary}}66 !important;
+        }
+        button:hover, .btn:hover, .neu-btn:hover {
+            box-shadow: 0 0 30px {{secondary}}99 !important;
+        }
+        
+        {% else %}
+        /* Soft (default) */
+        button, .btn, .neu-btn, .neu-btn-primary {
+            box-shadow: 0 2px 8px var(--shadow-color) !important;
+        }
+        {% endif %}
+        
+        /* ==================== BUTTON ROUNDNESS ==================== */
+        
         {% if settings.button_roundness == 'sharp' %}
-        .neu-btn, .filter-btn, .product-card, .product-badge, 
-        .btn-primary, .btn-secondary, input, textarea, select,
-        .modal-content, .dropdown-menu { 
+        button, .btn, .neu-btn, .filter-btn, .product-card, 
+        .badge, input, textarea, select, .modal-content { 
             border-radius: 4px !important; 
         }
+        
         {% elif settings.button_roundness == 'pill' %}
-        .neu-btn, .filter-btn, .btn-primary, .btn-secondary { 
+        button, .btn, .neu-btn, .filter-btn { 
             border-radius: 50px !important; 
         }
         .product-card, .modal-content { 
             border-radius: 20px !important; 
         }
-        .product-badge { 
+        .badge { 
             border-radius: 12px !important; 
         }
         input, textarea, select {
             border-radius: 12px !important;
         }
+        
         {% else %}
-        .neu-btn, .filter-btn, .btn-primary, .btn-secondary { 
+        /* Rounded (default) */
+        button, .btn, .neu-btn, .filter-btn { 
             border-radius: 12px !important; 
         }
         .product-card { 
@@ -243,109 +377,46 @@
         input, textarea, select {
             border-radius: 8px !important;
         }
-        {% endif %}
-        
-        /* ========== BUTTON STYLE ========== */
-        {% if settings.button_style == 'flat' %}
-        .neu-btn, .btn-secondary {
-            box-shadow: none !important;
-            border: 2px solid var(--s) !important;
-            background: transparent !important;
-            color: var(--s) !important;
-        }
-        .neu-btn-primary, .btn-primary, .download-btn, .buy-btn {
-            box-shadow: none !important;
-            background: var(--s) !important;
-            border: 2px solid var(--s) !important;
-        }
-        .neu-btn:active, .btn-secondary:active { 
-            transform: scale(0.97); 
-        }
-        
-        {% elif settings.button_style == 'bubble' %}
-        .neu-btn, .btn-secondary {
-            box-shadow: 0 4px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1) !important;
-            border: 2px solid rgba(255,255,255,0.1) !important;
-        }
-        .neu-btn:active, .btn-secondary:active {
-            box-shadow: 0 1px 0 rgba(0,0,0,0.3) !important;
-            transform: translateY(3px);
-        }
-        .neu-btn-primary, .btn-primary, .download-btn, .buy-btn {
-            box-shadow: 0 4px 0 color-mix(in srgb, var(--s) 50%, black 50%), 
-                        inset 0 1px 0 rgba(255,255,255,0.2) !important;
-        }
-        .neu-btn-primary:active, .btn-primary:active {
-            box-shadow: 0 1px 0 color-mix(in srgb, var(--s) 50%, black 50%) !important;
-            transform: translateY(3px);
-        }
-        
-        {% elif settings.button_style == 'glow' %}
-        .neu-btn, .btn-secondary {
-            box-shadow: 0 0 15px rgba(255,255,255,0.1) !important;
-        }
-        .neu-btn:hover, .btn-secondary:hover {
-            box-shadow: 0 0 25px color-mix(in srgb, var(--s) 50%, transparent) !important;
-        }
-        .neu-btn-primary, .btn-primary, .download-btn, .buy-btn {
-            box-shadow: 0 0 20px color-mix(in srgb, var(--s) 50%, transparent) !important;
-        }
-        .neu-btn-primary:hover, .btn-primary:hover {
-            box-shadow: 0 0 35px color-mix(in srgb, var(--s) 70%, transparent) !important;
-        }
-        
-        {% else %}
-        /* Soft (Neumorphic) - Default */
-        .neu-btn, .btn-secondary {
-            box-shadow: 3px 3px 6px rgba(0,0,0,0.4), 
-                        -2px -2px 5px color-mix(in srgb, var(--p) 80%, white 20%) !important;
-        }
-        .neu-btn:active, .btn-secondary:active {
-            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3),
-                        inset -1px -1px 3px color-mix(in srgb, var(--p) 80%, white 20%) !important;
-        }
-        .neu-btn-primary, .btn-primary, .download-btn, .buy-btn {
-            box-shadow: 3px 3px 6px rgba(0,0,0,0.3), 
-                        -2px -2px 5px color-mix(in srgb, var(--s) 80%, white 20%),
-                        0 0 20px color-mix(in srgb, var(--s) 30%, transparent) !important;
+        .badge {
+            border-radius: 6px !important;
         }
         {% endif %}
         
-        /* ========== CARD SIZE ========== */
+        /* ==================== CARD SIZE ==================== */
+        
         {% if settings.card_size == 'small' %}
         .products-grid {
             grid-template-columns: repeat(3, 1fr) !important;
             gap: 8px !important;
         }
-        .product-name {
-            font-size: 12px !important;
-        }
+        .product-name { font-size: 12px !important; }
+        
         {% elif settings.card_size == 'large' %}
         .products-grid {
             grid-template-columns: 1fr !important;
             max-width: 400px;
             margin: 0 auto;
         }
+        
         {% else %}
         .products-grid {
             grid-template-columns: repeat(2, 1fr) !important;
         }
         {% endif %}
         
-        /* ========== CARD SHAPE ========== */
+        /* ==================== CARD SHAPE ==================== */
+        
         {% if settings.card_shape == 'rectangle' %}
         .product-thumbnail { 
             aspect-ratio: 3/4 !important; 
         }
         {% endif %}
         
-        /* ========== CARD INFO ========== */
+        /* ==================== CARD INFO ==================== */
+        
         {% if settings.card_info == 'image' %}
         .product-info { 
             display: none !important; 
-        }
-        .product-card {
-            overflow: hidden;
         }
         {% elif settings.card_info == 'minimal' %}
         .product-category, .product-price, .product-description { 
@@ -353,7 +424,8 @@
         }
         {% endif %}
         
-        /* ========== HEADER SIZE ========== */
+        /* ==================== HEADER SIZE ==================== */
+        
         {% if settings.header_size == 'compact' %}
         .logo-area { 
             min-height: 40px !important; 
@@ -362,6 +434,7 @@
         .logo-area img, .logo-area video { 
             max-height: 50px !important; 
         }
+        
         {% elif settings.header_size == 'tall' %}
         .logo-area { 
             min-height: 120px !important; 
@@ -372,14 +445,16 @@
         }
         {% endif %}
         
-        /* ========== SHOW/HIDE FILTERS ========== */
+        /* ==================== SHOW/HIDE FILTERS ==================== */
+        
         {% if not settings.show_filters %}
         .category-filter, .filters-container { 
             display: none !important; 
         }
         {% endif %}
         
-        /* ========== ADMIN FAB STYLES ========== */
+        /* ==================== ADMIN FAB ==================== */
+        
         #admin-fab {
             position: fixed;
             bottom: 80px;
@@ -391,26 +466,20 @@
         #admin-fab-btn {
             width: 56px;
             height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            color: white;
+            border-radius: 50% !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border: none !important;
+            color: white !important;
             font-size: 22px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s, box-shadow 0.2s;
         }
         
         #admin-fab-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
-        }
-        
-        #admin-fab-btn:active {
-            transform: scale(0.95);
         }
         
         #admin-menu {
@@ -418,12 +487,12 @@
             position: absolute;
             bottom: 65px;
             right: 0;
-            background: color-mix(in srgb, var(--p) 95%, white 5%);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            background: var(--primary) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 20px var(--shadow-color) !important;
             overflow: hidden;
             min-width: 200px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid var(--card-border) !important;
         }
         
         #admin-menu a {
@@ -431,51 +500,29 @@
             align-items: center;
             gap: 10px;
             padding: 14px 18px;
-            color: var(--t);
+            color: var(--text-on-primary) !important;
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            transition: background 0.2s;
+            border-bottom: 1px solid var(--card-border) !important;
         }
         
         #admin-menu a:last-child {
-            border-bottom: none;
+            border-bottom: none !important;
         }
         
         #admin-menu a:hover {
-            background: rgba(255,255,255,0.08);
-        }
-        
-        #admin-menu a span.icon {
-            font-size: 18px;
+            background: var(--hover-overlay) !important;
         }
         
         #admin-menu-header {
             padding: 12px 18px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
             font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }
-        
-        /* ========== FALLBACK FOR OLDER BROWSERS ========== */
-        @supports not (color: color-mix(in srgb, red, blue)) {
-            .neu-btn, .btn-secondary {
-                background: rgba(255,255,255,0.05) !important;
-            }
-            .filter-btn, .category-btn {
-                background: rgba(255,255,255,0.05) !important;
-            }
-            .product-card {
-                background: rgba(255,255,255,0.03) !important;
-            }
-            input, textarea, select {
-                background: rgba(0,0,0,0.2) !important;
-                border-color: rgba(255,255,255,0.1) !important;
-            }
         }
     </style>
 </head>
@@ -484,36 +531,21 @@
         {%block content%}{%endblock%}
     </div>
     
-    <!-- Admin Floating Action Button -->
+    <!-- Admin FAB -->
     <div id="admin-fab">
-        <button id="admin-fab-btn" onclick="toggleAdminMenu()">
-            ⚙️
-        </button>
-        
+        <button id="admin-fab-btn" onclick="toggleAdminMenu()">⚙️</button>
         <div id="admin-menu">
             <div id="admin-menu-header">🔐 Admin Panel</div>
-            <a href="/admin">
-                <span class="icon">📊</span> Dashboard
-            </a>
-            <a href="/admin/purchases">
-                <span class="icon">💰</span> Purchases
-            </a>
-            <a href="/admin/product/new">
-                <span class="icon">➕</span> Add Product
-            </a>
-            <a href="/admin/appearance">
-                <span class="icon">🎨</span> Appearance
-            </a>
-            <a href="/admin/settings">
-                <span class="icon">⚙️</span> Settings
-            </a>
+            <a href="/admin"><span>📊</span> Dashboard</a>
+            <a href="/admin/purchases"><span>💰</span> Purchases</a>
+            <a href="/admin/product/new"><span>➕</span> Add Product</a>
+            <a href="/admin/appearance"><span>🎨</span> Appearance</a>
+            <a href="/admin/settings"><span>⚙️</span> Settings</a>
         </div>
     </div>
     
     <script src="{{url_for('static',filename='js/app.js')}}"></script>
-    
     <script>
-    // Admin Panel Functionality
     (function() {
         let menuOpen = false;
         
@@ -546,13 +578,10 @@
                 });
                 
                 const data = await response.json();
-                
                 if (data.is_admin) {
                     document.getElementById('admin-fab').style.display = 'block';
                 }
-            } catch (e) {
-                console.error('Admin check failed:', e);
-            }
+            } catch (e) {}
         }
         
         if (document.readyState === 'loading') {
