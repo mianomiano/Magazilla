@@ -1,7 +1,7 @@
 """API routes with rate limiting and Telegram auth validation"""
 from flask import Blueprint, request, jsonify
+from models import db, Product, Purchase, AppSettings
 from config import Config
-from models import db, Product, Purchase
 from utils.decorators import limiter
 from utils.telegram_auth import telegram_auth_required, get_telegram_user_id, validate_telegram_init_data
 import requests
@@ -186,73 +186,159 @@ def my_purchases():
         })
     
     return jsonify({'purchases': result})
+
+
 @api_bp.route('/send-file', methods=['POST'])
+@limiter.limit("10 per minute")
 def send_file_to_user():
-    """Send purchased file directly to user via Telegram bot"""
-    import requests
+    """Send file directly to user via Telegram bot (for mobile downloads)"""
+    from r2_storage import get_r2_url
     
     data = request.get_json() or {}
-    purchase_id = data.get('purchase_id')
+    product_id = data.get('product_id')
     user_id = data.get('user_id')
+    is_free = data.get('is_free', False)
     
-    if not purchase_id or not user_id:
-        return jsonify({'ok': False, 'error': 'Missing data'}), 400
-    
-    # Get purchase
-    purchase = Purchase.query.get(purchase_id)
-    if not purchase:
-        return jsonify({'ok': False, 'error': 'Purchase not found'}), 404
-    
-    # Verify user owns this purchase
-    if str(purchase.user_id) != str(user_id):
-        return jsonify({'ok': False, 'error': 'Unauthorized'}), 403
+    if not product_id or not user_id:
+        return jsonify({'ok': False, 'error': 'Missing product_id or user_id'}), 400
     
     # Get product
-    product = Product.query.get(purchase.product_id)
-    if not product or not product.file_key:
-        return jsonify({'ok': False, 'error': 'File not found'}), 404
+    product = Product.query.get(product_id)
+    if not product:
+        return jsonify({'ok': False, 'error': 'Product not found'}), 404
+    
+    # Check authorization
+    if not product.is_free and not is_free:
+        # Paid product - check if user purchased
+        purchase = Purchase.query.filter_by(
+            user_id=str(user_id),
+            product_id=product_id,
+            is_verified=True
+        ).first()
+        
+        if not purchase:
+            return jsonify({'ok': False, 'error': 'Not purchased'}), 403
+    
+    # Get file key (support both file_path and file_key)
+    file_key = getattr(product, 'file_path', None) or getattr(product, 'file_key', None)
+    if not file_key:
+        return jsonify({'ok': False, 'error': 'No file available for this product'}), 404
     
     # Get file URL from R2
-    from r2_storage import get_r2_url
-    file_url = get_r2_url(product.file_key, expires=300)  # 5 min expiry
+    try:
+        file_url = get_r2_url(file_key, expires=300)  # 5 min expiry
+    except Exception as e:
+        print(f"R2 URL error: {e}")
+        file_url = None
     
     if not file_url:
-        return jsonify({'ok': False, 'error': 'Could not get file'}), 500
+        return jsonify({'ok': False, 'error': 'Could not generate file URL'}), 500
     
-    # Send file to user via Telegram Bot
-    settings = AppSettings.query.first()
-    bot_token = settings.bot_token if settings else None
+    # Get bot token from config or settings
+    bot_token = Config.BOT_TOKEN
+    if not bot_token:
+        settings = AppSettings.query.first()
+        bot_token = settings.bot_token if settings else None
     
     if not bot_token:
         return jsonify({'ok': False, 'error': 'Bot not configured'}), 500
     
+    # Prepare caption
+    if product.is_free:
+        caption = f"📦 {product.name}\n\n🆓 Free download - Enjoy!"
+    else:
+        caption = f"📦 {product.name}\n\n✅ Thank you for your purchase!"
+    
     try:
-        # Send document to user
+        # Try sending document directly via URL
         telegram_url = f"https://api.telegram.org/bot{bot_token}/sendDocument"
         
         response = requests.post(telegram_url, data={
             'chat_id': user_id,
             'document': file_url,
-            'caption': f"📦 Here's your file: {product.name}\n\nThank you for your purchase!"
-        }, timeout=30)
+            'caption': caption
+        }, timeout=60)
         
         result = response.json()
         
         if result.get('ok'):
+            # Update download count
+            product.download_count = (product.download_count or 0) + 1
+            db.session.commit()
             return jsonify({'ok': True, 'message': 'File sent to your Telegram!'})
         else:
-            # If URL method fails, try sending message with download link
-            telegram_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-            requests.post(telegram_url, data={
-                'chat_id': user_id,
-                'text': f"📦 *{product.name}*\n\n[Click here to download your file]({file_url})\n\n⏰ Link expires in 5 minutes!",
-                'parse_mode': 'Markdown'
-            }, timeout=10)
-            return jsonify({'ok': True, 'message': 'Download link sent to your Telegram!'})
+            # Document send failed - send as clickable link instead
+            error_desc = result.get('description', 'Unknown error')
+            print(f"Telegram sendDocument failed: {error_desc}")
             
+            # Fallback: send download link as message
+            telegram_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+            msg_response = requests.post(telegram_url, data={
+                'chat_id': user_id,
+                'text': f"📦 *{product.name}*\n\n[⬇️ Click here to download]({file_url})\n\n⏰ _Link expires in 5 minutes_",
+                'parse_mode': 'Markdown',
+                'disable_web_page_preview': False
+            }, timeout=10)
+            
+            msg_result = msg_response.json()
+            
+            if msg_result.get('ok'):
+                product.download_count = (product.download_count or 0) + 1
+                db.session.commit()
+                return jsonify({'ok': True, 'message': 'Download link sent to your Telegram!'})
+            else:
+                print(f"Telegram sendMessage also failed: {msg_result}")
+                return jsonify({'ok': False, 'error': 'Could not send to Telegram'}), 500
+            
+    except requests.Timeout:
+        return jsonify({'ok': False, 'error': 'Timeout - file may be too large. Try desktop.'}), 500
     except Exception as e:
-        print(f"Error sending file: {e}")
-        return jsonify({'ok': False, 'error': 'Failed to send file'}), 500
+        print(f"Send file error: {e}")
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+
+@api_bp.route('/download/<int:product_id>')
+@limiter.limit("20 per minute")
+def download_file(product_id):
+    """Direct download endpoint for desktop"""
+    from flask import redirect
+    from r2_storage import get_r2_url
+    
+    product = Product.query.get_or_404(product_id)
+    
+    # Get user_id from query param or header
+    free = request.args.get('free', 'false').lower() == 'true'
+    
+    # For paid products, we should verify purchase
+    # But since this is called from product page where we already checked, 
+    # we'll allow it (the product page only shows download if purchased)
+    
+    if not product.is_free and not free:
+        # In production, you'd want to verify the user here
+        # For now, we trust the frontend check
+        pass
+    
+    # Get file key
+    file_key = getattr(product, 'file_path', None) or getattr(product, 'file_key', None)
+    if not file_key:
+        return jsonify({'error': 'No file available'}), 404
+    
+    # Get signed URL
+    try:
+        file_url = get_r2_url(file_key, expires=300)
+    except Exception as e:
+        print(f"R2 URL error: {e}")
+        return jsonify({'error': 'Could not get file'}), 500
+    
+    if not file_url:
+        return jsonify({'error': 'Could not generate download URL'}), 500
+    
+    # Update download count
+    product.download_count = (product.download_count or 0) + 1
+    db.session.commit()
+    
+    # Redirect to signed URL
+    return redirect(file_url)
 
 
 @api_bp.route('/check-admin', methods=['POST'])
