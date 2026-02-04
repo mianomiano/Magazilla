@@ -307,3 +307,29 @@ video::-webkit-media-controls{display:none!important}
 .logo-upload-preview{width:100%;max-width:300px;margin:12px auto;text-align:center}
 
 .logo-upload-preview img,.logo-upload-preview video{max-width:100%;max-height:150px;border-radius:12px}
+
+/* ===============================
+   PRODUCT STATS BOX
+   =============================== */
+.product-stats-box {
+  background: var(--primary-light, var(--pl)) !important;
+}
+
+.stats-number {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.stats-number.accent {
+  color: var(--accent, var(--a));
+}
+
+.stats-number.secondary {
+  color: var(--secondary, var(--s));
+}
+
+.stats-label {
+  font-size: 0.7rem;
+  color: var(--text-dim, var(--td));
+}
+
