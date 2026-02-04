@@ -186,6 +186,73 @@ def my_purchases():
         })
     
     return jsonify({'purchases': result})
+@api_bp.route('/send-file', methods=['POST'])
+def send_file_to_user():
+    """Send purchased file directly to user via Telegram bot"""
+    import requests
+    
+    data = request.get_json() or {}
+    purchase_id = data.get('purchase_id')
+    user_id = data.get('user_id')
+    
+    if not purchase_id or not user_id:
+        return jsonify({'ok': False, 'error': 'Missing data'}), 400
+    
+    # Get purchase
+    purchase = Purchase.query.get(purchase_id)
+    if not purchase:
+        return jsonify({'ok': False, 'error': 'Purchase not found'}), 404
+    
+    # Verify user owns this purchase
+    if str(purchase.user_id) != str(user_id):
+        return jsonify({'ok': False, 'error': 'Unauthorized'}), 403
+    
+    # Get product
+    product = Product.query.get(purchase.product_id)
+    if not product or not product.file_key:
+        return jsonify({'ok': False, 'error': 'File not found'}), 404
+    
+    # Get file URL from R2
+    from r2_storage import get_r2_url
+    file_url = get_r2_url(product.file_key, expires=300)  # 5 min expiry
+    
+    if not file_url:
+        return jsonify({'ok': False, 'error': 'Could not get file'}), 500
+    
+    # Send file to user via Telegram Bot
+    settings = AppSettings.query.first()
+    bot_token = settings.bot_token if settings else None
+    
+    if not bot_token:
+        return jsonify({'ok': False, 'error': 'Bot not configured'}), 500
+    
+    try:
+        # Send document to user
+        telegram_url = f"https://api.telegram.org/bot{bot_token}/sendDocument"
+        
+        response = requests.post(telegram_url, data={
+            'chat_id': user_id,
+            'document': file_url,
+            'caption': f"📦 Here's your file: {product.name}\n\nThank you for your purchase!"
+        }, timeout=30)
+        
+        result = response.json()
+        
+        if result.get('ok'):
+            return jsonify({'ok': True, 'message': 'File sent to your Telegram!'})
+        else:
+            # If URL method fails, try sending message with download link
+            telegram_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+            requests.post(telegram_url, data={
+                'chat_id': user_id,
+                'text': f"📦 *{product.name}*\n\n[Click here to download your file]({file_url})\n\n⏰ Link expires in 5 minutes!",
+                'parse_mode': 'Markdown'
+            }, timeout=10)
+            return jsonify({'ok': True, 'message': 'Download link sent to your Telegram!'})
+            
+    except Exception as e:
+        print(f"Error sending file: {e}")
+        return jsonify({'ok': False, 'error': 'Failed to send file'}), 500
 
 
 @api_bp.route('/check-admin', methods=['POST'])
