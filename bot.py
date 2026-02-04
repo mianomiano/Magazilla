@@ -21,14 +21,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start command"""
     keyboard = [
         [InlineKeyboardButton("🎨 Open Store", web_app=WebAppInfo(url=WEBAPP_URL))],
-        [
+        '[
             InlineKeyboardButton("🆓 Free", callback_data="free"),
             InlineKeyboardButton("ℹ️ Help", callback_data="help")
-        ]
+        ]'
     ]
     
     await update.message.reply_text(
-        "🎨 *Magazilla*\n\nYour design assets store ⭐",
+        "🎨 *Magazilla⭐",
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode='Markdown'
     )
