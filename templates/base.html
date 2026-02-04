@@ -18,12 +18,24 @@
     {% set secondary = settings.secondary_color %}
     {% set accent = settings.accent_color %}
     
-    {# Calculate if primary is dark or light for auto text color #}
+    {# Calculate primary-light (slightly lighter/different from primary) #}
     {% set pr = primary[1:3]|int(base=16) %}
     {% set pg = primary[3:5]|int(base=16) %}
     {% set pb = primary[5:7]|int(base=16) %}
     {% set brightness = (pr * 299 + pg * 587 + pb * 114) / 1000 %}
     {% set is_dark = brightness < 128 %}
+    
+    {# Create primary-light color #}
+    {% if is_dark %}
+        {% set pl_r = [pr + 20, 255]|min %}
+        {% set pl_g = [pg + 20, 255]|min %}
+        {% set pl_b = [pb + 20, 255]|min %}
+    {% else %}
+        {% set pl_r = [pr - 20, 0]|max %}
+        {% set pl_g = [pg - 20, 0]|max %}
+        {% set pl_b = [pb - 20, 0]|max %}
+    {% endif %}
+    {% set primary_light = '#%02x%02x%02x' % (pl_r, pl_g, pl_b) %}
     
     {# Calculate if secondary is dark or light #}
     {% set sr = secondary[1:3]|int(base=16) %}
@@ -36,12 +48,15 @@
         :root {
             /* Main Colors */
             --primary: {{primary}};
+            --primary-light: {{primary_light}};
             --secondary: {{secondary}};
             --accent: {{accent}};
             
             /* Auto Text Colors based on background */
+            --text: {% if is_dark %}#ffffff{% else %}#1a1a1a{% endif %};
             --text-on-primary: {% if is_dark %}#ffffff{% else %}#1a1a1a{% endif %};
-            --text-muted: {% if is_dark %}#a0a0a0{% else %}#666666{% endif %};
+            --text-dim: {% if is_dark %}#b0b0b0{% else %}#555555{% endif %};
+            --text-muted: {% if is_dark %}#808080{% else %}#888888{% endif %};
             --text-on-secondary: {% if sec_is_dark %}#ffffff{% else %}#1a1a1a{% endif %};
             
             /* Derived Colors */
@@ -50,6 +65,17 @@
             --input-bg: {% if is_dark %}rgba(0,0,0,0.3){% else %}rgba(0,0,0,0.05){% endif %};
             --hover-overlay: {% if is_dark %}rgba(255,255,255,0.05){% else %}rgba(0,0,0,0.05){% endif %};
             --shadow-color: {% if is_dark %}rgba(0,0,0,0.5){% else %}rgba(0,0,0,0.15){% endif %};
+            --shadow-dark: {% if is_dark %}rgba(0,0,0,0.5){% else %}rgba(0,0,0,0.15){% endif %};
+            --shadow-light: {% if is_dark %}rgba(255,255,255,0.05){% else %}rgba(255,255,255,0.5){% endif %};
+            
+            /* Override Telegram's variables immediately */
+            --tg-theme-bg-color: {{primary}} !important;
+            --tg-theme-secondary-bg-color: {{primary_light}} !important;
+            --tg-theme-text-color: {% if is_dark %}#ffffff{% else %}#1a1a1a{% endif %} !important;
+            --tg-theme-hint-color: {% if is_dark %}#808080{% else %}#888888{% endif %} !important;
+            --tg-theme-button-color: {{secondary}} !important;
+            --tg-theme-button-text-color: {% if sec_is_dark %}#ffffff{% else %}#1a1a1a{% endif %} !important;
+            --tg-theme-link-color: {{accent}} !important;
         }
         
         /* ==================== RESET ALL COLORS ==================== */
@@ -60,10 +86,11 @@
         
         /* ==================== BACKGROUND ==================== */
         
-        body, 
         html,
+        body, 
         .app-container {
             background: var(--primary) !important;
+            background-color: var(--primary) !important;
             color: var(--text-on-primary) !important;
         }
         
@@ -183,9 +210,16 @@
         .category-card,
         .settings-card,
         .stat-card,
-        .card {
-            background: var(--card-bg) !important;
+        .card,
+        .neu-card {
+            background: var(--primary-light) !important;
             border: 1px solid var(--card-border) !important;
+            color: var(--text-on-primary) !important;
+        }
+        
+        .neu-card-inset,
+        .product-stats-box {
+            background: var(--primary-light) !important;
             color: var(--text-on-primary) !important;
         }
         
@@ -217,20 +251,25 @@
         
         input,
         textarea,
-        select {
-            background: var(--input-bg) !important;
+        select,
+        .neu-input,
+        .neu-select {
+            background: var(--primary) !important;
             border: 1px solid var(--card-border) !important;
             color: var(--text-on-primary) !important;
         }
         
         input::placeholder,
-        textarea::placeholder {
+        textarea::placeholder,
+        .neu-input::placeholder {
             color: var(--text-muted) !important;
         }
         
         input:focus,
         textarea:focus,
-        select:focus {
+        select:focus,
+        .neu-input:focus,
+        .neu-select:focus {
             border-color: var(--accent) !important;
             outline: none !important;
             box-shadow: 0 0 0 3px {% if is_dark %}rgba(255,255,255,0.1){% else %}rgba(0,0,0,0.1){% endif %} !important;
@@ -240,9 +279,107 @@
         
         .logo-area,
         .header-area,
-        header {
+        header,
+        .header {
             background: var(--primary) !important;
             border-bottom: 1px solid var(--card-border) !important;
+        }
+        
+        /* ==================== PRODUCT DETAIL ==================== */
+        
+        .product-detail {
+            background: var(--primary) !important;
+        }
+        
+        .product-detail-image {
+            background: var(--primary-light) !important;
+        }
+        
+        .product-detail-image img,
+        .product-detail-image video {
+            background: var(--primary-light) !important;
+        }
+        
+        .product-detail-title {
+            color: var(--text-on-primary) !important;
+        }
+        
+        .product-detail-category {
+            color: var(--text-muted) !important;
+        }
+        
+        .product-detail-description {
+            color: var(--text-dim) !important;
+        }
+        
+        .product-detail-price.free {
+            color: var(--secondary) !important;
+        }
+        
+        .product-detail-price.paid {
+            color: var(--accent) !important;
+        }
+        
+        /* Stats in product detail */
+        .stats-number {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        
+        .stats-number.accent {
+            color: var(--accent) !important;
+        }
+        
+        .stats-number.secondary {
+            color: var(--secondary) !important;
+        }
+        
+        .stats-label {
+            font-size: 0.7rem;
+            color: var(--text-dim) !important;
+        }
+        
+        /* ==================== BACK BUTTON ==================== */
+        
+        .back-btn {
+            background: var(--primary-light) !important;
+            color: var(--text-dim) !important;
+        }
+        
+        /* ==================== ADMIN ELEMENTS ==================== */
+        
+        .admin-title {
+            color: var(--text-on-primary) !important;
+        }
+        
+        .admin-product-item {
+            background: var(--primary-light) !important;
+        }
+        
+        .admin-product-name {
+            color: var(--text-on-primary) !important;
+        }
+        
+        .admin-product-meta {
+            color: var(--text-muted) !important;
+        }
+        
+        .admin-product-thumb {
+            background: var(--primary) !important;
+        }
+        
+        .admin-btn-sm {
+            background: var(--primary) !important;
+            color: var(--text-dim) !important;
+        }
+        
+        .admin-btn-sm.delete {
+            color: #ff4757 !important;
+        }
+        
+        .admin-btn-sm.delete:hover {
+            background: #ff4757 !important;
+            color: #fff !important;
         }
         
         /* ==================== MODALS & DROPDOWNS ==================== */
@@ -253,6 +390,21 @@
             background: var(--primary) !important;
             border: 1px solid var(--card-border) !important;
             box-shadow: 0 10px 40px var(--shadow-color) !important;
+        }
+        
+        /* ==================== TOAST ==================== */
+        
+        .toast {
+            background: var(--primary-light) !important;
+            color: var(--text-on-primary) !important;
+        }
+        
+        .toast.success {
+            border-left: 3px solid var(--secondary) !important;
+        }
+        
+        .toast.error {
+            border-left: 3px solid #ff4757 !important;
         }
         
         /* ==================== LINKS ==================== */
@@ -277,7 +429,11 @@
         /* ==================== THUMBNAILS ==================== */
         
         .product-thumbnail {
-            background: {% if is_dark %}rgba(0,0,0,0.3){% else %}rgba(0,0,0,0.08){% endif %} !important;
+            background: var(--primary) !important;
+        }
+        
+        .product-info {
+            background: var(--primary-light) !important;
         }
         
         /* ==================== SCROLLBAR ==================== */
@@ -453,6 +609,38 @@
         }
         {% endif %}
         
+        /* ==================== CONTENT AREA ==================== */
+        
+        .content {
+            background: var(--primary) !important;
+        }
+        
+        .category-filter {
+            background: var(--primary) !important;
+        }
+        
+        /* ==================== SETTINGS/APPEARANCE SECTIONS ==================== */
+        
+        .settings-section,
+        .appearance-section,
+        section {
+            background: var(--primary-light) !important;
+            color: var(--text-on-primary) !important;
+        }
+        
+        .settings-section h3,
+        .appearance-section h3,
+        .section-title,
+        section h3 {
+            color: var(--text-on-primary) !important;
+        }
+        
+        .settings-section label,
+        .appearance-section label,
+        section label {
+            color: var(--text-dim) !important;
+        }
+        
         /* ==================== ADMIN FAB ==================== */
         
         #admin-fab {
@@ -547,6 +735,76 @@
     <script src="{{url_for('static',filename='js/app.js')}}"></script>
     <script>
     (function() {
+        // ==================== TELEGRAM THEME SYNC ====================
+        
+        const tg = window.Telegram?.WebApp;
+        
+        // Theme colors from server (Jinja)
+        const themeColors = {
+            primary: '{{primary}}',
+            primaryLight: '{{primary_light}}',
+            secondary: '{{secondary}}',
+            accent: '{{accent}}',
+            text: '{% if is_dark %}#ffffff{% else %}#1a1a1a{% endif %}',
+            textDim: '{% if is_dark %}#b0b0b0{% else %}#555555{% endif %}',
+            textMuted: '{% if is_dark %}#808080{% else %}#888888{% endif %}',
+            textOnSecondary: '{% if sec_is_dark %}#ffffff{% else %}#1a1a1a{% endif %}'
+        };
+        
+        // Apply theme to Telegram native components
+        function applyTelegramTheme() {
+            if (!tg) return;
+            
+            try {
+                // Set Telegram's background color (body area)
+                if (tg.setBackgroundColor) {
+                    tg.setBackgroundColor(themeColors.primary);
+                }
+                
+                // Set Telegram's header color
+                if (tg.setHeaderColor) {
+                    tg.setHeaderColor(themeColors.primary);
+                }
+                
+                // Set bottom bar color (Telegram v7.10+)
+                if (tg.setBottomBarColor) {
+                    tg.setBottomBarColor(themeColors.primaryLight);
+                }
+                
+                console.log('✅ Telegram theme applied:', themeColors.primary);
+            } catch(e) {
+                console.log('Telegram theme error:', e);
+            }
+            
+            // Override Telegram's CSS variables
+            const root = document.documentElement;
+            root.style.setProperty('--tg-theme-bg-color', themeColors.primary);
+            root.style.setProperty('--tg-theme-secondary-bg-color', themeColors.primaryLight);
+            root.style.setProperty('--tg-theme-text-color', themeColors.text);
+            root.style.setProperty('--tg-theme-hint-color', themeColors.textMuted);
+            root.style.setProperty('--tg-theme-button-color', themeColors.secondary);
+            root.style.setProperty('--tg-theme-button-text-color', themeColors.textOnSecondary);
+            root.style.setProperty('--tg-theme-link-color', themeColors.accent);
+        }
+        
+        // Initialize Telegram WebApp
+        if (tg) {
+            tg.ready();
+            tg.expand(); // Expand to full height
+            
+            // Apply theme immediately
+            applyTelegramTheme();
+            
+            // Re-apply when Telegram theme changes (user switches dark/light mode)
+            tg.onEvent('themeChanged', function() {
+                console.log('Telegram theme changed event');
+                // Re-apply our theme to override Telegram's
+                setTimeout(applyTelegramTheme, 100);
+            });
+        }
+        
+        // ==================== ADMIN MENU ====================
+        
         let menuOpen = false;
         
         window.toggleAdminMenu = function() {
@@ -563,9 +821,10 @@
             }
         });
         
+        // ==================== ADMIN CHECK ====================
+        
         async function checkAdminStatus() {
             try {
-                const tg = window.Telegram?.WebApp;
                 if (!tg || !tg.initData) return;
                 
                 const response = await fetch('/api/check-admin', {
@@ -581,17 +840,16 @@
                 if (data.is_admin) {
                     document.getElementById('admin-fab').style.display = 'block';
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.log('Admin check error:', e);
+            }
         }
         
+        // Run on DOM ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', checkAdminStatus);
         } else {
             checkAdminStatus();
-        }
-        
-        if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.ready();
         }
     })();
     </script>

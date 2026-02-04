@@ -30,18 +30,19 @@
 {%if product.is_free%}🆓 Free{%else%}⭐ {{product.price}} Stars{%endif%}
 </div>
 
-<<div class="neu-card-inset product-stats-box" style="margin-bottom:16px">
-<div style="display:flex;justify-content:space-around;text-align:center">
-<div>
-<div class="stats-number accent">{{product.download_count or 0}}</div>
-<div class="stats-label">Downloads</div>
+<div class="neu-card-inset product-stats-box" style="margin-bottom:16px">
+    <div style="display:flex;justify-content:space-around;text-align:center">
+        <div>
+            <div class="stats-number accent">{{product.download_count or 0}}</div>
+            <div class="stats-label">Downloads</div>
+        </div>
+        <div>
+            <div class="stats-number secondary">{{product.category}}</div>
+            <div class="stats-label">Category</div>
+        </div>
+    </div>
 </div>
-<div>
-<div class="stats-number secondary">{{product.category}}</div>
-<div class="stats-label">Category</div>
-</div>
-</div>
-</div>
+
 
 
 
