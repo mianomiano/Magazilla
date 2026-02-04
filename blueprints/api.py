@@ -1,10 +1,9 @@
 """API routes with rate limiting and Telegram auth validation"""
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, redirect
 from models import db, Product, Purchase, AppSettings
 from config import Config
 from utils.decorators import limiter
 from utils.telegram_auth import telegram_auth_required, get_telegram_user_id, validate_telegram_init_data
-from utils.telegram_auth import validate_telegram_init_data
 import requests
 import json
 
@@ -192,9 +191,8 @@ def my_purchases():
 @api_bp.route('/send-file', methods=['POST'])
 @limiter.limit("10 per minute")
 def send_file_to_user():
-    """Send file directly to user via Telegram bot"""
+    """Send file directly to user via Telegram bot - downloads first to hide URL"""
     from r2_storage import get_r2_url
-    import requests
     
     data = request.get_json() or {}
     product_id = data.get('product_id')
@@ -212,7 +210,7 @@ def send_file_to_user():
     # Check authorization for paid products
     if not product.is_free and not is_free:
         purchase = Purchase.query.filter_by(
-            user_id=user_id,
+            user_id=str(user_id),
             product_id=product_id,
             is_verified=True
         ).first()
@@ -225,12 +223,11 @@ def send_file_to_user():
     if not file_key:
         return jsonify({'ok': False, 'error': 'No file available'}), 404
     
-    # Get bot token
     bot_token = Config.BOT_TOKEN
     if not bot_token:
         return jsonify({'ok': False, 'error': 'Bot not configured'}), 500
     
-    # First, check if user has interacted with bot (try sending a chat action)
+    # Check if user has started the bot
     try:
         check_url = f"https://api.telegram.org/bot{bot_token}/sendChatAction"
         check_response = requests.post(check_url, json={
@@ -240,18 +237,18 @@ def send_file_to_user():
         
         check_result = check_response.json()
         if not check_result.get('ok'):
-            error_desc = check_result.get('description', '')
-            if 'chat not found' in error_desc.lower() or 'bot was blocked' in error_desc.lower():
+            error_desc = check_result.get('description', '').lower()
+            if 'chat not found' in error_desc or 'bot was blocked' in error_desc:
                 return jsonify({
                     'ok': False, 
-                    'error': 'Please start the bot first by sending /start'
+                    'error': 'Please start the bot first'
                 }), 400
     except Exception as e:
         print(f"Chat action check error: {e}")
     
-    # Get file URL from R2
+    # Get signed URL from R2
     try:
-        file_url = get_r2_url(file_key, expires=600)  # 10 min expiry for upload
+        file_url = get_r2_url(file_key, expires=300)
     except Exception as e:
         print(f"R2 URL error: {e}")
         return jsonify({'ok': False, 'error': 'Could not get file URL'}), 500
@@ -262,43 +259,81 @@ def send_file_to_user():
     # Prepare caption
     caption = f"📦 {product.name}"
     if product.is_free:
-        caption += "\n\n🆓 Free download - Enjoy!"
+        caption += "\n\n🆓 Free download"
     else:
         caption += "\n\n✅ Thank you for your purchase!"
     
-    # Try sending the document
+    # Get filename from file_key
+    filename = file_key.split('/')[-1] if '/' in file_key else file_key
+    # Create nicer filename based on product name
+    ext = filename.split('.')[-1] if '.' in filename else ''
+    nice_filename = f"{product.name.replace(' ', '_')}.{ext}" if ext else filename
+    
+    # METHOD 1: Download file first, then upload to Telegram (hides URL completely)
+    try:
+        print(f"Downloading file from R2: {file_key}")
+        file_response = requests.get(file_url, timeout=60, stream=True)
+        
+        if file_response.status_code == 200:
+            # Check file size (Telegram limit is 50MB for bots)
+            content_length = file_response.headers.get('content-length')
+            file_size = int(content_length) if content_length else len(file_response.content)
+            
+            if file_size <= 50 * 1024 * 1024:  # 50MB limit
+                # Send using multipart form (file upload)
+                telegram_url = f"https://api.telegram.org/bot{bot_token}/sendDocument"
+                
+                files = {
+                    'document': (nice_filename, file_response.content)
+                }
+                data_payload = {
+                    'chat_id': user_id,
+                    'caption': caption
+                }
+                
+                response = requests.post(telegram_url, data=data_payload, files=files, timeout=120)
+                result = response.json()
+                
+                print(f"Telegram sendDocument (upload) response: {result.get('ok')}")
+                
+                if result.get('ok'):
+                    # Success! Update download count
+                    product.download_count = (product.download_count or 0) + 1
+                    db.session.commit()
+                    return jsonify({'ok': True, 'message': 'File sent!'})
+            else:
+                print(f"File too large for upload ({file_size} bytes), using URL method")
+        
+    except Exception as e:
+        print(f"Direct upload error: {e}")
+    
+    # METHOD 2: Fallback - send via URL (for large files or if upload fails)
     try:
         telegram_url = f"https://api.telegram.org/bot{bot_token}/sendDocument"
-        
-        # Determine filename from file_key
-        filename = file_key.split('/')[-1] if '/' in file_key else file_key
         
         response = requests.post(telegram_url, json={
             'chat_id': user_id,
             'document': file_url,
-            'caption': caption,
-            'parse_mode': 'HTML'
+            'caption': caption
         }, timeout=60)
         
         result = response.json()
-        print(f"Telegram sendDocument response: {result}")
+        print(f"Telegram sendDocument (URL) response: {result}")
         
         if result.get('ok'):
-            # Success! Update download count
             product.download_count = (product.download_count or 0) + 1
             db.session.commit()
-            return jsonify({'ok': True, 'message': 'File sent to Telegram!'})
+            return jsonify({'ok': True, 'message': 'File sent!'})
         else:
             error_desc = result.get('description', 'Unknown error')
             print(f"sendDocument failed: {error_desc}")
             
-            # If direct URL failed, try sending as a message with link
+            # Last resort: send download link as message
             if 'wrong file identifier' in error_desc.lower() or 'failed to get' in error_desc.lower():
-                # Send download link instead
                 msg_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
                 msg_response = requests.post(msg_url, json={
                     'chat_id': user_id,
-                    'text': f"📦 <b>{product.name}</b>\n\n<a href=\"{file_url}\">⬇️ Click here to download</a>\n\n⏰ <i>Link expires in 10 minutes</i>",
+                    'text': f"📦 <b>{product.name}</b>\n\n<a href=\"{file_url}\">⬇️ Click here to download</a>\n\n⏰ <i>Link expires in 5 minutes</i>",
                     'parse_mode': 'HTML',
                     'disable_web_page_preview': False
                 }, timeout=10)
@@ -318,12 +353,10 @@ def send_file_to_user():
         return jsonify({'ok': False, 'error': str(e)}), 500
 
 
-
 @api_bp.route('/download/<int:product_id>')
 @limiter.limit("20 per minute")
 def download_file(product_id):
     """Direct download endpoint - redirects to signed R2 URL"""
-    from flask import redirect, Response
     from r2_storage import get_r2_url
     
     product = Product.query.get_or_404(product_id)
@@ -367,7 +400,6 @@ def download_file(product_id):
     
     # Redirect to the signed URL
     return redirect(file_url, code=302)
-
 
 
 @api_bp.route('/check-admin', methods=['POST'])
