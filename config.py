@@ -9,7 +9,9 @@ if not os.getenv("RAILWAY_ENVIRONMENT"):
 
 class Config:
     """Main configuration class"""
-    
+
+
+
     # ----- ENVIRONMENT -----
     ENV = os.getenv("FLASK_ENV", "production")
     DEBUG = ENV == "development"
@@ -26,6 +28,10 @@ class Config:
     BOT_TOKEN = os.getenv("BOT_TOKEN", "")
     if not BOT_TOKEN:
         print("❌ ERROR: BOT_TOKEN is required")
+       
+BOT_USERNAME = os.getenv("BOT_USERNAME", "")
+if not BOT_USERNAME:
+    print("⚠️ WARNING: BOT_USERNAME not set (needed for 'Start Bot' button)") 
     
     # ----- ADMIN CONFIGURATION -----
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")

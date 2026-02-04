@@ -4,6 +4,7 @@ from models import db, Product, Purchase, AppSettings
 from config import Config
 from utils.decorators import limiter
 from utils.telegram_auth import telegram_auth_required, get_telegram_user_id, validate_telegram_init_data
+from utils.telegram_auth import validate_telegram_init_data
 import requests
 import json
 
@@ -191,8 +192,9 @@ def my_purchases():
 @api_bp.route('/send-file', methods=['POST'])
 @limiter.limit("10 per minute")
 def send_file_to_user():
-    """Send file directly to user via Telegram bot (for mobile downloads)"""
+    """Send file directly to user via Telegram bot"""
     from r2_storage import get_r2_url
+    import requests
     
     data = request.get_json() or {}
     product_id = data.get('product_id')
@@ -207,11 +209,10 @@ def send_file_to_user():
     if not product:
         return jsonify({'ok': False, 'error': 'Product not found'}), 404
     
-    # Check authorization
+    # Check authorization for paid products
     if not product.is_free and not is_free:
-        # Paid product - check if user purchased
         purchase = Purchase.query.filter_by(
-            user_id=str(user_id),
+            user_id=user_id,
             product_id=product_id,
             is_verified=True
         ).first()
@@ -219,126 +220,154 @@ def send_file_to_user():
         if not purchase:
             return jsonify({'ok': False, 'error': 'Not purchased'}), 403
     
-    # Get file key (support both file_path and file_key)
-    file_key = getattr(product, 'file_path', None) or getattr(product, 'file_key', None)
+    # Get file key
+    file_key = product.file_path
     if not file_key:
-        return jsonify({'ok': False, 'error': 'No file available for this product'}), 404
+        return jsonify({'ok': False, 'error': 'No file available'}), 404
+    
+    # Get bot token
+    bot_token = Config.BOT_TOKEN
+    if not bot_token:
+        return jsonify({'ok': False, 'error': 'Bot not configured'}), 500
+    
+    # First, check if user has interacted with bot (try sending a chat action)
+    try:
+        check_url = f"https://api.telegram.org/bot{bot_token}/sendChatAction"
+        check_response = requests.post(check_url, json={
+            'chat_id': user_id,
+            'action': 'upload_document'
+        }, timeout=5)
+        
+        check_result = check_response.json()
+        if not check_result.get('ok'):
+            error_desc = check_result.get('description', '')
+            if 'chat not found' in error_desc.lower() or 'bot was blocked' in error_desc.lower():
+                return jsonify({
+                    'ok': False, 
+                    'error': 'Please start the bot first by sending /start'
+                }), 400
+    except Exception as e:
+        print(f"Chat action check error: {e}")
     
     # Get file URL from R2
     try:
-        file_url = get_r2_url(file_key, expires=300)  # 5 min expiry
+        file_url = get_r2_url(file_key, expires=600)  # 10 min expiry for upload
     except Exception as e:
         print(f"R2 URL error: {e}")
-        file_url = None
+        return jsonify({'ok': False, 'error': 'Could not get file URL'}), 500
     
     if not file_url:
         return jsonify({'ok': False, 'error': 'Could not generate file URL'}), 500
     
-    # Get bot token from config or settings
-    bot_token = Config.BOT_TOKEN
-    if not bot_token:
-        settings = AppSettings.query.first()
-        bot_token = settings.bot_token if settings else None
-    
-    if not bot_token:
-        return jsonify({'ok': False, 'error': 'Bot not configured'}), 500
-    
     # Prepare caption
+    caption = f"📦 {product.name}"
     if product.is_free:
-        caption = f"📦 {product.name}\n\n🆓 Free download - Enjoy!"
+        caption += "\n\n🆓 Free download - Enjoy!"
     else:
-        caption = f"📦 {product.name}\n\n✅ Thank you for your purchase!"
+        caption += "\n\n✅ Thank you for your purchase!"
     
+    # Try sending the document
     try:
-        # Try sending document directly via URL
         telegram_url = f"https://api.telegram.org/bot{bot_token}/sendDocument"
         
-        response = requests.post(telegram_url, data={
+        # Determine filename from file_key
+        filename = file_key.split('/')[-1] if '/' in file_key else file_key
+        
+        response = requests.post(telegram_url, json={
             'chat_id': user_id,
             'document': file_url,
-            'caption': caption
+            'caption': caption,
+            'parse_mode': 'HTML'
         }, timeout=60)
         
         result = response.json()
+        print(f"Telegram sendDocument response: {result}")
         
         if result.get('ok'):
-            # Update download count
+            # Success! Update download count
             product.download_count = (product.download_count or 0) + 1
             db.session.commit()
-            return jsonify({'ok': True, 'message': 'File sent to your Telegram!'})
+            return jsonify({'ok': True, 'message': 'File sent to Telegram!'})
         else:
-            # Document send failed - send as clickable link instead
             error_desc = result.get('description', 'Unknown error')
-            print(f"Telegram sendDocument failed: {error_desc}")
+            print(f"sendDocument failed: {error_desc}")
             
-            # Fallback: send download link as message
-            telegram_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-            msg_response = requests.post(telegram_url, data={
-                'chat_id': user_id,
-                'text': f"📦 *{product.name}*\n\n[⬇️ Click here to download]({file_url})\n\n⏰ _Link expires in 5 minutes_",
-                'parse_mode': 'Markdown',
-                'disable_web_page_preview': False
-            }, timeout=10)
+            # If direct URL failed, try sending as a message with link
+            if 'wrong file identifier' in error_desc.lower() or 'failed to get' in error_desc.lower():
+                # Send download link instead
+                msg_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                msg_response = requests.post(msg_url, json={
+                    'chat_id': user_id,
+                    'text': f"📦 <b>{product.name}</b>\n\n<a href=\"{file_url}\">⬇️ Click here to download</a>\n\n⏰ <i>Link expires in 10 minutes</i>",
+                    'parse_mode': 'HTML',
+                    'disable_web_page_preview': False
+                }, timeout=10)
+                
+                msg_result = msg_response.json()
+                if msg_result.get('ok'):
+                    product.download_count = (product.download_count or 0) + 1
+                    db.session.commit()
+                    return jsonify({'ok': True, 'message': 'Download link sent!'})
             
-            msg_result = msg_response.json()
-            
-            if msg_result.get('ok'):
-                product.download_count = (product.download_count or 0) + 1
-                db.session.commit()
-                return jsonify({'ok': True, 'message': 'Download link sent to your Telegram!'})
-            else:
-                print(f"Telegram sendMessage also failed: {msg_result}")
-                return jsonify({'ok': False, 'error': 'Could not send to Telegram'}), 500
+            return jsonify({'ok': False, 'error': error_desc}), 500
             
     except requests.Timeout:
-        return jsonify({'ok': False, 'error': 'Timeout - file may be too large. Try desktop.'}), 500
+        return jsonify({'ok': False, 'error': 'Timeout - file may be too large'}), 500
     except Exception as e:
         print(f"Send file error: {e}")
         return jsonify({'ok': False, 'error': str(e)}), 500
 
 
+
 @api_bp.route('/download/<int:product_id>')
 @limiter.limit("20 per minute")
 def download_file(product_id):
-    """Direct download endpoint for desktop"""
-    from flask import redirect
+    """Direct download endpoint - redirects to signed R2 URL"""
+    from flask import redirect, Response
     from r2_storage import get_r2_url
     
     product = Product.query.get_or_404(product_id)
     
-    # Get user_id from query param or header
-    free = request.args.get('free', 'false').lower() == 'true'
+    # Check if free download is allowed
+    free_param = request.args.get('free', 'false').lower() == 'true'
     
-    # For paid products, we should verify purchase
-    # But since this is called from product page where we already checked, 
-    # we'll allow it (the product page only shows download if purchased)
-    
-    if not product.is_free and not free:
-        # In production, you'd want to verify the user here
-        # For now, we trust the frontend check
-        pass
+    if not product.is_free and not free_param:
+        # For paid products, verify purchase via initData header
+        init_data = request.headers.get('X-Telegram-Init-Data')
+        if init_data:
+            user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
+            if user_data:
+                user_id = user_data.get('id')
+                purchase = Purchase.query.filter_by(
+                    user_id=str(user_id),
+                    product_id=product_id,
+                    is_verified=True
+                ).first()
+                if not purchase:
+                    return jsonify({'error': 'Not purchased'}), 403
     
     # Get file key
-    file_key = getattr(product, 'file_path', None) or getattr(product, 'file_key', None)
+    file_key = product.file_path
     if not file_key:
         return jsonify({'error': 'No file available'}), 404
     
-    # Get signed URL
+    # Get signed URL from R2
     try:
         file_url = get_r2_url(file_key, expires=300)
     except Exception as e:
         print(f"R2 URL error: {e}")
-        return jsonify({'error': 'Could not get file'}), 500
+        return jsonify({'error': 'Could not generate download URL'}), 500
     
     if not file_url:
-        return jsonify({'error': 'Could not generate download URL'}), 500
+        return jsonify({'error': 'Could not get file URL'}), 500
     
     # Update download count
     product.download_count = (product.download_count or 0) + 1
     db.session.commit()
     
-    # Redirect to signed URL
-    return redirect(file_url)
+    # Redirect to the signed URL
+    return redirect(file_url, code=302)
+
 
 
 @api_bp.route('/check-admin', methods=['POST'])

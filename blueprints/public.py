@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, request, jsonify, redirect
 from models import db, Product, Purchase
 from utils.decorators import limiter
 from utils.telegram_auth import validate_telegram_init_data
-from utils.r2 import get_r2_url
+from r2_storage import get_r2_url
 from config import Config
 
 public_bp = Blueprint('public_bp', __name__)
@@ -40,7 +40,8 @@ def index():
         products=products,
         categories=categories,
         purchased_ids=purchased_ids,
-        user_id=user_id
+        user_id=user_id,
+        r2_url=get_r2_url
     )
 
 
@@ -49,10 +50,15 @@ def product_detail(pid):
     """Product detail page"""
     product = Product.query.get_or_404(pid)
     
-    # Check if user has purchased (from initData)
-    has_purchased = False
+    # Check if user has purchased (from initData or header)
+    purchased = False
     user_id = None
-    init_data = request.args.get('initData')
+    
+    # Try getting initData from query param or header
+    init_data = (
+        request.args.get('initData') or
+        request.headers.get('X-Telegram-Init-Data')
+    )
     
     if init_data:
         user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
@@ -64,13 +70,15 @@ def product_detail(pid):
                     product_id=pid,
                     is_verified=True
                 ).first()
-                has_purchased = purchase is not None
+                purchased = purchase is not None
     
     return render_template(
         'product.html',
         product=product,
-        has_purchased=has_purchased,
-        user_id=user_id
+        purchased=purchased,
+        user_id=user_id,
+        r2_url=get_r2_url,
+        bot_username=Config.BOT_USERNAME
     )
 
 
@@ -156,7 +164,8 @@ def category_products(cat_name):
         products=products,
         categories=categories,
         current_category=cat_name,
-        purchased_ids=set()
+        purchased_ids=set(),
+        r2_url=get_r2_url
     )
 
 
