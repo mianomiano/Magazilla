@@ -9,9 +9,7 @@ if not os.getenv("RAILWAY_ENVIRONMENT"):
 
 class Config:
     """Main configuration class"""
-
-
-
+    
     # ----- ENVIRONMENT -----
     ENV = os.getenv("FLASK_ENV", "production")
     DEBUG = ENV == "development"
@@ -20,25 +18,23 @@ class Config:
     # ----- CORE SECURITY -----
     SECRET_KEY = os.getenv("SECRET_KEY", "")
     if not SECRET_KEY:
-        # Generate a random key if not set (not recommended for production)
         import secrets
         SECRET_KEY = secrets.token_hex(32)
-        print("⚠️ WARNING: SECRET_KEY not set, using random key (sessions won't persist)")
+        print("⚠️ WARNING: SECRET_KEY not set, using random key")
     
     BOT_TOKEN = os.getenv("BOT_TOKEN", "")
     if not BOT_TOKEN:
         print("❌ ERROR: BOT_TOKEN is required")
-       
-BOT_USERNAME = os.getenv("BOT_USERNAME", "")
-if not BOT_USERNAME:
-    print("⚠️ WARNING: BOT_USERNAME not set (needed for 'Start Bot' button)") 
+    
+    BOT_USERNAME = os.getenv("BOT_USERNAME", "")
+    if not BOT_USERNAME:
+        print("⚠️ WARNING: BOT_USERNAME not set")
     
     # ----- ADMIN CONFIGURATION -----
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
     if not ADMIN_PASSWORD:
         print("⚠️ WARNING: ADMIN_PASSWORD not set")
     
-    # Admin Telegram IDs (comma-separated in .env)
     _admin_ids_str = os.getenv("ADMIN_TELEGRAM_IDS", "")
     ADMIN_TELEGRAM_IDS = []
     if _admin_ids_str:
@@ -51,14 +47,14 @@ if not BOT_USERNAME:
     SESSION_COOKIE_SECURE = ENV == "production"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
-    PERMANENT_SESSION_LIFETIME = 3600  # 1 hour
+    PERMANENT_SESSION_LIFETIME = 3600
     
     # ----- CSRF PROTECTION -----
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = 3600
     
     # ----- FILE UPLOADS -----
-    MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50MB
+    MAX_CONTENT_LENGTH = 50 * 1024 * 1024
     ALLOWED_EXTENSIONS = {
         "png", "jpg", "jpeg", "gif", "svg", "webp",
         "webm", "zip", "rar", "psd", "ai", "fig", 
@@ -66,13 +62,21 @@ if not BOT_USERNAME:
     }
     
     # ----- DATABASE -----
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///shop.db")
+    # Try multiple possible env var names
+    DATABASE_URL = (
+        os.getenv("DATABASE_URL") or 
+        os.getenv("DATABASE_PUBLIC_URL") or
+        os.getenv("POSTGRES_URL") or
+        "sqlite:///shop.db"
+    )
     
-    # Fix Heroku/Railway postgres:// URLs
+    print(f"📦 Database URL found: {DATABASE_URL[:50]}..." if DATABASE_URL else "❌ No DATABASE_URL!")
+    
+    # Fix postgres:// to postgresql://
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     
-    # Use psycopg3 for PostgreSQL
+    # Use psycopg for PostgreSQL
     if DATABASE_URL.startswith("postgresql://"):
         SQLALCHEMY_DATABASE_URI = DATABASE_URL.replace(
             "postgresql://", "postgresql+psycopg://", 1
