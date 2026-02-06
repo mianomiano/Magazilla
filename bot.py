@@ -28,7 +28,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     
     await update.message.reply_text(
-        "🎨 *Magazilla⭐",
+        "🎨 *Magazilla*\n\nYour design assets store ⭐",
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode='Markdown'
     )
