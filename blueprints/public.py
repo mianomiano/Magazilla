@@ -229,69 +229,79 @@ def health_check():
 @public_bp.route('/blog')
 def blog_index():
     """Blog listing page"""
-    app_settings = AppSettings.query.first()
-    if not app_settings or not app_settings.enable_blog:
+    try:
+        app_settings = AppSettings.query.first()
+        if not app_settings or not app_settings.enable_blog:
+            return redirect('/')
+        
+        posts = BlogPost.query.filter_by(is_published=True).order_by(BlogPost.created_at.desc()).all()
+        
+        # Get user_id from initData if available
+        user_id = None
+        init_data = request.args.get('initData')
+        if init_data:
+            user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
+            if user_data:
+                user_id = user_data.get('id')
+        
+        # Get liked post IDs for this user
+        liked_post_ids = set()
+        if user_id:
+            likes = BlogLike.query.filter_by(user_id=user_id).all()
+            liked_post_ids = {like.post_id for like in likes}
+        
+        return render_template(
+            'blog_index.html',
+            posts=posts,
+            liked_post_ids=liked_post_ids,
+            user_id=user_id,
+            r2_url=get_r2_url
+        )
+    except Exception as e:
+        print(f"Blog index error: {e}")
+        # Redirect to home if blog tables don't exist yet
         return redirect('/')
-    
-    posts = BlogPost.query.filter_by(is_published=True).order_by(BlogPost.created_at.desc()).all()
-    
-    # Get user_id from initData if available
-    user_id = None
-    init_data = request.args.get('initData')
-    if init_data:
-        user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
-        if user_data:
-            user_id = user_data.get('id')
-    
-    # Get liked post IDs for this user
-    liked_post_ids = set()
-    if user_id:
-        likes = BlogLike.query.filter_by(user_id=user_id).all()
-        liked_post_ids = {like.post_id for like in likes}
-    
-    return render_template(
-        'blog_index.html',
-        posts=posts,
-        liked_post_ids=liked_post_ids,
-        user_id=user_id,
-        r2_url=get_r2_url
-    )
 
 
 @public_bp.route('/blog/<int:post_id>')
 def blog_detail(post_id):
     """Blog post detail page"""
-    app_settings = AppSettings.query.first()
-    if not app_settings or not app_settings.enable_blog:
+    try:
+        app_settings = AppSettings.query.first()
+        if not app_settings or not app_settings.enable_blog:
+            return redirect('/')
+        
+        post = BlogPost.query.get_or_404(post_id)
+        
+        if not post.is_published:
+            return redirect(url_for('public_bp.blog_index'))
+        
+        # Increment view count
+        post.view_count = (post.view_count or 0) + 1
+        db.session.commit()
+        
+        # Get user_id from initData if available
+        user_id = None
+        init_data = request.args.get('initData') or request.headers.get('X-Telegram-Init-Data')
+        if init_data:
+            user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
+            if user_data:
+                user_id = user_data.get('id')
+        
+        # Check if user liked this post
+        user_liked = False
+        if user_id:
+            like = BlogLike.query.filter_by(post_id=post_id, user_id=user_id).first()
+            user_liked = like is not None
+        
+        return render_template(
+            'blog_detail.html',
+            post=post,
+            user_liked=user_liked,
+            user_id=user_id,
+            r2_url=get_r2_url
+        )
+    except Exception as e:
+        print(f"Blog detail error: {e}")
+        # Redirect to home if blog tables don't exist yet
         return redirect('/')
-    
-    post = BlogPost.query.get_or_404(post_id)
-    
-    if not post.is_published:
-        return redirect(url_for('public_bp.blog_index'))
-    
-    # Increment view count
-    post.view_count = (post.view_count or 0) + 1
-    db.session.commit()
-    
-    # Get user_id from initData if available
-    user_id = None
-    init_data = request.args.get('initData') or request.headers.get('X-Telegram-Init-Data')
-    if init_data:
-        user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
-        if user_data:
-            user_id = user_data.get('id')
-    
-    # Check if user liked this post
-    user_liked = False
-    if user_id:
-        like = BlogLike.query.filter_by(post_id=post_id, user_id=user_id).first()
-        user_liked = like is not None
-    
-    return render_template(
-        'blog_detail.html',
-        post=post,
-        user_liked=user_liked,
-        user_id=user_id,
-        r2_url=get_r2_url
-    )
