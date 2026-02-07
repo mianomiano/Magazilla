@@ -566,6 +566,26 @@
         .product-thumbnail { 
             aspect-ratio: 3/4 !important; 
         }
+        {% elif settings.card_shape == 'wide' %}
+        .products-grid {
+            grid-template-columns: 1fr !important;
+        }
+        .product-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .product-thumbnail { 
+            aspect-ratio: 4/3 !important;
+            width: 100%;
+        }
+        .product-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8)) !important;
+            padding: 20px !important;
+        }
         {% endif %}
         
         /* ==================== CARD INFO ==================== */
@@ -717,6 +737,13 @@
 <body>
     <div class="app-container">
         {%block content%}{%endblock%}
+        
+        <!-- Footer -->
+        {% if settings.footer_text %}
+        <footer style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;border-top:1px solid var(--card-border);margin-top:40px;">
+            {{ settings.footer_text }}
+        </footer>
+        {% endif %}
     </div>
     
     <!-- Admin FAB -->

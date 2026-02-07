@@ -216,7 +216,7 @@
             <!-- Card Shape Section -->
             <div class="settings-section">
                 <h3>⬛ Card Shape</h3>
-                <div class="option-grid two-col">
+                <div class="option-grid three-col">
                     <label class="option-card">
                         <input type="radio" name="card_shape" value="square" 
                                {{ 'checked' if settings.card_shape == 'square' else '' }} onchange="updatePreview()">
@@ -231,6 +231,14 @@
                         <span class="option-preview">
                             <div class="shape-preview shape-rectangle"></div>
                             <span>Rectangle</span>
+                        </span>
+                    </label>
+                    <label class="option-card">
+                        <input type="radio" name="card_shape" value="wide" 
+                               {{ 'checked' if settings.card_shape == 'wide' else '' }} onchange="updatePreview()">
+                        <span class="option-preview">
+                            <div class="shape-preview shape-wide"></div>
+                            <span>Wide</span>
                         </span>
                     </label>
                 </div>

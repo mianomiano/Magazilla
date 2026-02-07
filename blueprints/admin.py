@@ -359,20 +359,6 @@ def settings():
     if request.method == 'POST':
         app_settings.app_name = request.form.get('app_name', 'Magazilla').strip()
         
-        primary_color = request.form.get('primary_color', '#090c11')
-        secondary_color = request.form.get('secondary_color', '#afe81f')
-        accent_color = request.form.get('accent_color', '#1534fe')
-        
-        for color in [primary_color, secondary_color, accent_color]:
-            valid, error = validate_color(color)
-            if not valid:
-                flash(error, 'error')
-                return render_template('settings.html', settings=app_settings)
-        
-        app_settings.primary_color = primary_color
-        app_settings.secondary_color = secondary_color
-        app_settings.accent_color = accent_color
-        
         # New header, contact, blog, footer settings
         app_settings.enable_blog = request.form.get('enable_blog') == 'on'
         app_settings.enable_product_messages = request.form.get('enable_product_messages') == 'on'
@@ -455,7 +441,7 @@ def appearance():
         
         # Card shape
         card_shape = request.form.get('card_shape', 'square')
-        if card_shape in ['square', 'rectangle']:
+        if card_shape in ['square', 'rectangle', 'wide']:
             app_settings.card_shape = card_shape
         
         # Card info
@@ -498,8 +484,12 @@ def analytics():
     # Total buy button clicks
     total_buy_clicks = VisitorLog.query.filter_by(action='buy_click').count()
     
-    # Total purchases
-    total_purchases = Purchase.query.filter_by(is_verified=True, is_test=False).count()
+    # Total purchases - handle is_test column gracefully
+    try:
+        total_purchases = Purchase.query.filter_by(is_verified=True, is_test=False).count()
+    except Exception:
+        # Fallback if is_test column doesn't exist
+        total_purchases = Purchase.query.filter_by(is_verified=True).count()
     
     # Conversion rate
     conversion_rate = round((total_purchases / total_buy_clicks * 100), 2) if total_buy_clicks > 0 else 0
