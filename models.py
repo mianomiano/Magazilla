@@ -114,7 +114,7 @@ class BlogPost(db.Model):
     show_likes = db.Column(db.Boolean, default=True)  # Owner can choose to show/hide like count
     is_published = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    tags = db.Column(db.String(300))  # Comma-separated tags/keywords
+    tags = db.Column(db.String(300), default='')  # Comma-separated tags/keywords
     view_count = db.Column(db.Integer, default=0)  # Track views
 
 

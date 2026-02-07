@@ -14,8 +14,8 @@
     {%endif%}
     
     {%if settings.header_button_text and settings.header_button_url%}
-    <a href="{{settings.header_button_url}}" class="header-cta-btn" onclick="if(window.Telegram?.WebApp) { window.Telegram.WebApp.openLink('{{settings.header_button_url}}'); return false; }">
-        {{settings.header_button_text}}
+    <a href="{{settings.header_button_url | e}}" class="header-cta-btn" target="_blank" rel="noopener noreferrer">
+        {{settings.header_button_text | e}}
     </a>
     {%endif%}
 </div>

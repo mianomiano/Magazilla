@@ -1,5 +1,5 @@
 """Public routes for the shop frontend"""
-from flask import Blueprint, render_template, request, jsonify, redirect, session
+from flask import Blueprint, render_template, request, jsonify, redirect, session, url_for
 from models import db, Product, Purchase, VisitorLog, BlogPost, BlogLike, AppSettings
 from utils.decorators import limiter
 from utils.telegram_auth import validate_telegram_init_data

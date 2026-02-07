@@ -36,7 +36,9 @@
         <div class="daily-chart">
             {% for stat in daily_stats %}
             <div class="daily-bar-wrapper">
-                <div class="daily-bar" style="height: {{ (stat.visitors / ([s.visitors for s in daily_stats] | max or 1) * 100) }}%;" title="{{ stat.visitors }} visitors, {{ stat.views }} views"></div>
+                {% set max_visitors = [s.visitors for s in daily_stats] | max %}
+                {% set safe_max = max_visitors if max_visitors and max_visitors > 0 else 1 %}
+                <div class="daily-bar" style="height: {{ (stat.visitors / safe_max * 100) }}%;" title="{{ stat.visitors }} visitors, {{ stat.views }} views"></div>
                 <div class="daily-label">{{ stat.date }}</div>
                 <div class="daily-value">{{ stat.visitors }}</div>
             </div>

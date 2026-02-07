@@ -521,6 +521,7 @@ def search_products():
 def send_contact_message():
     """Send a contact message to admin via Telegram bot"""
     try:
+        import html
         data = request.json
         message_text = data.get('message', '').strip()
         product_id = data.get('product_id')  # Optional, for product-specific messages
@@ -544,20 +545,20 @@ def send_contact_message():
         
         admin_id = admin_ids[0]
         
-        # Format message
+        # Format message with HTML escaping
         if product_id:
             product = Product.query.get(product_id)
             if product:
                 telegram_message = f"📩 <b>Product Question</b>\n\n"
-                telegram_message += f"<b>Product:</b> {product.name}\n"
+                telegram_message += f"<b>Product:</b> {html.escape(product.name)}\n"
                 telegram_message += f"<b>From User:</b> {user_id}\n\n"
-                telegram_message += f"<b>Message:</b>\n{message_text}"
+                telegram_message += f"<b>Message:</b>\n{html.escape(message_text)}"
             else:
-                telegram_message = f"📩 <b>Message from User {user_id}</b>\n\n{message_text}"
+                telegram_message = f"📩 <b>Message from User {user_id}</b>\n\n{html.escape(message_text)}"
         else:
             telegram_message = f"📩 <b>Contact Message</b>\n\n"
             telegram_message += f"<b>From User:</b> {user_id}\n\n"
-            telegram_message += f"<b>Message:</b>\n{message_text}"
+            telegram_message += f"<b>Message:</b>\n{html.escape(message_text)}"
         
         # Send via bot
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
