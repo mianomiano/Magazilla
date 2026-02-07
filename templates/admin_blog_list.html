@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="content">
+    <div class="admin-header">
+        <h1 class="admin-title">📝 Blog Posts</h1>
+        <div>
+            <a href="{{ url_for('admin_bp.blog_new') }}" class="neu-btn neu-btn-primary">+ New Post</a>
+            <a href="{{ url_for('admin_bp.dashboard') }}" class="neu-btn">← Dashboard</a>
+        </div>
+    </div>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+    {% for category, message in messages %}
+    <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    
+    {% if posts %}
+    <div class="blog-admin-list">
+        {% for post in posts %}
+        <div class="blog-admin-item">
+            <div class="blog-admin-info">
+                <h3 class="blog-admin-title">{{ post.title }}</h3>
+                <div class="blog-admin-meta">
+                    <span class="blog-admin-author">By {{ post.author_name }}</span>
+                    <span class="blog-admin-date">{{ post.created_at.strftime('%b %d, %Y') }}</span>
+                    <span class="blog-admin-status {% if post.is_published %}published{% else %}draft{% endif %}">
+                        {% if post.is_published %}Published{% else %}Draft{% endif %}
+                    </span>
+                </div>
+                <div class="blog-admin-stats">
+                    <span>❤️ {{ post.likes_count }} likes</span>
+                    <span>👁️ {{ post.view_count }} views</span>
+                </div>
+            </div>
+            <div class="blog-admin-actions">
+                <a href="{{ url_for('admin_bp.blog_edit', post_id=post.id) }}" class="neu-btn neu-btn-sm">Edit</a>
+                <form method="POST" action="{{ url_for('admin_bp.blog_delete', post_id=post.id) }}" style="display: inline;" onsubmit="return confirm('Delete this post?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="neu-btn neu-btn-sm neu-btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📝</div>
+        <p class="empty-state-text">No blog posts yet</p>
+        <a href="{{ url_for('admin_bp.blog_new') }}" class="neu-btn neu-btn-primary">Create your first post</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.blog-admin-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.blog-admin-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.blog-admin-info {
+    flex: 1;
+}
+
+.blog-admin-title {
+    margin: 0 0 10px 0;
+    font-size: 1.2rem;
+    color: #fff;
+}
+
+.blog-admin-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 10px;
+}
+
+.blog-admin-status {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.blog-admin-status.published {
+    background: rgba(0, 255, 0, 0.2);
+    color: #0f0;
+}
+
+.blog-admin-status.draft {
+    background: rgba(255, 255, 0, 0.2);
+    color: #ff0;
+}
+
+.blog-admin-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+}
+
+.blog-admin-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.neu-btn-sm {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}
+
+.neu-btn-danger {
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff4444;
+}
+
+.neu-btn-danger:hover {
+    background: rgba(255, 0, 0, 0.3);
+}
+</style>
+{% endblock %}

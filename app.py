@@ -45,6 +45,14 @@ def create_app():
         
         return dict(r2_url=r2_url, settings=get_settings())
     
+    # Custom template filters
+    @app.template_filter('nl2br')
+    def nl2br_filter(text):
+        """Convert newlines to <br> tags"""
+        if not text:
+            return ''
+        return text.replace('\n', '<br>')
+    
     # Create/migrate tables
     with app.app_context():
         # Run database migration

@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="header">
+    <div class="header-inner">
+        <div class="logo-area">
+            {% if settings.logo_path %}
+            {% set logo_url = r2_url(settings.logo_path) %}
+            {% if settings.logo_path.endswith('.webm') %}
+            <video autoplay loop muted playsinline>
+                <source src="{{ logo_url }}" type="video/webm">
+            </video>
+            {% else %}
+            <img src="{{ logo_url }}" onerror="this.parentNode.innerHTML='<span class=logo-text>{{ settings.app_name }}</span>'">
+            {% endif %}
+            {% else %}
+            <span class="logo-text">{{ settings.app_name }}</span>
+            {% endif %}
+        </div>
+    </div>
+</header>
+
+<div class="content">
+    <div class="blog-nav">
+        <a href="/blog" class="back-link">← Back to Blog</a>
+    </div>
+    
+    <article class="blog-post">
+        {% if post.image_path %}
+        <div class="blog-post-image">
+            <img src="{{ r2_url(post.image_path) }}" alt="{{ post.title }}">
+        </div>
+        {% endif %}
+        
+        <div class="blog-post-header">
+            <h1 class="blog-post-title">{{ post.title }}</h1>
+            <div class="blog-post-meta">
+                <span>By {{ post.author_name }}</span>
+                <span>{{ post.created_at.strftime('%B %d, %Y') }}</span>
+            </div>
+        </div>
+        
+        <div class="blog-post-content">
+            {{ post.content | nl2br | safe }}
+        </div>
+        
+        {% if post.tags %}
+        <div class="blog-post-tags">
+            {% for tag in post.tags.split(',') %}
+            <span class="blog-tag">{{ tag.strip() }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="blog-post-actions">
+            {% if post.show_likes %}
+            <button class="like-button {% if user_liked %}liked{% endif %}" 
+                    onclick="toggleLike({{ post.id }})" 
+                    {% if not user_id %}disabled title="Login to like"{% endif %}>
+                <span class="like-icon">{% if user_liked %}❤️{% else %}🤍{% endif %}</span>
+                <span class="like-count">{{ post.likes_count }}</span>
+            </button>
+            {% endif %}
+            <span class="blog-views">👁️ {{ post.view_count }} views</span>
+        </div>
+    </article>
+</div>
+
+<script>
+async function toggleLike(postId) {
+    const btn = document.querySelector('.like-button');
+    const icon = btn.querySelector('.like-icon');
+    const count = btn.querySelector('.like-count');
+    
+    try {
+        const initData = window.Telegram?.WebApp?.initData || '';
+        const response = await fetch(`/api/blog/${postId}/like`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': initData
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            icon.textContent = data.liked ? '❤️' : '🤍';
+            count.textContent = data.likes_count;
+            btn.classList.toggle('liked', data.liked);
+            
+            // Haptic feedback
+            if (window.Telegram?.WebApp?.HapticFeedback) {
+                window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+            }
+        }
+    } catch (error) {
+        console.error('Like error:', error);
+    }
+}
+</script>
+
+<style>
+.blog-nav {
+    margin-bottom: 20px;
+}
+
+.back-link {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.back-link:hover {
+    color: var(--secondary-color);
+}
+
+.blog-post {
+    max-width: 800px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.blog-post-image {
+    width: 100%;
+    max-height: 400px;
+    overflow: hidden;
+}
+
+.blog-post-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.blog-post-header {
+    padding: 30px 30px 20px;
+}
+
+.blog-post-title {
+    margin: 0 0 15px 0;
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1.3;
+}
+
+.blog-post-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.blog-post-content {
+    padding: 20px 30px;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.8;
+    font-size: 1.05rem;
+}
+
+.blog-post-content p {
+    margin-bottom: 15px;
+}
+
+.blog-post-tags {
+    padding: 20px 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.blog-tag {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+}
+
+.blog-post-actions {
+    padding: 20px 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.like-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1rem;
+}
+
+.like-button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.05);
+}
+
+.like-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.like-button.liked {
+    background: rgba(255, 0, 0, 0.2);
+}
+
+.like-icon {
+    font-size: 1.2rem;
+}
+
+.like-count {
+    font-weight: bold;
+}
+
+.blog-views {
+    color: var(--secondary-color);
+}
+</style>
+
+<!-- Custom filter for newline to br -->
+{% set nl2br = lambda text: text.replace('\n', '<br>') %}
+
+{% endblock %}

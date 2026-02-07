@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from datetime import datetime
 from config import Config
-from models import db, Product, Purchase, AppSettings
+from models import db, Product, Purchase, AppSettings, BlogPost, BlogLike
 from r2_storage import upload_to_r2, delete_from_r2
 from utils.auth import admin_required, verify_admin_password, log_admin_action
 from utils.validation import allowed_file, validate_product_name, validate_price, validate_category, validate_color
@@ -503,6 +503,116 @@ def analytics():
         recent_visitors=recent_visitors,
         daily_stats=daily_stats
     )
+
+
+# ===== BLOG MANAGEMENT ROUTES =====
+
+@admin_bp.route('/blog')
+@admin_required
+def blog_list():
+    """List all blog posts"""
+    posts = BlogPost.query.order_by(BlogPost.created_at.desc()).all()
+    return render_template('admin_blog_list.html', posts=posts)
+
+
+@admin_bp.route('/blog/new', methods=['GET', 'POST'])
+@admin_required
+def blog_new():
+    """Create new blog post"""
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        content = request.form.get('content', '').strip()
+        author_name = request.form.get('author_name', 'Admin').strip()
+        tags = request.form.get('tags', '').strip()
+        show_likes = request.form.get('show_likes') == 'on'
+        is_published = request.form.get('is_published') == 'on'
+        
+        if not title or not content:
+            flash('Title and content are required', 'error')
+            return render_template('admin_blog_edit.html', post=None)
+        
+        post = BlogPost(
+            title=title,
+            content=content,
+            author_name=author_name,
+            tags=tags,
+            show_likes=show_likes,
+            is_published=is_published
+        )
+        
+        # Handle image upload
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename and allowed_file(file.filename):
+                key = upload_to_r2(file, 'blog')
+                if key:
+                    post.image_path = key
+        
+        db.session.add(post)
+        db.session.commit()
+        
+        log_admin_action('create_blog_post', json.dumps({'post_id': post.id, 'title': post.title}))
+        flash(f'Blog post "{post.title}" created!', 'success')
+        return redirect(url_for('admin_bp.blog_list'))
+    
+    return render_template('admin_blog_edit.html', post=None)
+
+
+@admin_bp.route('/blog/<int:post_id>/edit', methods=['GET', 'POST'])
+@admin_required
+def blog_edit(post_id):
+    """Edit existing blog post"""
+    post = BlogPost.query.get_or_404(post_id)
+    
+    if request.method == 'POST':
+        post.title = request.form.get('title', '').strip()
+        post.content = request.form.get('content', '').strip()
+        post.author_name = request.form.get('author_name', 'Admin').strip()
+        post.tags = request.form.get('tags', '').strip()
+        post.show_likes = request.form.get('show_likes') == 'on'
+        post.is_published = request.form.get('is_published') == 'on'
+        
+        if not post.title or not post.content:
+            flash('Title and content are required', 'error')
+            return render_template('admin_blog_edit.html', post=post)
+        
+        # Handle image upload
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename and allowed_file(file.filename):
+                if post.image_path:
+                    delete_from_r2(post.image_path)
+                key = upload_to_r2(file, 'blog')
+                if key:
+                    post.image_path = key
+        
+        db.session.commit()
+        log_admin_action('edit_blog_post', json.dumps({'post_id': post.id, 'title': post.title}))
+        flash(f'Blog post "{post.title}" updated!', 'success')
+        return redirect(url_for('admin_bp.blog_list'))
+    
+    return render_template('admin_blog_edit.html', post=post)
+
+
+@admin_bp.route('/blog/<int:post_id>/delete', methods=['POST'])
+@admin_required
+def blog_delete(post_id):
+    """Delete blog post"""
+    post = BlogPost.query.get_or_404(post_id)
+    post_title = post.title
+    
+    if post.image_path:
+        delete_from_r2(post.image_path)
+    
+    # Delete associated likes
+    BlogLike.query.filter_by(post_id=post_id).delete()
+    
+    db.session.delete(post)
+    db.session.commit()
+    
+    log_admin_action('delete_blog_post', json.dumps({'post_id': post_id, 'title': post_title}))
+    flash(f'Blog post "{post_title}" deleted!', 'success')
+    return redirect(url_for('admin_bp.blog_list'))
 
 
 # NOTE: test-purchase endpoint removed for production security

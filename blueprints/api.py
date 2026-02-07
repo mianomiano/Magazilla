@@ -1,6 +1,6 @@
 """API routes with rate limiting and Telegram auth validation"""
 from flask import Blueprint, request, jsonify, redirect
-from models import db, Product, Purchase, AppSettings
+from models import db, Product, Purchase, AppSettings, BlogPost, BlogLike
 from config import Config
 from utils.decorators import limiter
 from utils.telegram_auth import telegram_auth_required, get_telegram_user_id, validate_telegram_init_data
@@ -448,3 +448,30 @@ def check_admin():
     is_admin = user_id in Config.ADMIN_TELEGRAM_IDS
     
     return jsonify({'is_admin': is_admin})
+
+
+@api_bp.route('/blog/<int:post_id>/like', methods=['POST'])
+@limiter.limit("20 per minute")
+@telegram_auth_required
+def blog_like(post_id):
+    """Like or unlike a blog post"""
+    user_id = get_telegram_user_id()
+    
+    post = BlogPost.query.get_or_404(post_id)
+    
+    # Check if already liked
+    existing_like = BlogLike.query.filter_by(post_id=post_id, user_id=user_id).first()
+    
+    if existing_like:
+        # Unlike
+        db.session.delete(existing_like)
+        post.likes_count = max(0, (post.likes_count or 0) - 1)
+        db.session.commit()
+        return jsonify({'liked': False, 'likes_count': post.likes_count})
+    else:
+        # Like
+        like = BlogLike(post_id=post_id, user_id=user_id)
+        db.session.add(like)
+        post.likes_count = (post.likes_count or 0) + 1
+        db.session.commit()
+        return jsonify({'liked': True, 'likes_count': post.likes_count})
