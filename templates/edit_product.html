@@ -55,12 +55,40 @@
 <input type="number" name="price" class="neu-input" value="{{product.price if product else 1}}" min="1" max="10000">
 </div>
 
+<div class="neu-input-group" id="old_price_field" style="{%if not product or product.is_free%}display:none{%endif%}">
+<label>Original Price (optional, for strikethrough) ⭐</label>
+<input type="number" name="old_price" class="neu-input" value="{{product.old_price if product and product.old_price else ''}}" min="0" max="10000" placeholder="Leave empty if no sale">
+</div>
+
+<div class="neu-input-group">
+<label>Tags/Keywords (comma-separated, max 3)</label>
+<input type="text" name="tags" class="neu-input" value="{{product.tags if product else ''}}" placeholder="e.g., icon, ui, modern" maxlength="300">
+<small style="color: rgba(255,255,255,0.5)">Tags help users find your product via search</small>
+</div>
+
+<div class="neu-input-group">
+<label>Promotional Badge</label>
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+<input type="text" name="badge_text" class="neu-input" value="{{product.badge_text if product else ''}}" placeholder="e.g., SALE, NEW, -50%" maxlength="15">
+<input type="color" name="badge_color" class="neu-input" value="{{product.badge_color if product else '#ff4444'}}" style="height: 42px; padding: 4px;">
+</div>
+<small style="color: rgba(255,255,255,0.5)">Optional colored badge on product card</small>
+</div>
+
 {%if product%}
 <div class="neu-input-group">
 <label class="neu-checkbox">
 <input type="checkbox" name="is_active" {%if product.is_active%}checked{%endif%}>
 <span class="neu-checkmark"></span>
 <span>Active (visible in store)</span>
+</label>
+</div>
+
+<div class="neu-input-group">
+<label class="neu-checkbox">
+<input type="checkbox" name="is_featured" {%if product.is_featured%}checked{%endif%}>
+<span class="neu-checkmark"></span>
+<span>⭐ Featured (pin to top)</span>
 </label>
 </div>
 {%endif%}
@@ -105,5 +133,46 @@
 document.addEventListener('DOMContentLoaded', function() {
     togglePriceField();
 });
+
+function togglePriceField() {
+    const isFree = document.getElementById('is_free').checked;
+    const priceField = document.getElementById('price_field');
+    const oldPriceField = document.getElementById('old_price_field');
+    if (isFree) {
+        priceField.style.display = 'none';
+        oldPriceField.style.display = 'none';
+    } else {
+        priceField.style.display = 'block';
+        oldPriceField.style.display = 'block';
+    }
+}
+
+function handleCategoryChange(select) {
+    const customField = document.getElementById('custom_category_field');
+    if (select.value === '_custom') {
+        customField.style.display = 'block';
+    } else {
+        customField.style.display = 'none';
+    }
+}
+
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function updateFileName(input, labelId) {
+    const label = document.getElementById(labelId);
+    if (input.files && input.files[0]) {
+        label.textContent = input.files[0].name;
+    }
+}
 </script>
 {%endblock%}

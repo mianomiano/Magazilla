@@ -475,3 +475,41 @@ def blog_like(post_id):
         post.likes_count = (post.likes_count or 0) + 1
         db.session.commit()
         return jsonify({'liked': True, 'likes_count': post.likes_count})
+
+
+@api_bp.route('/search', methods=['GET'])
+@limiter.limit("30 per minute")
+def search_products():
+    """Search products by name, category, or tags"""
+    query = request.args.get('q', '').strip().lower()
+    
+    if not query or len(query) < 2:
+        return jsonify({'products': []})
+    
+    # Search by name, category, or tags (not description as per requirements)
+    products = Product.query.filter(
+        Product.is_active == True,
+        db.or_(
+            Product.name.ilike(f'%{query}%'),
+            Product.category.ilike(f'%{query}%'),
+            Product.tags.ilike(f'%{query}%')
+        )
+    ).order_by(Product.created_at.desc()).limit(20).all()
+    
+    results = []
+    for p in products:
+        results.append({
+            'id': p.id,
+            'name': p.name,
+            'category': p.category,
+            'price': p.price,
+            'is_free': p.is_free,
+            'thumbnail': p.thumbnail,
+            'tags': p.tags,
+            'badge_text': p.badge_text,
+            'badge_color': p.badge_color,
+            'old_price': p.old_price,
+            'is_featured': p.is_featured
+        })
+    
+    return jsonify({'products': results})

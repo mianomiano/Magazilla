@@ -196,7 +196,12 @@ def new_product():
             description=description,
             price=price,
             is_free=is_free,
-            category=category
+            category=category,
+            tags=request.form.get('tags', '').strip()[:300],
+            is_featured=request.form.get('is_featured') == 'on',
+            badge_text=request.form.get('badge_text', '').strip()[:15],
+            badge_color=request.form.get('badge_color', '#ff4444'),
+            old_price=int(request.form.get('old_price', 0) or 0)
         )
         
         if 'thumbnail' in request.files:
@@ -268,6 +273,19 @@ def edit_product(pid):
         
         product.category = category
         product.is_active = request.form.get('is_active') == 'on'
+        
+        # New fields
+        product.tags = request.form.get('tags', '').strip()[:300]  # Max 300 chars
+        product.is_featured = request.form.get('is_featured') == 'on'
+        product.badge_text = request.form.get('badge_text', '').strip()[:15]  # Max 15 chars
+        product.badge_color = request.form.get('badge_color', '#ff4444')
+        
+        # Old price for strikethrough
+        try:
+            old_price = int(request.form.get('old_price', 0) or 0)
+            product.old_price = max(0, old_price)
+        except ValueError:
+            product.old_price = 0
         
         if 'thumbnail' in request.files:
             file = request.files['thumbnail']

@@ -34,7 +34,23 @@ def log_visitor_action(page, action='view', user_id=None):
 @public_bp.route('/')
 def index():
     """Main shop page"""
-    products = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).all()
+    # Get sorting parameter
+    sort_by = request.args.get('sort', 'default')
+    
+    # Base query
+    query = Product.query.filter_by(is_active=True)
+    
+    # Apply sorting
+    if sort_by == 'price_asc':
+        products = query.order_by(Product.price.asc()).all()
+    elif sort_by == 'price_desc':
+        products = query.order_by(Product.price.desc()).all()
+    elif sort_by == 'newest':
+        products = query.order_by(Product.created_at.desc()).all()
+    elif sort_by == 'popular':
+        products = query.order_by(Product.view_count.desc()).all()
+    else:  # default - featured first, then newest
+        products = query.order_by(Product.is_featured.desc(), Product.created_at.desc()).all()
     
     # Get unique categories from products
     categories = set()
@@ -66,7 +82,8 @@ def index():
         categories=categories,
         purchased_ids=purchased_ids,
         user_id=user_id,
-        r2_url=get_r2_url
+        r2_url=get_r2_url,
+        current_sort=sort_by
     )
 
 

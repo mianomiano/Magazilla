@@ -19,6 +19,22 @@
 </div>
 </header>
 
+<!-- Search Bar -->
+<div class="search-container">
+<div class="search-bar">
+<input type="text" id="searchInput" placeholder="🔍 Search products..." oninput="handleSearch()" />
+</div>
+<div class="sort-dropdown">
+<select id="sortSelect" onchange="handleSort()">
+<option value="default" {%if current_sort == 'default'%}selected{%endif%}>⭐ Featured</option>
+<option value="newest" {%if current_sort == 'newest'%}selected{%endif%}>🆕 Newest</option>
+<option value="popular" {%if current_sort == 'popular'%}selected{%endif%}>🔥 Popular</option>
+<option value="price_asc" {%if current_sort == 'price_asc'%}selected{%endif%}>💰 Price: Low to High</option>
+<option value="price_desc" {%if current_sort == 'price_desc'%}selected{%endif%}>💸 Price: High to Low</option>
+</select>
+</div>
+</div>
+
 <div class="category-filter">
 <button class="filter-btn active" data-category="all">All</button>
 <button class="filter-btn" data-category="free">🆓 Free</button>
@@ -31,7 +47,7 @@
 {%if products%}
 <div class="products-grid">
 {%for p in products%}
-<div class="product-card" data-category="{{p.category}}" data-free="{{'true' if p.is_free else 'false'}}" onclick="viewProduct({{p.id}})">
+<div class="product-card" data-category="{{p.category}}" data-free="{{'true' if p.is_free else 'false'}}" data-name="{{p.name.lower()}}" data-tags="{{p.tags.lower() if p.tags else ''}}" onclick="viewProduct({{p.id}})">
 <div class="product-thumbnail">
 {%if p.thumbnail%}
 {%set thumb_url=r2_url(p.thumbnail)%}
@@ -45,6 +61,15 @@
 {%else%}
 <span class="placeholder-icon">🎨</span>
 {%endif%}
+
+{%if p.is_featured%}
+<span class="featured-badge">⭐ FEATURED</span>
+{%endif%}
+
+{%if p.badge_text%}
+<span class="custom-badge" style="background-color: {{p.badge_color}};">{{p.badge_text}}</span>
+{%endif%}
+
 <span class="product-badge {%if p.is_free%}badge-free{%else%}badge-paid{%endif%}">
 {%if p.is_free%}FREE{%else%}⭐{{p.price}}{%endif%}
 </span>
@@ -52,8 +77,22 @@
 <div class="product-info">
 <h3 class="product-name">{{p.name}}</h3>
 <p class="product-category">{{p.category}}</p>
+{%if p.tags%}
+<div class="product-tags">
+{%for tag in p.tags.split(',')[:3]%}
+<span class="tag-pill">{{tag.strip()}}</span>
+{%endfor%}
+</div>
+{%endif%}
 <div class="product-price {%if p.is_free%}free{%else%}paid{%endif%}">
-{%if p.is_free%}Free{%else%}⭐{{p.price}}{%endif%}
+{%if p.is_free%}
+Free
+{%else%}
+{%if p.old_price and p.old_price > 0%}
+<span class="old-price">⭐{{p.old_price}}</span>
+{%endif%}
+⭐{{p.price}}
+{%endif%}
 </div>
 </div>
 </div>
@@ -66,4 +105,124 @@
 </div>
 {%endif%}
 </div>
+
+<style>
+.search-container {
+    display: flex;
+    gap: 10px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    margin-bottom: 10px;
+}
+
+.search-bar {
+    flex: 1;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.sort-dropdown select {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.sort-dropdown select:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+}
+
+.featured-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #000;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    z-index: 2;
+}
+
+.custom-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #fff;
+    z-index: 2;
+}
+
+.product-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 8px 0;
+}
+
+.tag-pill {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    color: var(--secondary-color);
+}
+
+.old-price {
+    text-decoration: line-through;
+    opacity: 0.6;
+    margin-right: 8px;
+    font-size: 0.9em;
+}
+</style>
+
+<script>
+let searchTimeout;
+function handleSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.product-card');
+        
+        cards.forEach(card => {
+            const name = card.dataset.name || '';
+            const tags = card.dataset.tags || '';
+            const category = card.dataset.category.toLowerCase();
+            
+            if (query === '' || name.includes(query) || tags.includes(query) || category.includes(query)) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }, 300);
+}
+
+function handleSort() {
+    const sort = document.getElementById('sortSelect').value;
+    window.location.href = '/?sort=' + sort;
+}
+</script>
 {%endblock%}
