@@ -8,9 +8,12 @@ from utils.auth import admin_required, verify_admin_password, log_admin_action
 from utils.validation import allowed_file, validate_product_name, validate_price, validate_category, validate_color
 from utils.decorators import limiter
 from sqlalchemy import func
+from sqlalchemy.exc import OperationalError, ProgrammingError
 import json
+import logging
 
 admin_bp = Blueprint('admin_bp', __name__)
+logger = logging.getLogger(__name__)
 
 
 @admin_bp.route('/login', methods=['GET', 'POST'])
@@ -487,8 +490,9 @@ def analytics():
     # Total purchases - handle is_test column gracefully
     try:
         total_purchases = Purchase.query.filter_by(is_verified=True, is_test=False).count()
-    except Exception:
+    except (OperationalError, ProgrammingError) as e:
         # Fallback if is_test column doesn't exist
+        logger.warning(f"is_test column not found in Purchase table: {e}")
         total_purchases = Purchase.query.filter_by(is_verified=True).count()
     
     # Conversion rate

@@ -7,8 +7,10 @@ from r2_storage import get_r2_url
 from config import Config
 from datetime import datetime
 import uuid
+import logging
 
 public_bp = Blueprint('public_bp', __name__)
+logger = logging.getLogger(__name__)
 
 
 def log_visitor_action(page, action='view', user_id=None):
@@ -27,7 +29,7 @@ def log_visitor_action(page, action='view', user_id=None):
         db.session.add(log)
         db.session.commit()
     except Exception as e:
-        print(f"Visitor logging error: {e}")
+        logger.error(f"Visitor logging error: {e}")
         # Don't crash if logging fails
 
 
@@ -188,7 +190,7 @@ def _process_download(product):
         return redirect(download_url)
     
     except Exception as e:
-        print(f"Download error: {e}")
+        logger.error(f"Download error: {e}")
         return jsonify({'error': 'Download failed'}), 500
 
 
@@ -258,7 +260,7 @@ def blog_index():
             r2_url=get_r2_url
         )
     except Exception as e:
-        print(f"Blog index error: {e}")
+        logger.error(f"Blog index error: {e}")
         # Redirect to home if blog tables don't exist yet
         return redirect('/')
 
@@ -302,6 +304,6 @@ def blog_detail(post_id):
             r2_url=get_r2_url
         )
     except Exception as e:
-        print(f"Blog detail error: {e}")
+        logger.error(f"Blog detail error: {e}")
         # Redirect to home if blog tables don't exist yet
         return redirect('/')
