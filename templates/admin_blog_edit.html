@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="content">
+    <div class="admin-header">
+        <h1 class="admin-title">{% if post %}Edit Post{% else %}New Post{% endif %}</h1>
+        <a href="{{ url_for('admin_bp.blog_list') }}" class="neu-btn">← Back to Posts</a>
+    </div>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+    {% for category, message in messages %}
+    <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    
+    <form method="POST" enctype="multipart/form-data" class="edit-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div class="form-group">
+            <label for="title">Title *</label>
+            <input type="text" id="title" name="title" class="neu-input" 
+                   value="{% if post %}{{ post.title }}{% endif %}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="content">Content *</label>
+            <textarea id="content" name="content" class="neu-input" rows="15" required>{% if post %}{{ post.content }}{% endif %}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="author_name">Author Name</label>
+            <input type="text" id="author_name" name="author_name" class="neu-input" 
+                   value="{% if post %}{{ post.author_name }}{% else %}Admin{% endif %}">
+        </div>
+        
+        <div class="form-group">
+            <label for="tags">Tags (comma-separated)</label>
+            <input type="text" id="tags" name="tags" class="neu-input" 
+                   value="{% if post %}{{ post.tags }}{% endif %}" 
+                   placeholder="e.g., news, tutorial, update">
+        </div>
+        
+        <div class="form-group">
+            <label for="image">Featured Image {% if post and post.image_path %}(current image will be replaced){% endif %}</label>
+            <input type="file" id="image" name="image" accept="image/*" class="neu-input">
+            {% if post and post.image_path %}
+            <div style="margin-top: 10px;">
+                <img src="{{ r2_url(post.image_path) }}" alt="Current image" style="max-width: 200px; border-radius: 8px;">
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="show_likes" {% if not post or post.show_likes %}checked{% endif %}>
+                <span>Show like count to visitors</span>
+            </label>
+        </div>
+        
+        <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="is_published" {% if not post or post.is_published %}checked{% endif %}>
+                <span>Published (visible to visitors)</span>
+            </label>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="neu-btn neu-btn-primary">
+                {% if post %}Update Post{% else %}Create Post{% endif %}
+            </button>
+            <a href="{{ url_for('admin_bp.blog_list') }}" class="neu-btn">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.edit-form {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--secondary-color);
+    font-weight: 500;
+}
+
+.neu-input {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.neu-input:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.neu-input textarea {
+    resize: vertical;
+    min-height: 200px;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    color: #fff;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.neu-btn {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1rem;
+}
+
+.neu-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.neu-btn-primary {
+    background: var(--secondary-color);
+    color: var(--primary-color);
+    border: none;
+}
+
+.neu-btn-primary:hover {
+    opacity: 0.9;
+}
+</style>
+{% endblock %}

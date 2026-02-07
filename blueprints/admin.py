@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from datetime import datetime
 from config import Config
-from models import db, Product, Purchase, AppSettings
+from models import db, Product, Purchase, AppSettings, BlogPost, BlogLike
 from r2_storage import upload_to_r2, delete_from_r2
 from utils.auth import admin_required, verify_admin_password, log_admin_action
 from utils.validation import allowed_file, validate_product_name, validate_price, validate_category, validate_color
@@ -191,12 +191,23 @@ def new_product():
             flash(error, 'error')
             return render_template('edit_product.html', product=None, categories=categories)
         
+        # Validate badge color
+        badge_color = request.form.get('badge_color', '#ff4444')
+        badge_color_valid, _ = validate_color(badge_color)
+        if not badge_color_valid:
+            badge_color = '#ff4444'  # Fallback to default
+        
         product = Product(
             name=name,
             description=description,
             price=price,
             is_free=is_free,
-            category=category
+            category=category,
+            tags=request.form.get('tags', '').strip()[:300],
+            is_featured=request.form.get('is_featured') == 'on',
+            badge_text=request.form.get('badge_text', '').strip()[:15],
+            badge_color=badge_color,
+            old_price=int(request.form.get('old_price', 0) or 0)
         )
         
         if 'thumbnail' in request.files:
@@ -268,6 +279,26 @@ def edit_product(pid):
         
         product.category = category
         product.is_active = request.form.get('is_active') == 'on'
+        
+        # New fields
+        product.tags = request.form.get('tags', '').strip()[:300]  # Max 300 chars
+        product.is_featured = request.form.get('is_featured') == 'on'
+        product.badge_text = request.form.get('badge_text', '').strip()[:15]  # Max 15 chars
+        
+        # Validate badge color
+        badge_color = request.form.get('badge_color', '#ff4444')
+        valid, error = validate_color(badge_color)
+        if valid:
+            product.badge_color = badge_color
+        else:
+            product.badge_color = '#ff4444'  # Fallback to default
+        
+        # Old price for strikethrough
+        try:
+            old_price = int(request.form.get('old_price', 0) or 0)
+            product.old_price = max(0, old_price)
+        except ValueError:
+            product.old_price = 0
         
         if 'thumbnail' in request.files:
             file = request.files['thumbnail']
@@ -342,6 +373,14 @@ def settings():
         app_settings.secondary_color = secondary_color
         app_settings.accent_color = accent_color
         
+        # New header, contact, blog, footer settings
+        app_settings.enable_blog = request.form.get('enable_blog') == 'on'
+        app_settings.enable_product_messages = request.form.get('enable_product_messages') == 'on'
+        app_settings.enable_contact_page = request.form.get('enable_contact_page') == 'on'
+        app_settings.header_button_text = request.form.get('header_button_text', '').strip()[:100]
+        app_settings.header_button_url = request.form.get('header_button_url', '').strip()[:500]
+        app_settings.footer_text = request.form.get('footer_text', 'Powered by GramaZilla').strip()[:500]
+        
         if 'logo' in request.files:
             file = request.files['logo']
             if file and file.filename:
@@ -350,6 +389,16 @@ def settings():
                 key = upload_to_r2(file, 'logos')
                 if key:
                     app_settings.logo_path = key
+        
+        # Header image upload
+        if 'header_image' in request.files:
+            file = request.files['header_image']
+            if file and file.filename and allowed_file(file.filename):
+                if app_settings.header_image_path:
+                    delete_from_r2(app_settings.header_image_path)
+                key = upload_to_r2(file, 'headers')
+                if key:
+                    app_settings.header_image_path = key
         
         db.session.commit()
         log_admin_action('update_settings', 'App settings updated')
@@ -430,47 +479,189 @@ def appearance():
     return render_template('appearance.html', settings=app_settings)
 
 
-@admin_bp.route('/test-purchase', methods=['POST'])
+@admin_bp.route('/analytics')
 @admin_required
-@limiter.limit("10 per minute")
-def test_purchase():
-    """Create TEST purchase (only for testing)"""
-    data = request.json
-    user_id = data.get('user_id')
-    product_id = data.get('product_id')
+def analytics():
+    """Analytics and insights page"""
+    from sqlalchemy import func, distinct
+    from models import VisitorLog
+    from datetime import timedelta
     
-    if not user_id or not product_id:
-        return jsonify({'error': 'Missing user_id or product_id'}), 400
+    # Total unique visitors
+    total_visitors = db.session.query(
+        func.count(distinct(VisitorLog.user_id))
+    ).filter(VisitorLog.user_id.isnot(None)).scalar() or 0
     
-    try:
-        user_id = int(user_id) if user_id != 'admin' else 7165489081
-        product_id = int(product_id)
-    except ValueError:
-        return jsonify({'error': 'Invalid IDs'}), 400
+    # Total page views
+    total_views = VisitorLog.query.filter_by(action='view').count()
     
-    product = Product.query.get(product_id)
-    if not product:
-        return jsonify({'error': 'Product not found'}), 404
+    # Total buy button clicks
+    total_buy_clicks = VisitorLog.query.filter_by(action='buy_click').count()
     
-    if product.is_free:
-        return jsonify({'error': 'Product is free'}), 400
+    # Total purchases
+    total_purchases = Purchase.query.filter_by(is_verified=True, is_test=False).count()
     
-    existing = Purchase.query.filter_by(user_id=user_id, product_id=product_id).first()
-    if existing:
-        return jsonify({'error': 'Already purchased', 'is_test': existing.is_test}), 400
+    # Conversion rate
+    conversion_rate = round((total_purchases / total_buy_clicks * 100), 2) if total_buy_clicks > 0 else 0
     
-    purchase = Purchase(
-        user_id=user_id,
-        product_id=product_id,
-        telegram_payment_id=f"test_{user_id}_{product_id}_{int(datetime.utcnow().timestamp())}",
-        stars_paid=product.price,
-        is_verified=True,
-        is_test=True
+    # Top viewed products
+    top_products = db.session.query(
+        Product.id, Product.name, Product.view_count
+    ).order_by(Product.view_count.desc()).limit(10).all()
+    
+    # Recent visitors (last 20)
+    recent_visitors = VisitorLog.query.filter(
+        VisitorLog.user_id.isnot(None)
+    ).order_by(VisitorLog.timestamp.desc()).limit(20).all()
+    
+    # Daily visitors for the last 7 days
+    now = datetime.utcnow()
+    daily_stats = []
+    for i in range(6, -1, -1):
+        day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end = day_start + timedelta(days=1)
+        
+        day_visitors = db.session.query(
+            func.count(distinct(VisitorLog.user_id))
+        ).filter(
+            VisitorLog.timestamp >= day_start,
+            VisitorLog.timestamp < day_end,
+            VisitorLog.user_id.isnot(None)
+        ).scalar() or 0
+        
+        day_views = VisitorLog.query.filter(
+            VisitorLog.timestamp >= day_start,
+            VisitorLog.timestamp < day_end,
+            VisitorLog.action == 'view'
+        ).count()
+        
+        daily_stats.append({
+            'date': day_start.strftime('%m/%d'),
+            'visitors': day_visitors,
+            'views': day_views
+        })
+    
+    return render_template(
+        'analytics.html',
+        total_visitors=total_visitors,
+        total_views=total_views,
+        total_buy_clicks=total_buy_clicks,
+        total_purchases=total_purchases,
+        conversion_rate=conversion_rate,
+        top_products=top_products,
+        recent_visitors=recent_visitors,
+        daily_stats=daily_stats
     )
+
+
+# ===== BLOG MANAGEMENT ROUTES =====
+
+@admin_bp.route('/blog')
+@admin_required
+def blog_list():
+    """List all blog posts"""
+    posts = BlogPost.query.order_by(BlogPost.created_at.desc()).all()
+    return render_template('admin_blog_list.html', posts=posts)
+
+
+@admin_bp.route('/blog/new', methods=['GET', 'POST'])
+@admin_required
+def blog_new():
+    """Create new blog post"""
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        content = request.form.get('content', '').strip()
+        author_name = request.form.get('author_name', 'Admin').strip()
+        tags = request.form.get('tags', '').strip()
+        show_likes = request.form.get('show_likes') == 'on'
+        is_published = request.form.get('is_published') == 'on'
+        
+        if not title or not content:
+            flash('Title and content are required', 'error')
+            return render_template('admin_blog_edit.html', post=None)
+        
+        post = BlogPost(
+            title=title,
+            content=content,
+            author_name=author_name,
+            tags=tags,
+            show_likes=show_likes,
+            is_published=is_published
+        )
+        
+        # Handle image upload
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename and allowed_file(file.filename):
+                key = upload_to_r2(file, 'blog')
+                if key:
+                    post.image_path = key
+        
+        db.session.add(post)
+        db.session.commit()
+        
+        log_admin_action('create_blog_post', json.dumps({'post_id': post.id, 'title': post.title}))
+        flash(f'Blog post "{post.title}" created!', 'success')
+        return redirect(url_for('admin_bp.blog_list'))
     
-    db.session.add(purchase)
+    return render_template('admin_blog_edit.html', post=None)
+
+
+@admin_bp.route('/blog/<int:post_id>/edit', methods=['GET', 'POST'])
+@admin_required
+def blog_edit(post_id):
+    """Edit existing blog post"""
+    post = BlogPost.query.get_or_404(post_id)
+    
+    if request.method == 'POST':
+        post.title = request.form.get('title', '').strip()
+        post.content = request.form.get('content', '').strip()
+        post.author_name = request.form.get('author_name', 'Admin').strip()
+        post.tags = request.form.get('tags', '').strip()
+        post.show_likes = request.form.get('show_likes') == 'on'
+        post.is_published = request.form.get('is_published') == 'on'
+        
+        if not post.title or not post.content:
+            flash('Title and content are required', 'error')
+            return render_template('admin_blog_edit.html', post=post)
+        
+        # Handle image upload
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename and allowed_file(file.filename):
+                if post.image_path:
+                    delete_from_r2(post.image_path)
+                key = upload_to_r2(file, 'blog')
+                if key:
+                    post.image_path = key
+        
+        db.session.commit()
+        log_admin_action('edit_blog_post', json.dumps({'post_id': post.id, 'title': post.title}))
+        flash(f'Blog post "{post.title}" updated!', 'success')
+        return redirect(url_for('admin_bp.blog_list'))
+    
+    return render_template('admin_blog_edit.html', post=post)
+
+
+@admin_bp.route('/blog/<int:post_id>/delete', methods=['POST'])
+@admin_required
+def blog_delete(post_id):
+    """Delete blog post"""
+    post = BlogPost.query.get_or_404(post_id)
+    post_title = post.title
+    
+    if post.image_path:
+        delete_from_r2(post.image_path)
+    
+    # Delete associated likes
+    BlogLike.query.filter_by(post_id=post_id).delete()
+    
+    db.session.delete(post)
     db.session.commit()
     
-    log_admin_action('test_purchase', f"Test: user={user_id}, product={product_id}")
-    
-    return jsonify({'success': True, 'purchase_id': purchase.id})
+    log_admin_action('delete_blog_post', json.dumps({'post_id': post_id, 'title': post_title}))
+    flash(f'Blog post "{post_title}" deleted!', 'success')
+    return redirect(url_for('admin_bp.blog_list'))
+
+
+# NOTE: test-purchase endpoint removed for production security

@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="content">
+    <div class="admin-header">
+        <h1 class="admin-title">📊 Analytics & Insights</h1>
+        <a href="{{ url_for('admin_bp.dashboard') }}" class="neu-btn">← Dashboard</a>
+    </div>
+    
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ total_visitors }}</div>
+            <div class="stat-label">Unique Visitors</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_views }}</div>
+            <div class="stat-label">Page Views</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_buy_clicks }}</div>
+            <div class="stat-label">Buy Clicks</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_purchases }}</div>
+            <div class="stat-label">Purchases</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ conversion_rate }}%</div>
+            <div class="stat-label">Conversion Rate</div>
+        </div>
+    </div>
+    
+    <!-- Daily Stats Chart -->
+    <div class="analytics-section">
+        <h2>📈 Daily Visitors (Last 7 Days)</h2>
+        <div class="daily-chart">
+            {% for stat in daily_stats %}
+            <div class="daily-bar-wrapper">
+                {% set max_visitors = [s.visitors for s in daily_stats] | max %}
+                {% set safe_max = max_visitors if max_visitors and max_visitors > 0 else 1 %}
+                <div class="daily-bar" style="height: {{ (stat.visitors / safe_max * 100) }}%;" title="{{ stat.visitors }} visitors, {{ stat.views }} views"></div>
+                <div class="daily-label">{{ stat.date }}</div>
+                <div class="daily-value">{{ stat.visitors }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Top Products -->
+    <div class="analytics-section">
+        <h2>🔥 Top Viewed Products</h2>
+        <div class="top-products-list">
+            {% if top_products %}
+                {% for product in top_products %}
+                <div class="top-product-item">
+                    <div class="top-product-name">{{ product.name }}</div>
+                    <div class="top-product-views">{{ product.view_count }} views</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty-message">No product views yet</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Recent Visitors -->
+    <div class="analytics-section">
+        <h2>👥 Recent Visitors (Last 20)</h2>
+        <div class="recent-visitors-list">
+            {% if recent_visitors %}
+                {% for visitor in recent_visitors %}
+                <div class="visitor-item">
+                    <div class="visitor-id">User {{ visitor.user_id }}</div>
+                    <div class="visitor-page">{{ visitor.page }}</div>
+                    <div class="visitor-time">{{ visitor.timestamp.strftime('%m/%d %H:%M') }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty-message">No visitor logs yet</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.analytics-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.analytics-section h2 {
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+}
+
+.daily-chart {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    height: 200px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.daily-bar-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.daily-bar {
+    width: 100%;
+    background: linear-gradient(to top, var(--secondary-color), var(--accent-color));
+    border-radius: 4px 4px 0 0;
+    min-height: 5px;
+    transition: all 0.3s;
+}
+
+.daily-bar:hover {
+    opacity: 0.8;
+}
+
+.daily-label {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.daily-value {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+
+.top-products-list, .recent-visitors-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.top-product-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.top-product-name {
+    font-weight: 500;
+    color: #fff;
+}
+
+.top-product-views {
+    color: var(--secondary-color);
+    font-weight: bold;
+}
+
+.visitor-item {
+    display: grid;
+    grid-template-columns: 100px 1fr 80px;
+    gap: 10px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.visitor-id {
+    color: var(--secondary-color);
+    font-weight: 500;
+}
+
+.visitor-page {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.visitor-time {
+    color: rgba(255, 255, 255, 0.5);
+    text-align: right;
+}
+
+.empty-message {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 20px;
+}
+</style>
+{% endblock %}

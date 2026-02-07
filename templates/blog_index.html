@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="header">
+    <div class="header-inner">
+        <div class="logo-area">
+            {% if settings.logo_path %}
+            {% set logo_url = r2_url(settings.logo_path) %}
+            {% if settings.logo_path.endswith('.webm') %}
+            <video autoplay loop muted playsinline>
+                <source src="{{ logo_url }}" type="video/webm">
+            </video>
+            {% else %}
+            <img src="{{ logo_url }}" onerror="this.parentNode.innerHTML='<span class=logo-text>{{ settings.app_name }}</span>'">
+            {% endif %}
+            {% else %}
+            <span class="logo-text">{{ settings.app_name }}</span>
+            {% endif %}
+        </div>
+    </div>
+</header>
+
+<div class="content">
+    <div class="blog-header">
+        <h1>📝 Blog</h1>
+        <a href="/" class="back-link">← Back to Shop</a>
+    </div>
+    
+    {% if posts %}
+    <div class="blog-grid">
+        {% for post in posts %}
+        <div class="blog-card" onclick="window.location.href='/blog/{{ post.id }}'">
+            {% if post.image_path %}
+            <div class="blog-card-image">
+                <img src="{{ r2_url(post.image_path) }}" alt="{{ post.title }}">
+            </div>
+            {% endif %}
+            <div class="blog-card-content">
+                <h3 class="blog-card-title">{{ post.title }}</h3>
+                <div class="blog-card-meta">
+                    <span>By {{ post.author_name }}</span>
+                    <span>{{ post.created_at.strftime('%b %d, %Y') }}</span>
+                </div>
+                <p class="blog-card-preview">{{ post.content[:200] }}{% if post.content|length > 200 %}...{% endif %}</p>
+                <div class="blog-card-footer">
+                    {% if post.show_likes %}
+                    <span class="blog-stat">
+                        {% if post.id in liked_post_ids %}❤️{% else %}🤍{% endif %} {{ post.likes_count }}
+                    </span>
+                    {% endif %}
+                    <span class="blog-stat">👁️ {{ post.view_count }}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📝</div>
+        <p class="empty-state-text">No blog posts yet</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.blog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.blog-header h1 {
+    margin: 0;
+    color: var(--secondary-color);
+}
+
+.back-link {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.back-link:hover {
+    color: var(--secondary-color);
+}
+
+.blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.blog-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.blog-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.blog-card-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.blog-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.blog-card-content {
+    padding: 20px;
+}
+
+.blog-card-title {
+    margin: 0 0 10px 0;
+    color: #fff;
+    font-size: 1.2rem;
+}
+
+.blog-card-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 15px;
+}
+
+.blog-card-preview {
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.blog-card-footer {
+    display: flex;
+    gap: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.blog-stat {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}

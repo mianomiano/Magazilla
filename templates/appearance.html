@@ -42,6 +42,43 @@
                                class="color-text" id="accentColorText" onchange="syncColor('accent')">
                     </div>
                 </div>
+                
+                <!-- Color Presets -->
+                <div class="color-presets">
+                    <h4>Quick Color Presets</h4>
+                    <div class="preset-grid">
+                        <button type="button" class="preset-btn" onclick="applyColorPreset('#0a0e27', '#39ff14', '#00b4d8')" title="Midnight Neon">
+                            <span style="background: linear-gradient(135deg, #0a0e27 0%, #39ff14 50%, #00b4d8 100%)"></span>
+                        </button>
+                        <button type="button" class="preset-btn" onclick="applyColorPreset('#2d1b69', '#ff6b35', '#f72585')" title="Sunset">
+                            <span style="background: linear-gradient(135deg, #2d1b69 0%, #ff6b35 50%, #f72585 100%)"></span>
+                        </button>
+                        <button type="button" class="preset-btn" onclick="applyColorPreset('#004d40', '#00bcd4', '#ffffff')" title="Ocean">
+                            <span style="background: linear-gradient(135deg, #004d40 0%, #00bcd4 50%, #ffffff 100%)"></span>
+                        </button>
+                        <button type="button" class="preset-btn" onclick="applyColorPreset('#1b4332', '#ffd60a', '#52b788')" title="Forest">
+                            <span style="background: linear-gradient(135deg, #1b4332 0%, #ffd60a 50%, #52b788 100%)"></span>
+                        </button>
+                        <button type="button" class="preset-btn" onclick="applyColorPreset('#ffc8dd', '#ff006e', '#d8b4fe')" title="Candy">
+                            <span style="background: linear-gradient(135deg, #ffc8dd 0%, #ff006e 50%, #d8b4fe 100%)"></span>
+                        </button>
+                        <button type="button" class="preset-btn" onclick="applyColorPreset('#1a1a1a', '#ffffff', '#808080')" title="Monochrome">
+                            <span style="background: linear-gradient(135deg, #1a1a1a 0%, #ffffff 50%, #808080 100%)"></span>
+                        </button>
+                        <button type="button" class="preset-btn" onclick="applyColorPreset('#000000', '#ff0080', '#00ffff')" title="Cyberpunk">
+                            <span style="background: linear-gradient(135deg, #000000 0%, #ff0080 50%, #00ffff 100%)"></span>
+                        </button>
+                        <button type="button" class="preset-btn" onclick="applyColorPreset('#1e3a8a', '#fbbf24', '#fef3c7')" title="Royal">
+                            <span style="background: linear-gradient(135deg, #1e3a8a 0%, #fbbf24 50%, #fef3c7 100%)"></span>
+                        </button>
+                        <button type="button" class="preset-btn" onclick="applyColorPreset('#4a148c', '#e1bee7', '#9c27b0')" title="Lavender">
+                            <span style="background: linear-gradient(135deg, #4a148c 0%, #e1bee7 50%, #9c27b0 100%)"></span>
+                        </button>
+                        <button type="button" class="preset-btn" onclick="applyColorPreset('#006d77', '#ff6b9d', '#ffd166')" title="Coral Reef">
+                            <span style="background: linear-gradient(135deg, #006d77 0%, #ff6b9d 50%, #ffd166 100%)"></span>
+                        </button>
+                    </div>
+                </div>
             </div>
             
             <!-- Font Section -->
@@ -279,6 +316,32 @@
                     <span class="toggle-slider"></span>
                     <span class="toggle-label">Show category filters</span>
                 </label>
+            </div>
+            
+            <!-- Full Theme Presets -->
+            <div class="settings-section">
+                <h3>🎭 Complete Theme Presets</h3>
+                <p class="preset-description">Apply a complete theme with all settings at once</p>
+                <div class="theme-preset-grid">
+                    <button type="button" class="theme-preset-btn" onclick="applyFullTheme('sleek')">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #0a0e27 0%, #1a2850 100%)">
+                            <span class="theme-name">Sleek</span>
+                            <span class="theme-desc">Dark navy • Inter • Flat • Sharp</span>
+                        </div>
+                    </button>
+                    <button type="button" class="theme-preset-btn" onclick="applyFullTheme('playful')">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #ffc8dd 0%, #ffafcc 100%)">
+                            <span class="theme-name">Playful</span>
+                            <span class="theme-desc">Bright pink • Grandstander • Bubble • Pill</span>
+                        </div>
+                    </button>
+                    <button type="button" class="theme-preset-btn" onclick="applyFullTheme('bold')">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%)">
+                            <span class="theme-name" style="color: #fff">Bold</span>
+                            <span class="theme-desc" style="color: #aaa">Black • Russo One • Glow • Rounded</span>
+                        </div>
+                    </button>
+                </div>
             </div>
             
             <button type="submit" class="save-btn">💾 Save Changes</button>
@@ -659,6 +722,107 @@
     color: #e8eaed;
 }
 
+/* Color Presets */
+.color-presets {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.color-presets h4 {
+    margin: 0 0 12px 0;
+    font-size: 13px;
+    color: #9aa0a6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.preset-btn {
+    padding: 0;
+    background: none;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    overflow: hidden;
+    position: relative;
+}
+
+.preset-btn span {
+    display: block;
+    width: 100%;
+    height: 40px;
+}
+
+.preset-btn:hover {
+    border-color: #afe81f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(175,232,31,0.3);
+}
+
+.preset-btn:active {
+    transform: translateY(0);
+}
+
+/* Full Theme Presets */
+.preset-description {
+    margin: 0 0 16px 0;
+    font-size: 13px;
+    color: #9aa0a6;
+}
+
+.theme-preset-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.theme-preset-btn {
+    padding: 0;
+    background: none;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    overflow: hidden;
+}
+
+.theme-preview {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 90px;
+    justify-content: center;
+}
+
+.theme-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #090c11;
+}
+
+.theme-desc {
+    font-size: 11px;
+    color: #3d4550;
+}
+
+.theme-preset-btn:hover {
+    border-color: #afe81f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.theme-preset-btn:active {
+    transform: translateY(0);
+}
+
 /* Save Button */
 .save-btn {
     padding: 16px 32px;
@@ -810,6 +974,55 @@ function syncColor(type) {
     const textInput = document.getElementById(type + 'ColorText');
     const colorInput = document.getElementById(type + 'Color');
     colorInput.value = textInput.value;
+    updatePreview();
+}
+
+// Apply color preset
+function applyColorPreset(primary, secondary, accent) {
+    document.getElementById('primaryColor').value = primary;
+    document.getElementById('primaryColorText').value = primary;
+    document.getElementById('secondaryColor').value = secondary;
+    document.getElementById('secondaryColorText').value = secondary;
+    document.getElementById('accentColor').value = accent;
+    document.getElementById('accentColorText').value = accent;
+    updatePreview();
+}
+
+// Apply full theme preset
+function applyFullTheme(theme) {
+    const setChecked = (selector) => {
+        const el = document.querySelector(selector);
+        if (el) el.checked = true;
+    };
+    
+    if (theme === 'sleek') {
+        // Sleek: Dark navy, Inter, flat, sharp, medium square cards, minimal info
+        applyColorPreset('#0a0e27', '#39ff14', '#00b4d8');
+        setChecked('input[name="font_family"][value="inter"]');
+        setChecked('input[name="button_style"][value="flat"]');
+        setChecked('input[name="button_roundness"][value="sharp"]');
+        setChecked('input[name="card_size"][value="medium"]');
+        setChecked('input[name="card_shape"][value="square"]');
+        setChecked('input[name="card_info"][value="minimal"]');
+    } else if (theme === 'playful') {
+        // Playful: Bright pink, Grandstander, bubble with glow, pill, large rectangle cards, full info
+        applyColorPreset('#ffc8dd', '#ff006e', '#d8b4fe');
+        setChecked('input[name="font_family"][value="grandstander"]');
+        setChecked('input[name="button_style"][value="bubble"]');
+        setChecked('input[name="button_roundness"][value="pill"]');
+        setChecked('input[name="card_size"][value="large"]');
+        setChecked('input[name="card_shape"][value="rectangle"]');
+        setChecked('input[name="card_info"][value="full"]');
+    } else if (theme === 'bold') {
+        // Bold: Black, Russo One, glow, rounded, large cards, full info
+        applyColorPreset('#000000', '#ff0080', '#00ffff');
+        setChecked('input[name="font_family"][value="russo"]');
+        setChecked('input[name="button_style"][value="glow"]');
+        setChecked('input[name="button_roundness"][value="rounded"]');
+        setChecked('input[name="card_size"][value="large"]');
+        setChecked('input[name="card_shape"][value="square"]');
+        setChecked('input[name="card_info"][value="full"]');
+    }
     updatePreview();
 }
 

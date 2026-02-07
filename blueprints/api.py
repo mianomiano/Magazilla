@@ -1,6 +1,6 @@
 """API routes with rate limiting and Telegram auth validation"""
 from flask import Blueprint, request, jsonify, redirect
-from models import db, Product, Purchase, AppSettings
+from models import db, Product, Purchase, AppSettings, BlogPost, BlogLike
 from config import Config
 from utils.decorators import limiter
 from utils.telegram_auth import telegram_auth_required, get_telegram_user_id, validate_telegram_init_data
@@ -24,6 +24,7 @@ def get_product(pid):
 def create_invoice():
     """Create Telegram Stars invoice - requires Telegram auth"""
     try:
+        from models import VisitorLog
         data = request.json
         product_id = data.get('product_id')
         
@@ -42,6 +43,18 @@ def create_invoice():
         
         # Include user_id in payload for tracking
         user_id = get_telegram_user_id()
+        
+        # Log buy button click
+        try:
+            log = VisitorLog(
+                user_id=user_id,
+                page=f'/product/{product_id}',
+                action='buy_click'
+            )
+            db.session.add(log)
+            db.session.commit()
+        except Exception as e:
+            print(f"Buy click logging error: {e}")
         
         payload = {
             'title': product.name[:32],
@@ -77,6 +90,7 @@ def create_invoice():
 def telegram_webhook():
     """Telegram webhook - verified by Telegram's servers"""
     try:
+        from models import VisitorLog
         update = request.json
         
         if 'message' in update and 'successful_payment' in update['message']:
@@ -121,6 +135,18 @@ def telegram_webhook():
             )
             
             db.session.add(purchase)
+            
+            # Log purchase action
+            try:
+                log = VisitorLog(
+                    user_id=user_id,
+                    page=f'/product/{product_id}',
+                    action='purchase'
+                )
+                db.session.add(log)
+            except Exception as e:
+                print(f"Purchase logging error: {e}")
+            
             db.session.commit()
             
             print(f"✅ Verified purchase: user={user_id}, product={product_id}")
@@ -422,3 +448,133 @@ def check_admin():
     is_admin = user_id in Config.ADMIN_TELEGRAM_IDS
     
     return jsonify({'is_admin': is_admin})
+
+
+@api_bp.route('/blog/<int:post_id>/like', methods=['POST'])
+@limiter.limit("20 per minute")
+@telegram_auth_required
+def blog_like(post_id):
+    """Like or unlike a blog post"""
+    user_id = get_telegram_user_id()
+    
+    post = BlogPost.query.get_or_404(post_id)
+    
+    # Check if already liked
+    existing_like = BlogLike.query.filter_by(post_id=post_id, user_id=user_id).first()
+    
+    if existing_like:
+        # Unlike
+        db.session.delete(existing_like)
+        post.likes_count = max(0, (post.likes_count or 0) - 1)
+        db.session.commit()
+        return jsonify({'liked': False, 'likes_count': post.likes_count})
+    else:
+        # Like
+        like = BlogLike(post_id=post_id, user_id=user_id)
+        db.session.add(like)
+        post.likes_count = (post.likes_count or 0) + 1
+        db.session.commit()
+        return jsonify({'liked': True, 'likes_count': post.likes_count})
+
+
+@api_bp.route('/search', methods=['GET'])
+@limiter.limit("30 per minute")
+def search_products():
+    """Search products by name, category, or tags"""
+    query = request.args.get('q', '').strip().lower()
+    
+    if not query or len(query) < 2:
+        return jsonify({'products': []})
+    
+    # Search by name, category, or tags (not description as per requirements)
+    products = Product.query.filter(
+        Product.is_active == True,
+        db.or_(
+            Product.name.ilike(f'%{query}%'),
+            Product.category.ilike(f'%{query}%'),
+            Product.tags.ilike(f'%{query}%')
+        )
+    ).order_by(Product.created_at.desc()).limit(20).all()
+    
+    results = []
+    for p in products:
+        results.append({
+            'id': p.id,
+            'name': p.name,
+            'category': p.category,
+            'price': p.price,
+            'is_free': p.is_free,
+            'thumbnail': p.thumbnail,
+            'tags': p.tags,
+            'badge_text': p.badge_text,
+            'badge_color': p.badge_color,
+            'old_price': p.old_price,
+            'is_featured': p.is_featured
+        })
+    
+    return jsonify({'products': results})
+
+
+@api_bp.route('/send-message', methods=['POST'])
+@limiter.limit("3 per minute")  # Rate limit: max 3 messages per minute per user
+@telegram_auth_required
+def send_contact_message():
+    """Send a contact message to admin via Telegram bot"""
+    try:
+        import html
+        data = request.json
+        message_text = data.get('message', '').strip()
+        product_id = data.get('product_id')  # Optional, for product-specific messages
+        
+        if not message_text or len(message_text) < 5:
+            return jsonify({'error': 'Message too short'}), 400
+        
+        if len(message_text) > 1000:
+            return jsonify({'error': 'Message too long (max 1000 characters)'}), 400
+        
+        user_id = get_telegram_user_id()
+        bot_token = Config.BOT_TOKEN
+        
+        if not bot_token:
+            return jsonify({'error': 'Bot not configured'}), 500
+        
+        # Get admin Telegram ID (first admin in the list)
+        admin_ids = Config.ADMIN_TELEGRAM_IDS
+        if not admin_ids:
+            return jsonify({'error': 'No admin configured'}), 500
+        
+        admin_id = admin_ids[0]
+        
+        # Format message with HTML escaping
+        if product_id:
+            product = Product.query.get(product_id)
+            if product:
+                telegram_message = f"📩 <b>Product Question</b>\n\n"
+                telegram_message += f"<b>Product:</b> {html.escape(product.name)}\n"
+                telegram_message += f"<b>From User:</b> {user_id}\n\n"
+                telegram_message += f"<b>Message:</b>\n{html.escape(message_text)}"
+            else:
+                telegram_message = f"📩 <b>Message from User {user_id}</b>\n\n{html.escape(message_text)}"
+        else:
+            telegram_message = f"📩 <b>Contact Message</b>\n\n"
+            telegram_message += f"<b>From User:</b> {user_id}\n\n"
+            telegram_message += f"<b>Message:</b>\n{html.escape(message_text)}"
+        
+        # Send via bot
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        response = requests.post(url, json={
+            'chat_id': admin_id,
+            'text': telegram_message,
+            'parse_mode': 'HTML'
+        }, timeout=10)
+        
+        result = response.json()
+        
+        if result.get('ok'):
+            return jsonify({'success': True, 'message': 'Message sent successfully!'})
+        else:
+            return jsonify({'error': 'Failed to send message'}), 500
+    
+    except Exception as e:
+        print(f"Contact message error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500

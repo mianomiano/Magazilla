@@ -1,18 +1,56 @@
 """Public routes for the shop frontend"""
-from flask import Blueprint, render_template, request, jsonify, redirect
-from models import db, Product, Purchase
+from flask import Blueprint, render_template, request, jsonify, redirect, session, url_for
+from models import db, Product, Purchase, VisitorLog, BlogPost, BlogLike, AppSettings
 from utils.decorators import limiter
 from utils.telegram_auth import validate_telegram_init_data
 from r2_storage import get_r2_url
 from config import Config
+from datetime import datetime
+import uuid
 
 public_bp = Blueprint('public_bp', __name__)
+
+
+def log_visitor_action(page, action='view', user_id=None):
+    """Log visitor action for analytics"""
+    try:
+        # Get or create session ID
+        if 'session_id' not in session:
+            session['session_id'] = str(uuid.uuid4())
+        
+        log = VisitorLog(
+            user_id=user_id,
+            page=page,
+            action=action,
+            session_id=session['session_id']
+        )
+        db.session.add(log)
+        db.session.commit()
+    except Exception as e:
+        print(f"Visitor logging error: {e}")
+        # Don't crash if logging fails
 
 
 @public_bp.route('/')
 def index():
     """Main shop page"""
-    products = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).all()
+    # Get sorting parameter
+    sort_by = request.args.get('sort', 'default')
+    
+    # Base query
+    query = Product.query.filter_by(is_active=True)
+    
+    # Apply sorting
+    if sort_by == 'price_asc':
+        products = query.order_by(Product.price.asc()).all()
+    elif sort_by == 'price_desc':
+        products = query.order_by(Product.price.desc()).all()
+    elif sort_by == 'newest':
+        products = query.order_by(Product.created_at.desc()).all()
+    elif sort_by == 'popular':
+        products = query.order_by(Product.view_count.desc()).all()
+    else:  # default - featured first, then newest
+        products = query.order_by(Product.is_featured.desc(), Product.created_at.desc()).all()
     
     # Get unique categories from products
     categories = set()
@@ -29,6 +67,9 @@ def index():
         if user_data:
             user_id = user_data.get('id')
     
+    # Log visitor
+    log_visitor_action('/', 'view', user_id)
+    
     # Get purchased product IDs for this user
     purchased_ids = set()
     if user_id:
@@ -41,7 +82,8 @@ def index():
         categories=categories,
         purchased_ids=purchased_ids,
         user_id=user_id,
-        r2_url=get_r2_url
+        r2_url=get_r2_url,
+        current_sort=sort_by
     )
 
 
@@ -49,6 +91,10 @@ def index():
 def product_detail(pid):
     """Product detail page"""
     product = Product.query.get_or_404(pid)
+    
+    # Increment view count
+    product.view_count = (product.view_count or 0) + 1
+    db.session.commit()
     
     # Check if user has purchased (from initData or header)
     purchased = False
@@ -71,6 +117,9 @@ def product_detail(pid):
                     is_verified=True
                 ).first()
                 purchased = purchase is not None
+    
+    # Log visitor
+    log_visitor_action(f'/product/{pid}', 'view', user_id)
     
     return render_template(
         'product.html',
@@ -173,3 +222,76 @@ def category_products(cat_name):
 def health_check():
     """Health check endpoint for Railway"""
     return jsonify({'status': 'ok'}), 200
+
+
+# ===== BLOG PUBLIC ROUTES =====
+
+@public_bp.route('/blog')
+def blog_index():
+    """Blog listing page"""
+    app_settings = AppSettings.query.first()
+    if not app_settings or not app_settings.enable_blog:
+        return redirect('/')
+    
+    posts = BlogPost.query.filter_by(is_published=True).order_by(BlogPost.created_at.desc()).all()
+    
+    # Get user_id from initData if available
+    user_id = None
+    init_data = request.args.get('initData')
+    if init_data:
+        user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
+        if user_data:
+            user_id = user_data.get('id')
+    
+    # Get liked post IDs for this user
+    liked_post_ids = set()
+    if user_id:
+        likes = BlogLike.query.filter_by(user_id=user_id).all()
+        liked_post_ids = {like.post_id for like in likes}
+    
+    return render_template(
+        'blog_index.html',
+        posts=posts,
+        liked_post_ids=liked_post_ids,
+        user_id=user_id,
+        r2_url=get_r2_url
+    )
+
+
+@public_bp.route('/blog/<int:post_id>')
+def blog_detail(post_id):
+    """Blog post detail page"""
+    app_settings = AppSettings.query.first()
+    if not app_settings or not app_settings.enable_blog:
+        return redirect('/')
+    
+    post = BlogPost.query.get_or_404(post_id)
+    
+    if not post.is_published:
+        return redirect(url_for('public_bp.blog_index'))
+    
+    # Increment view count
+    post.view_count = (post.view_count or 0) + 1
+    db.session.commit()
+    
+    # Get user_id from initData if available
+    user_id = None
+    init_data = request.args.get('initData') or request.headers.get('X-Telegram-Init-Data')
+    if init_data:
+        user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
+        if user_data:
+            user_id = user_data.get('id')
+    
+    # Check if user liked this post
+    user_liked = False
+    if user_id:
+        like = BlogLike.query.filter_by(post_id=post_id, user_id=user_id).first()
+        user_liked = like is not None
+    
+    return render_template(
+        'blog_detail.html',
+        post=post,
+        user_liked=user_liked,
+        user_id=user_id,
+        r2_url=get_r2_url
+    )

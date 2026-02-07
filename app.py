@@ -2,7 +2,7 @@ import os
 from flask import Flask, render_template
 from flask_wtf.csrf import CSRFProtect
 from config import Config
-from models import db, AppSettings
+from models import db, AppSettings, BlogPost, BlogLike, VisitorLog
 from utils.decorators import limiter
 from r2_storage import get_r2_url
 
@@ -44,6 +44,14 @@ def create_app():
             return s
         
         return dict(r2_url=r2_url, settings=get_settings())
+    
+    # Custom template filters
+    @app.template_filter('nl2br')
+    def nl2br_filter(text):
+        """Convert newlines to <br> tags"""
+        if not text:
+            return ''
+        return text.replace('\n', '<br>')
     
     # Create/migrate tables
     with app.app_context():
@@ -95,6 +103,28 @@ def migrate_database():
                     ))
                 print("  ✅ is_test column added")
         
+        # ===== PRODUCT TABLE =====
+        if inspector.has_table('product'):
+            columns = {col['name'] for col in inspector.get_columns('product')}
+            
+            product_columns = {
+                'tags': "VARCHAR(300) DEFAULT ''",
+                'old_price': "INTEGER DEFAULT 0",
+                'badge_text': "VARCHAR(15) DEFAULT ''",
+                'badge_color': "VARCHAR(20) DEFAULT '#ff4444'",
+                'is_featured': "BOOLEAN DEFAULT FALSE",
+                'view_count': "INTEGER DEFAULT 0"
+            }
+            
+            for col_name, col_type in product_columns.items():
+                if col_name not in columns:
+                    print(f"  ➕ Adding product.{col_name} column...")
+                    with db.engine.begin() as conn:
+                        conn.execute(sa.text(
+                            f'ALTER TABLE product ADD COLUMN {col_name} {col_type}'
+                        ))
+                    print(f"  ✅ product.{col_name} column added")
+        
         # ===== APP_SETTINGS TABLE =====
         if inspector.has_table('app_settings'):
             columns = {col['name'] for col in inspector.get_columns('app_settings')}
@@ -108,21 +138,41 @@ def migrate_database():
                 'card_shape': "VARCHAR(20) DEFAULT 'square'",
                 'card_info': "VARCHAR(20) DEFAULT 'full'",
                 'header_size': "VARCHAR(20) DEFAULT 'normal'",
-                'show_filters': "BOOLEAN DEFAULT TRUE"
+                'show_filters': "BOOLEAN DEFAULT TRUE",
+                'layout_mode': "VARCHAR(20) DEFAULT 'grid'",
+                'enable_blog': "BOOLEAN DEFAULT FALSE",
+                'enable_product_messages': "BOOLEAN DEFAULT FALSE",
+                'enable_contact_page': "BOOLEAN DEFAULT FALSE",
+                'header_image_path': "VARCHAR(500) DEFAULT ''",
+                'header_button_text': "VARCHAR(100) DEFAULT ''",
+                'header_button_url': "VARCHAR(500) DEFAULT ''",
+                'footer_text': "VARCHAR(500) DEFAULT 'Powered by GramaZilla'"
             }
             
             for col_name, col_type in appearance_columns.items():
                 if col_name not in columns:
-                    print(f"  ➕ Adding {col_name} column...")
+                    print(f"  ➕ Adding app_settings.{col_name} column...")
                     with db.engine.begin() as conn:
                         conn.execute(sa.text(
                             f'ALTER TABLE app_settings ADD COLUMN {col_name} {col_type}'
                         ))
-                    print(f"  ✅ {col_name} column added")
+                    print(f"  ✅ app_settings.{col_name} column added")
         
         # ===== ADMIN_AUDIT_LOG TABLE =====
         if not inspector.has_table('admin_audit_log'):
             print("  ➕ Creating admin_audit_log table...")
+        
+        # ===== BLOG_POST TABLE =====
+        if not inspector.has_table('blog_post'):
+            print("  ➕ Creating blog_post table...")
+        
+        # ===== BLOG_LIKE TABLE =====
+        if not inspector.has_table('blog_like'):
+            print("  ➕ Creating blog_like table...")
+        
+        # ===== VISITOR_LOG TABLE =====
+        if not inspector.has_table('visitor_log'):
+            print("  ➕ Creating visitor_log table...")
         
         print("✅ Database schema up to date")
     
