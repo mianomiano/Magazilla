@@ -24,6 +24,7 @@ def get_product(pid):
 def create_invoice():
     """Create Telegram Stars invoice - requires Telegram auth"""
     try:
+        from models import VisitorLog
         data = request.json
         product_id = data.get('product_id')
         
@@ -42,6 +43,18 @@ def create_invoice():
         
         # Include user_id in payload for tracking
         user_id = get_telegram_user_id()
+        
+        # Log buy button click
+        try:
+            log = VisitorLog(
+                user_id=user_id,
+                page=f'/product/{product_id}',
+                action='buy_click'
+            )
+            db.session.add(log)
+            db.session.commit()
+        except Exception as e:
+            print(f"Buy click logging error: {e}")
         
         payload = {
             'title': product.name[:32],
@@ -77,6 +90,7 @@ def create_invoice():
 def telegram_webhook():
     """Telegram webhook - verified by Telegram's servers"""
     try:
+        from models import VisitorLog
         update = request.json
         
         if 'message' in update and 'successful_payment' in update['message']:
@@ -121,6 +135,18 @@ def telegram_webhook():
             )
             
             db.session.add(purchase)
+            
+            # Log purchase action
+            try:
+                log = VisitorLog(
+                    user_id=user_id,
+                    page=f'/product/{product_id}',
+                    action='purchase'
+                )
+                db.session.add(log)
+            except Exception as e:
+                print(f"Purchase logging error: {e}")
+            
             db.session.commit()
             
             print(f"✅ Verified purchase: user={user_id}, product={product_id}")

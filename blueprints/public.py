@@ -1,12 +1,34 @@
 """Public routes for the shop frontend"""
-from flask import Blueprint, render_template, request, jsonify, redirect
-from models import db, Product, Purchase
+from flask import Blueprint, render_template, request, jsonify, redirect, session
+from models import db, Product, Purchase, VisitorLog
 from utils.decorators import limiter
 from utils.telegram_auth import validate_telegram_init_data
 from r2_storage import get_r2_url
 from config import Config
+from datetime import datetime
+import uuid
 
 public_bp = Blueprint('public_bp', __name__)
+
+
+def log_visitor_action(page, action='view', user_id=None):
+    """Log visitor action for analytics"""
+    try:
+        # Get or create session ID
+        if 'session_id' not in session:
+            session['session_id'] = str(uuid.uuid4())
+        
+        log = VisitorLog(
+            user_id=user_id,
+            page=page,
+            action=action,
+            session_id=session['session_id']
+        )
+        db.session.add(log)
+        db.session.commit()
+    except Exception as e:
+        print(f"Visitor logging error: {e}")
+        # Don't crash if logging fails
 
 
 @public_bp.route('/')
@@ -29,6 +51,9 @@ def index():
         if user_data:
             user_id = user_data.get('id')
     
+    # Log visitor
+    log_visitor_action('/', 'view', user_id)
+    
     # Get purchased product IDs for this user
     purchased_ids = set()
     if user_id:
@@ -49,6 +74,10 @@ def index():
 def product_detail(pid):
     """Product detail page"""
     product = Product.query.get_or_404(pid)
+    
+    # Increment view count
+    product.view_count = (product.view_count or 0) + 1
+    db.session.commit()
     
     # Check if user has purchased (from initData or header)
     purchased = False
@@ -71,6 +100,9 @@ def product_detail(pid):
                     is_verified=True
                 ).first()
                 purchased = purchase is not None
+    
+    # Log visitor
+    log_visitor_action(f'/product/{pid}', 'view', user_id)
     
     return render_template(
         'product.html',

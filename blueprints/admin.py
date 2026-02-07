@@ -430,47 +430,79 @@ def appearance():
     return render_template('appearance.html', settings=app_settings)
 
 
-@admin_bp.route('/test-purchase', methods=['POST'])
+@admin_bp.route('/analytics')
 @admin_required
-@limiter.limit("10 per minute")
-def test_purchase():
-    """Create TEST purchase (only for testing)"""
-    data = request.json
-    user_id = data.get('user_id')
-    product_id = data.get('product_id')
+def analytics():
+    """Analytics and insights page"""
+    from sqlalchemy import func, distinct
+    from models import VisitorLog
+    from datetime import timedelta
     
-    if not user_id or not product_id:
-        return jsonify({'error': 'Missing user_id or product_id'}), 400
+    # Total unique visitors
+    total_visitors = db.session.query(
+        func.count(distinct(VisitorLog.user_id))
+    ).filter(VisitorLog.user_id.isnot(None)).scalar() or 0
     
-    try:
-        user_id = int(user_id) if user_id != 'admin' else 7165489081
-        product_id = int(product_id)
-    except ValueError:
-        return jsonify({'error': 'Invalid IDs'}), 400
+    # Total page views
+    total_views = VisitorLog.query.filter_by(action='view').count()
     
-    product = Product.query.get(product_id)
-    if not product:
-        return jsonify({'error': 'Product not found'}), 404
+    # Total buy button clicks
+    total_buy_clicks = VisitorLog.query.filter_by(action='buy_click').count()
     
-    if product.is_free:
-        return jsonify({'error': 'Product is free'}), 400
+    # Total purchases
+    total_purchases = Purchase.query.filter_by(is_verified=True, is_test=False).count()
     
-    existing = Purchase.query.filter_by(user_id=user_id, product_id=product_id).first()
-    if existing:
-        return jsonify({'error': 'Already purchased', 'is_test': existing.is_test}), 400
+    # Conversion rate
+    conversion_rate = round((total_purchases / total_buy_clicks * 100), 2) if total_buy_clicks > 0 else 0
     
-    purchase = Purchase(
-        user_id=user_id,
-        product_id=product_id,
-        telegram_payment_id=f"test_{user_id}_{product_id}_{int(datetime.utcnow().timestamp())}",
-        stars_paid=product.price,
-        is_verified=True,
-        is_test=True
+    # Top viewed products
+    top_products = db.session.query(
+        Product.id, Product.name, Product.view_count
+    ).order_by(Product.view_count.desc()).limit(10).all()
+    
+    # Recent visitors (last 20)
+    recent_visitors = VisitorLog.query.filter(
+        VisitorLog.user_id.isnot(None)
+    ).order_by(VisitorLog.timestamp.desc()).limit(20).all()
+    
+    # Daily visitors for the last 7 days
+    now = datetime.utcnow()
+    daily_stats = []
+    for i in range(6, -1, -1):
+        day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end = day_start + timedelta(days=1)
+        
+        day_visitors = db.session.query(
+            func.count(distinct(VisitorLog.user_id))
+        ).filter(
+            VisitorLog.timestamp >= day_start,
+            VisitorLog.timestamp < day_end,
+            VisitorLog.user_id.isnot(None)
+        ).scalar() or 0
+        
+        day_views = VisitorLog.query.filter(
+            VisitorLog.timestamp >= day_start,
+            VisitorLog.timestamp < day_end,
+            VisitorLog.action == 'view'
+        ).count()
+        
+        daily_stats.append({
+            'date': day_start.strftime('%m/%d'),
+            'visitors': day_visitors,
+            'views': day_views
+        })
+    
+    return render_template(
+        'analytics.html',
+        total_visitors=total_visitors,
+        total_views=total_views,
+        total_buy_clicks=total_buy_clicks,
+        total_purchases=total_purchases,
+        conversion_rate=conversion_rate,
+        top_products=top_products,
+        recent_visitors=recent_visitors,
+        daily_stats=daily_stats
     )
-    
-    db.session.add(purchase)
-    db.session.commit()
-    
-    log_admin_action('test_purchase', f"Test: user={user_id}, product={product_id}")
-    
-    return jsonify({'success': True, 'purchase_id': purchase.id})
+
+
+# NOTE: test-purchase endpoint removed for production security
