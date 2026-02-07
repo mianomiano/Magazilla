@@ -1,5 +1,26 @@
 {%extends 'base.html'%}
 {%block content%}
+
+<!-- Conditional Header Image Section -->
+{%if settings.header_image_path%}
+<div class="hero-header" style="position: relative; max-height: 300px; overflow: hidden; width: 100%;">
+    {%set header_url=r2_url(settings.header_image_path)%}
+    {%if settings.header_image_path.endswith('.webm')%}
+    <video autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover; max-height: 300px;">
+        <source src="{{header_url}}" type="video/webm">
+    </video>
+    {%else%}
+    <img src="{{header_url}}" style="width: 100%; height: 100%; object-fit: cover; max-height: 300px;" alt="Header">
+    {%endif%}
+    
+    {%if settings.header_button_text and settings.header_button_url%}
+    <a href="{{settings.header_button_url}}" class="header-cta-btn" onclick="if(window.Telegram?.WebApp) { window.Telegram.WebApp.openLink('{{settings.header_button_url}}'); return false; }">
+        {{settings.header_button_text}}
+    </a>
+    {%endif%}
+</div>
+{%endif%}
+
 <header class="header">
 <div class="header-inner">
 <div class="logo-area">
@@ -106,7 +127,68 @@ Free
 {%endif%}
 </div>
 
+<!-- Footer -->
+<footer class="app-footer">
+    <p>{{settings.footer_text}}</p>
+    {%if settings.enable_blog%}
+    <a href="/blog" class="footer-link">📝 Blog</a>
+    {%endif%}
+</footer>
+
 <style>
+.hero-header {
+    position: relative;
+    max-height: 300px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.header-cta-btn {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--secondary-color);
+    color: var(--text-on-secondary);
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+    z-index: 10;
+}
+
+.header-cta-btn:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.app-footer {
+    background: var(--primary-light);
+    padding: 30px 20px;
+    text-align: center;
+    margin-top: 40px;
+    border-top: 1px solid var(--card-border);
+}
+
+.app-footer p {
+    margin: 0 0 10px 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.footer-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin: 0 10px;
+}
+
+.footer-link:hover {
+    text-decoration: underline;
+}
+
 .search-container {
     display: flex;
     gap: 10px;
