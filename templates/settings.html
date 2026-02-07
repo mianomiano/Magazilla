@@ -79,6 +79,71 @@
 </div>
 </div>
 
+<h2 style="margin:20px 0 12px;font-size:0.85rem;color:var(--td)">🎬 Header Settings</h2>
+
+<div class="neu-input-group">
+    <label>Header Background Image (optional)</label>
+    <p style="font-size:0.7rem;color:var(--tm);margin-bottom:10px">Max height: 300px. Leave empty to hide header.</p>
+    <div class="file-upload" style="padding:30px 20px">
+        <input type="file" name="header_image" accept="image/*,video/webm" onchange="previewHeader(this)">
+        <div class="file-upload-icon">🖼️</div>
+        <div class="file-upload-text" id="header_label">{%if settings.header_image_path%}Current: uploaded{%else%}Upload header{%endif%}</div>
+    </div>
+    <div id="header_preview">
+        {%if settings.header_image_path%}
+        {%set header_url=r2_url(settings.header_image_path)%}
+        {%if settings.header_image_path.endswith('.webm')%}
+        <video autoplay loop muted playsinline style="max-width:100%;max-height:150px;border-radius:12px;margin-top:10px">
+            <source src="{{header_url}}" type="video/webm">
+        </video>
+        {%else%}
+        <img src="{{header_url}}" style="max-width:100%;max-height:150px;border-radius:12px;margin-top:10px">
+        {%endif%}
+        {%endif%}
+    </div>
+</div>
+
+<div class="neu-input-group">
+    <label>Header CTA Button Text (optional)</label>
+    <input type="text" name="header_button_text" class="neu-input" value="{{settings.header_button_text}}" placeholder="e.g., 🔥 Hot Deals" maxlength="100">
+</div>
+
+<div class="neu-input-group">
+    <label>Header CTA Button URL (optional)</label>
+    <input type="text" name="header_button_url" class="neu-input" value="{{settings.header_button_url}}" placeholder="https://..." maxlength="500">
+</div>
+
+<h2 style="margin:20px 0 12px;font-size:0.85rem;color:var(--td)">🎚️ Feature Toggles</h2>
+
+<div class="neu-input-group">
+    <label class="neu-checkbox">
+        <input type="checkbox" name="enable_blog" {%if settings.enable_blog%}checked{%endif%}>
+        <span class="neu-checkmark"></span>
+        <span>📝 Enable Blog Mode</span>
+    </label>
+</div>
+
+<div class="neu-input-group">
+    <label class="neu-checkbox">
+        <input type="checkbox" name="enable_product_messages" {%if settings.enable_product_messages%}checked{%endif%}>
+        <span class="neu-checkmark"></span>
+        <span>💬 Enable Product Messages</span>
+    </label>
+</div>
+
+<div class="neu-input-group">
+    <label class="neu-checkbox">
+        <input type="checkbox" name="enable_contact_page" {%if settings.enable_contact_page%}checked{%endif%}>
+        <span class="neu-checkmark"></span>
+        <span>📧 Enable Contact Form</span>
+    </label>
+</div>
+
+<div class="neu-input-group">
+    <label>Footer Text</label>
+    <input type="text" name="footer_text" class="neu-input" value="{{settings.footer_text}}" maxlength="500">
+</div>
+
 <button type="submit" class="neu-btn neu-btn-primary neu-btn-full" style="margin-top:12px">💾 Save Settings</button>
 </form>
 </div>
@@ -103,6 +168,20 @@ function previewLogo(input) {
             container.innerHTML = '<video autoplay loop muted playsinline style="max-width:100%;max-height:150px;border-radius:12px"><source src="'+URL.createObjectURL(file)+'" type="'+file.type+'"></video>';
         } else {
             container.innerHTML = '<img src="'+URL.createObjectURL(file)+'" style="max-width:100%;max-height:150px;border-radius:12px">';
+        }
+    }
+}
+
+function previewHeader(input) {
+    if(input.files && input.files[0]) {
+        const file = input.files[0];
+        const container = document.getElementById('header_preview');
+        document.getElementById('header_label').textContent = file.name;
+        
+        if(file.type.startsWith('video/')) {
+            container.innerHTML = '<video autoplay loop muted playsinline style="max-width:100%;max-height:150px;border-radius:12px;margin-top:10px"><source src="'+URL.createObjectURL(file)+'" type="'+file.type+'"></video>';
+        } else {
+            container.innerHTML = '<img src="'+URL.createObjectURL(file)+'" style="max-width:100%;max-height:150px;border-radius:12px;margin-top:10px">';
         }
     }
 }

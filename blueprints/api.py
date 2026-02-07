@@ -513,3 +513,67 @@ def search_products():
         })
     
     return jsonify({'products': results})
+
+
+@api_bp.route('/send-message', methods=['POST'])
+@limiter.limit("3 per minute")  # Rate limit: max 3 messages per minute per user
+@telegram_auth_required
+def send_contact_message():
+    """Send a contact message to admin via Telegram bot"""
+    try:
+        data = request.json
+        message_text = data.get('message', '').strip()
+        product_id = data.get('product_id')  # Optional, for product-specific messages
+        
+        if not message_text or len(message_text) < 5:
+            return jsonify({'error': 'Message too short'}), 400
+        
+        if len(message_text) > 1000:
+            return jsonify({'error': 'Message too long (max 1000 characters)'}), 400
+        
+        user_id = get_telegram_user_id()
+        bot_token = Config.BOT_TOKEN
+        
+        if not bot_token:
+            return jsonify({'error': 'Bot not configured'}), 500
+        
+        # Get admin Telegram ID (first admin in the list)
+        admin_ids = Config.ADMIN_TELEGRAM_IDS
+        if not admin_ids:
+            return jsonify({'error': 'No admin configured'}), 500
+        
+        admin_id = admin_ids[0]
+        
+        # Format message
+        if product_id:
+            product = Product.query.get(product_id)
+            if product:
+                telegram_message = f"📩 <b>Product Question</b>\n\n"
+                telegram_message += f"<b>Product:</b> {product.name}\n"
+                telegram_message += f"<b>From User:</b> {user_id}\n\n"
+                telegram_message += f"<b>Message:</b>\n{message_text}"
+            else:
+                telegram_message = f"📩 <b>Message from User {user_id}</b>\n\n{message_text}"
+        else:
+            telegram_message = f"📩 <b>Contact Message</b>\n\n"
+            telegram_message += f"<b>From User:</b> {user_id}\n\n"
+            telegram_message += f"<b>Message:</b>\n{message_text}"
+        
+        # Send via bot
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        response = requests.post(url, json={
+            'chat_id': admin_id,
+            'text': telegram_message,
+            'parse_mode': 'HTML'
+        }, timeout=10)
+        
+        result = response.json()
+        
+        if result.get('ok'):
+            return jsonify({'success': True, 'message': 'Message sent successfully!'})
+        else:
+            return jsonify({'error': 'Failed to send message'}), 500
+    
+    except Exception as e:
+        print(f"Contact message error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500

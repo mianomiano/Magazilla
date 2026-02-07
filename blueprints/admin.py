@@ -360,6 +360,14 @@ def settings():
         app_settings.secondary_color = secondary_color
         app_settings.accent_color = accent_color
         
+        # New header, contact, blog, footer settings
+        app_settings.enable_blog = request.form.get('enable_blog') == 'on'
+        app_settings.enable_product_messages = request.form.get('enable_product_messages') == 'on'
+        app_settings.enable_contact_page = request.form.get('enable_contact_page') == 'on'
+        app_settings.header_button_text = request.form.get('header_button_text', '').strip()[:100]
+        app_settings.header_button_url = request.form.get('header_button_url', '').strip()[:500]
+        app_settings.footer_text = request.form.get('footer_text', 'Powered by GramaZilla').strip()[:500]
+        
         if 'logo' in request.files:
             file = request.files['logo']
             if file and file.filename:
@@ -368,6 +376,16 @@ def settings():
                 key = upload_to_r2(file, 'logos')
                 if key:
                     app_settings.logo_path = key
+        
+        # Header image upload
+        if 'header_image' in request.files:
+            file = request.files['header_image']
+            if file and file.filename and allowed_file(file.filename):
+                if app_settings.header_image_path:
+                    delete_from_r2(app_settings.header_image_path)
+                key = upload_to_r2(file, 'headers')
+                if key:
+                    app_settings.header_image_path = key
         
         db.session.commit()
         log_admin_action('update_settings', 'App settings updated')
