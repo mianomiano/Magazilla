@@ -990,33 +990,38 @@ function applyColorPreset(primary, secondary, accent) {
 
 // Apply full theme preset
 function applyFullTheme(theme) {
+    const setChecked = (selector) => {
+        const el = document.querySelector(selector);
+        if (el) el.checked = true;
+    };
+    
     if (theme === 'sleek') {
         // Sleek: Dark navy, Inter, flat, sharp, medium square cards, minimal info
         applyColorPreset('#0a0e27', '#39ff14', '#00b4d8');
-        document.querySelector('input[name="font_family"][value="inter"]').checked = true;
-        document.querySelector('input[name="button_style"][value="flat"]').checked = true;
-        document.querySelector('input[name="button_roundness"][value="sharp"]').checked = true;
-        document.querySelector('input[name="card_size"][value="medium"]').checked = true;
-        document.querySelector('input[name="card_shape"][value="square"]').checked = true;
-        document.querySelector('input[name="card_info"][value="minimal"]').checked = true;
+        setChecked('input[name="font_family"][value="inter"]');
+        setChecked('input[name="button_style"][value="flat"]');
+        setChecked('input[name="button_roundness"][value="sharp"]');
+        setChecked('input[name="card_size"][value="medium"]');
+        setChecked('input[name="card_shape"][value="square"]');
+        setChecked('input[name="card_info"][value="minimal"]');
     } else if (theme === 'playful') {
         // Playful: Bright pink, Grandstander, bubble with glow, pill, large rectangle cards, full info
         applyColorPreset('#ffc8dd', '#ff006e', '#d8b4fe');
-        document.querySelector('input[name="font_family"][value="grandstander"]').checked = true;
-        document.querySelector('input[name="button_style"][value="bubble"]').checked = true;
-        document.querySelector('input[name="button_roundness"][value="pill"]').checked = true;
-        document.querySelector('input[name="card_size"][value="large"]').checked = true;
-        document.querySelector('input[name="card_shape"][value="rectangle"]').checked = true;
-        document.querySelector('input[name="card_info"][value="full"]').checked = true;
+        setChecked('input[name="font_family"][value="grandstander"]');
+        setChecked('input[name="button_style"][value="bubble"]');
+        setChecked('input[name="button_roundness"][value="pill"]');
+        setChecked('input[name="card_size"][value="large"]');
+        setChecked('input[name="card_shape"][value="rectangle"]');
+        setChecked('input[name="card_info"][value="full"]');
     } else if (theme === 'bold') {
         // Bold: Black, Russo One, glow, rounded, large cards, full info
         applyColorPreset('#000000', '#ff0080', '#00ffff');
-        document.querySelector('input[name="font_family"][value="russo"]').checked = true;
-        document.querySelector('input[name="button_style"][value="glow"]').checked = true;
-        document.querySelector('input[name="button_roundness"][value="rounded"]').checked = true;
-        document.querySelector('input[name="card_size"][value="large"]').checked = true;
-        document.querySelector('input[name="card_shape"][value="square"]').checked = true;
-        document.querySelector('input[name="card_info"][value="full"]').checked = true;
+        setChecked('input[name="font_family"][value="russo"]');
+        setChecked('input[name="button_style"][value="glow"]');
+        setChecked('input[name="button_roundness"][value="rounded"]');
+        setChecked('input[name="card_size"][value="large"]');
+        setChecked('input[name="card_shape"][value="square"]');
+        setChecked('input[name="card_info"][value="full"]');
     }
     updatePreview();
 }
