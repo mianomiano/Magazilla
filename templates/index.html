@@ -68,7 +68,7 @@
 {%if products%}
 <div class="products-grid">
 {%for p in products%}
-<div class="product-card" data-category="{{p.category}}" data-free="{{'true' if p.is_free else 'false'}}" data-name="{{p.name.lower()}}" data-tags="{{p.tags.lower() if p.tags else ''}}" onclick="viewProduct({{p.id}})">
+<div class="product-card" data-category="{{p.category | e}}" data-free="{{'true' if p.is_free else 'false'}}" data-name="{{p.name.lower() | e}}" data-tags="{{(p.tags.lower() if p.tags else '') | e}}" data-product-id="{{p.id}}" style="cursor: pointer;">
 <div class="product-thumbnail">
 {%if p.thumbnail%}
 {%set thumb_url=r2_url(p.thumbnail)%}
@@ -77,7 +77,7 @@
 <source src="{{thumb_url}}" type="video/webm">
 </video>
 {%else%}
-<img src="{{thumb_url}}" alt="{{p.name}}">
+<img src="{{thumb_url}}" alt="{{p.name | e}}">
 {%endif%}
 {%else%}
 <span class="placeholder-icon">🎨</span>
@@ -88,7 +88,7 @@
 {%endif%}
 
 {%if p.badge_text%}
-<span class="custom-badge" style="background-color: {{p.badge_color}};">{{p.badge_text}}</span>
+<span class="custom-badge" style="background-color: {{p.badge_color | e}};">{{p.badge_text | e}}</span>
 {%endif%}
 
 <span class="product-badge {%if p.is_free%}badge-free{%else%}badge-paid{%endif%}">
@@ -281,6 +281,31 @@ Free
 </style>
 
 <script>
+// Initialize event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Product card click handlers
+    document.querySelectorAll('.product-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            if (productId) {
+                viewProduct(parseInt(productId));
+            }
+        });
+    });
+    
+    // Search input handler
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+    }
+    
+    // Sort dropdown handler
+    const sortSelect = document.getElementById('sortSelect');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', handleSort);
+    }
+});
+
 let searchTimeout;
 function handleSearch() {
     clearTimeout(searchTimeout);
@@ -291,7 +316,7 @@ function handleSearch() {
         cards.forEach(card => {
             const name = card.dataset.name || '';
             const tags = card.dataset.tags || '';
-            const category = card.dataset.category.toLowerCase();
+            const category = (card.dataset.category || '').toLowerCase();
             
             if (query === '' || name.includes(query) || tags.includes(query) || category.includes(query)) {
                 card.style.display = 'flex';

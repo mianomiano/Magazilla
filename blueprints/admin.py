@@ -191,6 +191,12 @@ def new_product():
             flash(error, 'error')
             return render_template('edit_product.html', product=None, categories=categories)
         
+        # Validate badge color
+        badge_color = request.form.get('badge_color', '#ff4444')
+        badge_color_valid, _ = validate_color(badge_color)
+        if not badge_color_valid:
+            badge_color = '#ff4444'  # Fallback to default
+        
         product = Product(
             name=name,
             description=description,
@@ -200,7 +206,7 @@ def new_product():
             tags=request.form.get('tags', '').strip()[:300],
             is_featured=request.form.get('is_featured') == 'on',
             badge_text=request.form.get('badge_text', '').strip()[:15],
-            badge_color=request.form.get('badge_color', '#ff4444'),
+            badge_color=badge_color,
             old_price=int(request.form.get('old_price', 0) or 0)
         )
         
@@ -278,7 +284,14 @@ def edit_product(pid):
         product.tags = request.form.get('tags', '').strip()[:300]  # Max 300 chars
         product.is_featured = request.form.get('is_featured') == 'on'
         product.badge_text = request.form.get('badge_text', '').strip()[:15]  # Max 15 chars
-        product.badge_color = request.form.get('badge_color', '#ff4444')
+        
+        # Validate badge color
+        badge_color = request.form.get('badge_color', '#ff4444')
+        valid, error = validate_color(badge_color)
+        if valid:
+            product.badge_color = badge_color
+        else:
+            product.badge_color = '#ff4444'  # Fallback to default
         
         # Old price for strikethrough
         try:
