@@ -245,29 +245,35 @@
                 <div class="option-grid three-col">
                     <label class="option-card">
                         <input type="radio" name="header_size" value="compact" 
-                               {{ 'checked' if settings.header_size == 'compact' else '' }} onchange="updatePreview()">
+                               {{ 'checked' if settings.header_size == 'compact' else '' }} 
+                               onchange="updatePreview()"
+                               aria-describedby="compact-hint">
                         <span class="option-preview">
                             <div class="header-preview header-compact"></div>
                             <span>Compact</span>
-                            <small class="size-hint">Thin strip — best for ~1920×240 banners</small>
+                            <small id="compact-hint" class="size-hint">Thin strip — best for ~1920×240 banners</small>
                         </span>
                     </label>
                     <label class="option-card">
                         <input type="radio" name="header_size" value="normal" 
-                               {{ 'checked' if settings.header_size == 'normal' else '' }} onchange="updatePreview()">
+                               {{ 'checked' if settings.header_size == 'normal' else '' }} 
+                               onchange="updatePreview()"
+                               aria-describedby="normal-hint">
                         <span class="option-preview">
                             <div class="header-preview header-normal"></div>
                             <span>Normal</span>
-                            <small class="size-hint">Standard — best for ~1920×480 banners</small>
+                            <small id="normal-hint" class="size-hint">Standard — best for ~1920×480 banners</small>
                         </span>
                     </label>
                     <label class="option-card">
                         <input type="radio" name="header_size" value="tall" 
-                               {{ 'checked' if settings.header_size == 'tall' else '' }} onchange="updatePreview()">
+                               {{ 'checked' if settings.header_size == 'tall' else '' }} 
+                               onchange="updatePreview()"
+                               aria-describedby="tall-hint">
                         <span class="option-preview">
                             <div class="header-preview header-tall"></div>
                             <span>Tall</span>
-                            <small class="size-hint">Cinematic — best for ~1920×1080 banners</small>
+                            <small id="tall-hint" class="size-hint">Cinematic — best for ~1920×1080 banners</small>
                         </span>
                     </label>
                 </div>
