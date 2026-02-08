@@ -617,7 +617,7 @@
         }
         {% endif %}
         
-        /* Collapse header when empty */
+        /* Collapse header when empty (1px instead of 0 to prevent layout shift) */
         .logo-area:empty { 
             min-height: 1px !important; 
             padding: 0 !important; 
