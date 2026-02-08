@@ -583,22 +583,15 @@
         /* ==================== HEADER SIZE ==================== */
         
         {% if settings.header_size == 'compact' %}
-        .logo-area { 
-            min-height: 40px !important; 
-            padding: 8px 16px !important; 
-        }
         .logo-area img, .logo-area video { 
-            max-height: 50px !important; 
+            max-height: 150px !important; 
         }
-        
         {% elif settings.header_size == 'tall' %}
-        .logo-area { 
-            min-height: 120px !important; 
-            padding: 24px 16px !important; 
-        }
         .logo-area img, .logo-area video { 
-            max-height: 180px !important; 
+            max-height: 300px !important; 
         }
+        {% else %}
+        /* normal - default 300px max from style.css applies */
         {% endif %}
         
         /* ==================== SHOW/HIDE FILTERS ==================== */
