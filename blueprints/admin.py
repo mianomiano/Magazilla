@@ -358,6 +358,24 @@ def settings():
     
     return render_template('settings.html', settings=app_settings)
     
+@admin_bp.route('/remove-logo', methods=['POST'])
+@admin_required
+def remove_logo():
+    """Remove header logo (just clears the database path)"""
+    app_settings = AppSettings.query.first()
+    if app_settings:
+        # Optionally try to delete from R2 if it still exists
+        if app_settings.logo_path:
+            try:
+                delete_from_r2(app_settings.logo_path)
+            except Exception:
+                pass  # File may already be gone from R2
+        app_settings.logo_path = ''
+        db.session.commit()
+        log_admin_action('remove_logo', 'Header logo removed')
+        flash('Logo removed!', 'success')
+    return redirect(url_for('admin_bp.settings'))
+    
 @admin_bp.route('/appearance', methods=['GET', 'POST'])
 @admin_required
 def appearance():
