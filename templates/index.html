@@ -1,5 +1,6 @@
 {%extends 'base.html'%}
 {%block content%}
+{%if settings.logo_path or settings.app_name%}
 <header class="header">
 <div class="header-inner">
 <div class="logo-area">
@@ -10,14 +11,15 @@
 <source src="{{logo_url}}" type="video/webm">
 </video>
 {%else%}
-<img src="{{logo_url}}" onerror="this.parentNode.innerHTML='<span class=logo-text>{{settings.app_name}}</span>'">
+<img src="{{logo_url}}" alt="{{settings.app_name}}">
 {%endif%}
-{%else%}
+{%elif settings.app_name%}
 <span class="logo-text">{{settings.app_name}}</span>
 {%endif%}
 </div>
 </div>
 </header>
+{%endif%}
 
 <div class="category-filter">
 <button class="filter-btn active" data-category="all">All</button>
