@@ -8,52 +8,30 @@
 
 <div class="stat-grid">
     <div class="stat-card">
-        <div class="stat-value">{{ stats.total_revenue }}</div>
-        <div class="stat-label">⭐ Total Revenue (Stars)</div>
+        <div class="stat-value">⭐ {{ revenue }}</div>
+        <div class="stat-label">Total Revenue (Stars)</div>
     </div>
     <div class="stat-card">
-        <div class="stat-value">{{ stats.total_orders }}</div>
-        <div class="stat-label">✅ Paid Orders</div>
+        <div class="stat-value">{{ orders_count }}</div>
+        <div class="stat-label">Total Orders</div>
     </div>
     <div class="stat-card">
-        <div class="stat-value">{{ stats.total_users }}</div>
-        <div class="stat-label">👥 Total Users</div>
+        <div class="stat-value">{{ users_count }}</div>
+        <div class="stat-label">Total Users</div>
     </div>
     <div class="stat-card">
-        <div class="stat-value">{{ stats.active_products }}</div>
-        <div class="stat-label">📦 Active Products</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ stats.today_visitors }}</div>
-        <div class="stat-label">👁 Today's Visitors</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ stats.week_revenue }}</div>
-        <div class="stat-label">⭐ This Week Revenue</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ stats.week_orders }}</div>
-        <div class="stat-label">📦 This Week Orders</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ stats.month_visitors }}</div>
-        <div class="stat-label">👁 Month Visitors</div>
+        <div class="stat-value">{{ products_count }}</div>
+        <div class="stat-label">Products</div>
     </div>
 </div>
 
-<!-- Visitor Chart -->
-<div class="stat-card" style="margin-bottom:24px">
-    <h3 style="margin-bottom:12px">📈 Visitors (7 days)</h3>
-    <canvas id="visitorChart" height="200"></canvas>
-</div>
-
-<!-- Recent Orders -->
 <h2 style="margin-bottom:12px">🕐 Recent Orders</h2>
+{% if recent_orders %}
 <table class="admin-table">
     <thead>
         <tr>
             <th>#</th>
-            <th>User</th>
+            <th>User ID</th>
             <th>Amount</th>
             <th>Status</th>
             <th>Date</th>
@@ -62,39 +40,21 @@
     <tbody>
         {% for order in recent_orders %}
         <tr>
-            <td>{{ order.id }}</td>
-            <td>{{ order.user.username or order.user.first_name or order.user.telegram_id }}</td>
+            <td><a href="/admin/orders/{{ order.id }}">{{ order.id }}</a></td>
+            <td>{{ order.user_id }}</td>
             <td>⭐ {{ order.total_stars }}</td>
             <td>
-                {% if order.status == 'paid' %}<span class="badge badge-success">Paid</span>
-                {% elif order.status == 'pending' %}<span class="badge badge-warning">Pending</span>
-                {% elif order.status == 'refunded' %}<span class="badge badge-error">Refunded</span>
-                {% else %}<span class="badge">{{ order.status }}</span>{% endif %}
+                {% if order.status == 'paid' %}<span style="color:#2ecc71;font-weight:600">✅ Paid</span>
+                {% elif order.status == 'pending' %}<span style="color:#f39c12;font-weight:600">⏳ Pending</span>
+                {% elif order.status == 'refunded' %}<span style="color:#e74c3c;font-weight:600">↩️ Refunded</span>
+                {% else %}<span>{{ order.status }}</span>{% endif %}
             </td>
-            <td>{{ order.created_at.strftime('%b %d %H:%M') }}</td>
+            <td>{{ order.created_at.strftime('%b %d, %H:%M') if order.created_at else '-' }}</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-<script>
-fetch('/admin/api/stats/visitors?days=7')
-.then(r=>r.json())
-.then(data=>{
-    new Chart(document.getElementById('visitorChart'),{
-        type:'line',
-        data:{
-            labels:data.map(d=>d.date.slice(5)),
-            datasets:[
-                {label:'Views',data:data.map(d=>d.views),borderColor:'#6c5ce7',tension:0.3,fill:false},
-                {label:'Unique',data:data.map(d=>d.unique),borderColor:'#00b894',tension:0.3,fill:false}
-            ]
-        },
-        options:{responsive:true,plugins:{legend:{labels:{color:'#aaa'}}},scales:{x:{ticks:{color:'#aaa'}},y:{ticks:{color:'#aaa'}}}}
-    });
-});
-</script>
-{% endblock %}
+{% else %}
+<p style="color:var(--text-secondary)">No orders yet.</p>
+{% endif %}
 {% endblock %}

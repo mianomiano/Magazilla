@@ -626,12 +626,12 @@ def admin_tg_login():
 @app.route('/admin')
 @require_admin
 def admin_dashboard():
-    products_count = Product.query.count()
+    products_count = Product.query.filter_by(is_active=True).count()
     users_count = User.query.count()
     orders_count = Order.query.count()
     revenue = db.session.query(db.func.sum(Order.total_stars)).filter_by(status='paid').scalar() or 0
     recent_orders = Order.query.order_by(Order.created_at.desc()).limit(10).all()
-
+    
     return render_template('admin/dashboard.html',
                            products_count=products_count,
                            users_count=users_count,
