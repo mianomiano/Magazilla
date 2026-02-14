@@ -2,18 +2,21 @@
    Cart — Add, load, update, checkout
    ═══════════════════════════════════════════════ */
 
-// Add to cart (called from product page)
 function addToCart(productId) {
+    if (!window._isTelegram) {
+        showToast('Open in Telegram to add to cart', 'error');
+        return;
+    }
     haptic('light');
     fetch('/api/cart/add', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ product_id: productId, quantity: 1 })
     })
-    .then(r => r.json())
-    .then(data => {
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
         if (data.ok) {
-            showToast('✅ Added to cart!', 'success');
+            showToast('Added to cart!', 'success');
             haptic('success');
             updateCartBadge();
         } else {
@@ -21,68 +24,102 @@ function addToCart(productId) {
             haptic('error');
         }
     })
-    .catch(() => {
+    .catch(function () {
         showToast('Network error', 'error');
     });
 }
 
-// Buy now = add + go to cart
 function buyNow(productId) {
+    if (!window._isTelegram) {
+        showToast('Open in Telegram to buy', 'error');
+        return;
+    }
     haptic('medium');
     fetch('/api/cart/add', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ product_id: productId, quantity: 1 })
     })
-    .then(r => r.json())
-    .then(data => {
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
         if (data.ok) {
             window.location.href = '/cart';
         } else {
             showToast(data.error || 'Error', 'error');
         }
     })
-    .catch(() => {
+    .catch(function () {
         showToast('Network error', 'error');
     });
 }
 
-// Load cart (cart page)
 function loadCart() {
+    if (!window._isTelegram) {
+        var loading = document.getElementById('cartLoading');
+        var content = document.getElementById('cartContent');
+        if (loading) loading.style.display = 'none';
+        if (content) {
+            content.style.display = 'block';
+            showTelegramRequired('cartContent');
+        }
+        return;
+    }
+
+    // Wait for auth to be ready
+    if (!window._authReady) {
+        window.addEventListener('tgAuthReady', function () {
+            doLoadCart();
+        });
+        // Also try after a timeout in case event already fired
+        setTimeout(function () {
+            if (!window._cartLoaded) doLoadCart();
+        }, 2000);
+    } else {
+        doLoadCart();
+    }
+}
+
+function doLoadCart() {
+    window._cartLoaded = true;
+
     fetch('/api/cart', { headers: getAuthHeaders() })
-        .then(r => {
+        .then(function (r) {
             if (!r.ok) throw new Error('Auth required');
             return r.json();
         })
-        .then(data => {
-            document.getElementById('cartLoading').style.display = 'none';
-            document.getElementById('cartContent').style.display = 'block';
+        .then(function (data) {
+            var loading = document.getElementById('cartLoading');
+            var content = document.getElementById('cartContent');
+            if (loading) loading.style.display = 'none';
+            if (content) content.style.display = 'block';
 
             if (data.items.length === 0) {
                 document.getElementById('cartEmpty').style.display = 'block';
-                document.getElementById('cartSummary').style.display = 'none';
+                var summary = document.getElementById('cartSummary');
+                if (summary) summary.style.display = 'none';
                 return;
             }
 
-            const container = document.getElementById('cartItems');
+            var container = document.getElementById('cartItems');
             container.innerHTML = '';
 
-            data.items.forEach(item => {
-                const div = document.createElement('div');
+            data.items.forEach(function (item) {
+                var div = document.createElement('div');
                 div.className = 'cart-item';
-                div.innerHTML = `
-                    <img class="cart-item-img" src="${item.thumbnail_url || ''}" alt="" onerror="this.style.display='none'">
-                    <div class="cart-item-info">
-                        <div class="cart-item-title">${escHtml(item.title)}</div>
-                        <div class="cart-item-price">⭐ ${item.price_stars}</div>
-                        <div class="cart-item-qty">
-                            <button onclick="updateQty(${item.id}, ${item.quantity - 1})">−</button>
-                            <span>${item.quantity}</span>
-                            <button onclick="updateQty(${item.id}, ${item.quantity + 1})">+</button>
-                        </div>
-                    </div>
-                    <button class="cart-item-remove" onclick="removeItem(${item.id})">✕</button>
-                `;
+                var imgHtml = item.thumbnail_url
+                    ? '<img class="cart-item-img" src="' + item.thumbnail_url + '" alt="" onerror="this.style.display=\'none\'">'
+                    : '<div class="cart-item-img" style="display:flex;align-items:center;justify-content:center;font-size:24px;">📦</div>';
+                
+                div.innerHTML = imgHtml +
+                    '<div class="cart-item-info">' +
+                    '<div class="cart-item-title">' + escHtml(item.title) + '</div>' +
+                    '<div class="cart-item-price">⭐ ' + item.price_stars + '</div>' +
+                    '<div class="cart-item-qty">' +
+                    '<button onclick="updateQty(' + item.id + ', ' + (item.quantity - 1) + ')">−</button>' +
+                    '<span>' + item.quantity + '</span>' +
+                    '<button onclick="updateQty(' + item.id + ', ' + (item.quantity + 1) + ')">+</button>' +
+                    '</div></div>' +
+                    '<button class="cart-item-remove" onclick="removeItem(' + item.id + ')">✕</button>';
                 container.appendChild(div);
             });
 
@@ -90,8 +127,14 @@ function loadCart() {
             document.getElementById('cartSummary').style.display = 'block';
             document.getElementById('cartEmpty').style.display = 'none';
         })
-        .catch(() => {
-            document.getElementById('cartLoading').innerHTML = '<p>Please open this app from Telegram</p>';
+        .catch(function (err) {
+            var loading = document.getElementById('cartLoading');
+            var content = document.getElementById('cartContent');
+            if (loading) loading.style.display = 'none';
+            if (content) {
+                content.style.display = 'block';
+                content.innerHTML = '<div class="empty-state"><p>Could not load cart. Try again.</p></div>';
+            }
         });
 }
 
@@ -106,9 +149,9 @@ function updateQty(itemId, qty) {
         headers: getAuthHeaders(),
         body: JSON.stringify({ item_id: itemId, quantity: qty })
     })
-    .then(r => r.json())
-    .then(() => {
-        loadCart();
+    .then(function (r) { return r.json(); })
+    .then(function () {
+        doLoadCart();
         updateCartBadge();
     });
 }
@@ -120,48 +163,43 @@ function removeItem(itemId) {
         headers: getAuthHeaders(),
         body: JSON.stringify({ item_id: itemId })
     })
-    .then(r => r.json())
-    .then(() => {
-        loadCart();
+    .then(function (r) { return r.json(); })
+    .then(function () {
+        doLoadCart();
         updateCartBadge();
     });
 }
 
 function checkout() {
     haptic('heavy');
-    const btn = document.querySelector('.btn-checkout');
+    var btn = document.querySelector('.btn-checkout');
     if (btn) {
         btn.disabled = true;
-        btn.textContent = '⏳ Processing...';
+        btn.textContent = 'Processing...';
     }
 
     fetch('/api/checkout', {
         method: 'POST',
         headers: getAuthHeaders()
     })
-    .then(r => r.json())
-    .then(data => {
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
         if (data.ok) {
-            if (data.method === 'invoice_sent') {
-                showToast('⭐ Invoice sent! Check your Telegram chat.', 'success');
-                haptic('success');
-                // Close mini app so user sees the invoice in chat
-                const tg = window.Telegram && window.Telegram.WebApp;
-                if (tg) {
-                    setTimeout(() => tg.close(), 1500);
-                }
-            } else {
-                showToast('Order created! Complete payment in the bot chat.', 'success');
+            showToast('Invoice sent! Check your Telegram chat.', 'success');
+            haptic('success');
+            var tg = window.Telegram && window.Telegram.WebApp;
+            if (tg) {
+                setTimeout(function () { tg.close(); }, 1500);
             }
         } else {
             showToast(data.error || 'Checkout failed', 'error');
             haptic('error');
         }
     })
-    .catch(() => {
+    .catch(function () {
         showToast('Network error', 'error');
     })
-    .finally(() => {
+    .finally(function () {
         if (btn) {
             btn.disabled = false;
             btn.textContent = '⚡ Pay with Telegram Stars';
@@ -169,9 +207,8 @@ function checkout() {
     });
 }
 
-// HTML escape helper
 function escHtml(str) {
-    const div = document.createElement('div');
+    var div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
 }

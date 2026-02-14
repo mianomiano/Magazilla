@@ -1,63 +1,99 @@
 /* ═══════════════════════════════════════════════
-   Theme — Syncs with Telegram's color scheme
+   Theme — Syncs with Telegram's actual theme params
    ═══════════════════════════════════════════════ */
 (function () {
-    const tg = window.Telegram && window.Telegram.WebApp;
+    var tg = window.Telegram && window.Telegram.WebApp;
+
+    window._isTelegram = !!(tg && tg.initData && tg.initData.length > 0);
+    window._authReady = false;
 
     if (tg) {
-        // Tell Telegram the app is ready
         tg.ready();
         tg.expand();
 
-        // Apply Telegram theme
-        const cs = tg.colorScheme; // 'dark' or 'light'
-        if (cs === 'light') {
-            document.body.classList.add('tg-theme-light');
-        }
+        // Apply ALL Telegram theme params to CSS variables
+        applyTelegramTheme();
 
-        // Map Telegram theme params to CSS variables if available
-        const tp = tg.themeParams;
-        if (tp) {
-            const root = document.documentElement.style;
-            if (tp.bg_color) root.setProperty('--bg-primary', tp.bg_color);
-            if (tp.secondary_bg_color) root.setProperty('--bg-secondary', tp.secondary_bg_color);
-            if (tp.text_color) root.setProperty('--text-primary', tp.text_color);
-            if (tp.hint_color) root.setProperty('--text-secondary', tp.hint_color);
-            if (tp.link_color) root.setProperty('--accent', tp.link_color);
-            if (tp.button_color) root.setProperty('--accent', tp.button_color);
-            if (tp.button_text_color) {
-                // Can use for button text if needed
-            }
-        }
-
-        // Handle viewport changes
-        tg.onEvent('viewportChanged', function () {
-            // Adjust layout if needed
+        // Listen for theme changes
+        tg.onEvent('themeChanged', function () {
+            applyTelegramTheme();
         });
     }
 
+    function applyTelegramTheme() {
+        if (!tg) return;
+        var tp = tg.themeParams;
+        if (!tp) return;
+
+        var root = document.documentElement.style;
+
+        // Map every Telegram theme param to our CSS variables
+        if (tp.bg_color) root.setProperty('--bg-primary', tp.bg_color);
+        if (tp.secondary_bg_color) root.setProperty('--bg-secondary', tp.secondary_bg_color);
+        if (tp.section_bg_color) root.setProperty('--bg-card', tp.section_bg_color);
+        if (tp.text_color) root.setProperty('--text-primary', tp.text_color);
+        if (tp.subtitle_text_color) root.setProperty('--text-secondary', tp.subtitle_text_color);
+        if (tp.hint_color) root.setProperty('--text-muted', tp.hint_color);
+        if (tp.link_color) root.setProperty('--accent', tp.link_color);
+        if (tp.button_color) root.setProperty('--accent', tp.button_color);
+        if (tp.destructive_text_color) root.setProperty('--danger', tp.destructive_text_color);
+        if (tp.accent_text_color) root.setProperty('--accent', tp.accent_text_color);
+        if (tp.section_header_text_color) {
+            // Use for section titles if desired
+        }
+
+        // Header and bottom bar colors
+        if (tp.header_bg_color) {
+            try { tg.setHeaderColor(tp.header_bg_color); } catch (e) {}
+        }
+        if (tp.bottom_bar_bg_color) {
+            try { tg.setBottomBarColor(tp.bottom_bar_bg_color); } catch (e) {}
+        }
+
+        // Derive bg-input from bg_color (slightly darker/lighter)
+        if (tp.bg_color) {
+            root.setProperty('--bg-input', tp.secondary_bg_color || tp.bg_color);
+        }
+
+        // Set border color based on text color with low opacity
+        if (tp.hint_color) {
+            root.setProperty('--border', tp.hint_color + '22');
+        }
+
+        // Light/dark class for any CSS that needs it
+        var cs = tg.colorScheme;
+        if (cs === 'light') {
+            document.body.classList.add('tg-theme-light');
+            document.body.classList.remove('tg-theme-dark');
+        } else {
+            document.body.classList.add('tg-theme-dark');
+            document.body.classList.remove('tg-theme-light');
+        }
+    }
+
     // Auth: send initData on page load
-    if (tg && tg.initData) {
+    if (window._isTelegram) {
         fetch('/auth', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ initData: tg.initData })
         })
-        .then(r => r.json())
-        .then(data => {
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
             if (data.ok) {
                 window._tgUser = data.user;
-                // Update cart badge
+                window._authReady = true;
                 updateCartBadge();
+                window.dispatchEvent(new Event('tgAuthReady'));
             }
         })
-        .catch(() => {});
+        .catch(function () {});
     }
 
-    // Helper: get initData header for API calls
+    // Helper: get auth headers for API calls
     window.getAuthHeaders = function () {
-        const headers = { 'Content-Type': 'application/json' };
-        if (tg && tg.initData) {
+        var headers = { 'Content-Type': 'application/json' };
+        if (window._isTelegram) {
             headers['X-Telegram-Init-Data'] = tg.initData;
         }
         return headers;
@@ -65,14 +101,15 @@
 
     // Cart badge updater
     window.updateCartBadge = function () {
+        if (!window._isTelegram) return;
         fetch('/api/cart', { headers: getAuthHeaders() })
-            .then(r => {
+            .then(function (r) {
                 if (!r.ok) return null;
                 return r.json();
             })
-            .then(data => {
+            .then(function (data) {
                 if (!data) return;
-                const badge = document.getElementById('cartBadge');
+                var badge = document.getElementById('cartBadge');
                 if (badge) {
                     if (data.count > 0) {
                         badge.textContent = data.count;
@@ -82,30 +119,31 @@
                     }
                 }
             })
-            .catch(() => {});
+            .catch(function () {});
     };
 
     // Toast notification
-    window.showToast = function (message, type = '') {
-        const existing = document.querySelector('.toast');
+    window.showToast = function (message, type) {
+        type = type || '';
+        var existing = document.querySelector('.toast');
         if (existing) existing.remove();
 
-        const toast = document.createElement('div');
-        toast.className = `toast ${type ? 'toast-' + type : ''}`;
+        var toast = document.createElement('div');
+        toast.className = 'toast' + (type ? ' toast-' + type : '');
         toast.textContent = message;
         document.body.appendChild(toast);
 
-        requestAnimationFrame(() => {
+        requestAnimationFrame(function () {
             toast.classList.add('show');
         });
 
-        setTimeout(() => {
+        setTimeout(function () {
             toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
+            setTimeout(function () { toast.remove(); }, 300);
         }, 2500);
     };
 
-    // Haptic feedback helper
+    // Haptic feedback
     window.haptic = function (type) {
         if (tg && tg.HapticFeedback) {
             if (type === 'light') tg.HapticFeedback.impactOccurred('light');
@@ -113,6 +151,19 @@
             else if (type === 'heavy') tg.HapticFeedback.impactOccurred('heavy');
             else if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
             else if (type === 'error') tg.HapticFeedback.notificationOccurred('error');
+        }
+    };
+
+    // Show "open in Telegram" message
+    window.showTelegramRequired = function (elementId) {
+        var el = document.getElementById(elementId);
+        if (el) {
+            el.innerHTML = '<div style="text-align:center;padding:60px 20px;">' +
+                '<p style="font-size:48px;margin-bottom:16px;">🤖</p>' +
+                '<h2 style="margin-bottom:8px;">Open in Telegram</h2>' +
+                '<p style="color:var(--text-secondary);margin-bottom:20px;">This page only works inside the Telegram app.</p>' +
+                '<a href="/shop" class="btn btn-primary">Browse Shop</a>' +
+                '</div>';
         }
     };
 })();

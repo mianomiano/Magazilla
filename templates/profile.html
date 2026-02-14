@@ -8,11 +8,10 @@
 </div>
 
 <div id="profileContent" style="display:none">
-    <!-- User Card -->
     <div class="profile-card">
         <div class="profile-avatar" id="profileAvatar">👤</div>
-        <h2 class="profile-name" id="profileName">User</h2>
-        <p class="profile-username" id="profileUsername">@username</p>
+        <div class="profile-name" id="profileName">User</div>
+        <div class="profile-username" id="profileUsername"></div>
         <div class="profile-stats">
             <div class="profile-stat">
                 <span class="profile-stat-value" id="profileSpent">0</span>
@@ -23,15 +22,19 @@
                 <span class="profile-stat-label">Orders</span>
             </div>
             <div class="profile-stat">
-                <span class="profile-stat-value" id="profileSince">-</span>
-                <span class="profile-stat-label">Member</span>
+                <span class="profile-stat-value" id="profileSince">—</span>
+                <span class="profile-stat-label">Since</span>
             </div>
         </div>
     </div>
 
-    <!-- Orders -->
+    <!-- Admin Button (hidden by default, shown if user is admin) -->
+    <a href="/admin/tg-login" id="adminButton" class="btn btn-primary btn-lg" style="display:none; margin-bottom:20px;">
+        ⚙️ Admin Dashboard
+    </a>
+
     <div class="section">
-        <h2 class="section-title">📦 Order History</h2>
+        <h2 class="section-title">Order History</h2>
         <div id="ordersList"></div>
         <div id="noOrders" class="empty-state" style="display:none">
             <p>No orders yet</p>
@@ -39,6 +42,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}

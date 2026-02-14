@@ -1,9 +1,21 @@
-{% extends "base.html" %}
-{% block title %}Not Found{% endblock %}
-{% block content %}
-<div class="empty-state" style="padding-top:100px">
-    <h1>404</h1>
-    <p>Page not found</p>
-    <a href="/shop" class="btn btn-primary">Back to Shop</a>
-</div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Not Found — Magazilla</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="main-content" style="padding-top:80px;">
+        <div class="empty-state">
+            <p style="font-size:64px;margin-bottom:16px;">🔍</p>
+            <h1 style="margin-bottom:8px;">Page Not Found</h1>
+            <p style="margin-bottom:20px;">The page you're looking for doesn't exist.</p>
+            <a href="/shop" class="btn btn-primary">Go to Shop</a>
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</body>
+</html>

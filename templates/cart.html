@@ -12,24 +12,31 @@
 </div>
 
 <div id="cartContent" style="display:none">
+    <div id="cartEmpty" class="empty-state" style="display:none">
+        <p style="font-size:48px;margin-bottom:12px;">🛒</p>
+        <p>Your cart is empty</p>
+        <a href="/shop" class="btn btn-primary" style="margin-top:12px;">Browse Shop</a>
+    </div>
+
     <div id="cartItems"></div>
 
     <div id="cartSummary" class="cart-summary" style="display:none">
         <div class="cart-total">
-            <span>Total:</span>
-            <span class="cart-total-amount">⭐ <span id="cartTotal">0</span> Stars</span>
+            <span>Total</span>
+            <span class="cart-total-amount">⭐ <span id="cartTotal">0</span></span>
         </div>
         <button class="btn btn-primary btn-lg btn-checkout" onclick="checkout()">
             ⚡ Pay with Telegram Stars
         </button>
     </div>
-
-    <div id="cartEmpty" class="empty-state" style="display:none">
-        <p>🛒 Your cart is empty</p>
-        <a href="/shop" class="btn btn-primary">Browse Shop</a>
-    </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
-<script>loadCart();</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        loadCart();
+    });
+</script>
 {% endblock %}
