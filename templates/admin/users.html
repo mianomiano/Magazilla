@@ -1,0 +1,27 @@
+{% extends "admin/base.html" %}
+{% block title %}Users{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>👥 Users ({{ users|length }})</h1>
+</div>
+
+<table class="admin-table">
+    <thead>
+        <tr><th>ID</th><th>Telegram</th><th>Username</th><th>Name</th><th>Spent</th><th>Admin</th><th>Joined</th></tr>
+    </thead>
+    <tbody>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.id }}</td>
+            <td>{{ u.telegram_id }}</td>
+            <td>{{ u.username or '—' }}</td>
+            <td>{{ u.first_name or '' }} {{ u.last_name or '' }}</td>
+            <td>⭐ {{ u.total_spent }}</td>
+            <td>{% if u.is_admin %}✅{% endif %}</td>
+            <td>{{ u.created_at.strftime('%b %d, %Y') }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

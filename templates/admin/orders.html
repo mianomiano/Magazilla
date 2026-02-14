@@ -1,0 +1,51 @@
+{% extends "admin/base.html" %}
+{% block title %}Orders{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>💰 Orders ({{ orders|length }})</h1>
+</div>
+
+<table class="admin-table">
+    <thead>
+        <tr><th>#</th><th>User</th><th>Items</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+        {% for o in orders %}
+        <tr>
+            <td>{{ o.id }}</td>
+            <td>
+                {% if o.user %}
+                {{ o.user.username or o.user.first_name or o.user.telegram_id }}
+                {% else %}Deleted{% endif %}
+            </td>
+            <td>
+                {% for item in o.items %}
+                <div>{{ item.quantity }}x {{ item.product.title if item.product else 'Deleted' }} (⭐{{ item.price_stars }})</div>
+                {% endfor %}
+            </td>
+            <td><strong>⭐ {{ o.total_stars }}</strong></td>
+            <td>
+                {% if o.status == 'paid' %}<span class="badge badge-success">Paid</span>
+                {% elif o.status == 'pending' %}<span class="badge badge-warning">Pending</span>
+                {% elif o.status == 'refunded' %}<span class="badge badge-error">Refunded</span>
+                {% else %}<span class="badge">{{ o.status }}</span>{% endif %}
+            </td>
+            <td>{{ o.created_at.strftime('%b %d %H:%M') }}</td>
+            <td>
+                {% if o.status == 'paid' %}
+                <form method="POST" action="/admin/orders/{{ o.id }}/refund" style="display:inline" onsubmit="return confirm('Refund ⭐{{ o.total_stars }} Stars?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-small btn-danger">💸 Refund</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if not orders %}
+<div class="empty-state"><p>No orders yet</p></div>
+{% endif %}
+{% endblock %}

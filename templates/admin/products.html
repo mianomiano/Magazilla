@@ -1,0 +1,54 @@
+{% extends "admin/base.html" %}
+{% block title %}Products{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>📦 Products ({{ products|length }})</h1>
+    <a href="/admin/products/new" class="btn btn-primary">+ New Product</a>
+</div>
+
+<table class="admin-table">
+    <thead>
+        <tr>
+            <th>Image</th>
+            <th>Title</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Sales</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in products %}
+        <tr>
+            <td>
+                {% if p.thumbnail_url %}
+                <img src="{{ p.thumbnail_url }}" style="width:48px;height:48px;border-radius:8px;object-fit:cover">
+                {% else %}📦{% endif %}
+            </td>
+            <td><strong>{{ p.title }}</strong></td>
+            <td>⭐ {{ p.price_stars }}</td>
+            <td>{{ 'Unlimited' if p.stock == -1 else p.stock }}</td>
+            <td>{{ p.purchases }}</td>
+            <td>
+                {% if p.is_active %}<span class="badge badge-success">Active</span>
+                {% else %}<span class="badge badge-error">Hidden</span>{% endif %}
+                {% if p.is_featured %}<span class="badge badge-featured">⭐</span>{% endif %}
+            </td>
+            <td class="admin-actions">
+                <a href="/admin/products/{{ p.id }}/edit" class="btn btn-small">✏️</a>
+                <form method="POST" action="/admin/products/{{ p.id }}/delete" style="display:inline" onsubmit="return confirm('Delete this product?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-small btn-danger">🗑</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if not products %}
+<div class="empty-state"><p>No products yet. Create your first one!</p></div>
+{% endif %}
+{% endblock %}

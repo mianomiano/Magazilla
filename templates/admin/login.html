@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login — Magazilla</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div style="max-width:360px;margin:80px auto;padding:24px">
+        <h1 style="text-align:center;margin-bottom:24px">🔐 Admin Login</h1>
+        {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+        {% endif %}
+        <form method="POST" action="/admin/login">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Enter admin password" autofocus required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%">Login</button>
+        </form>
+    </div>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</body>
+</html>

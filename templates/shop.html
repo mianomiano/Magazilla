@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}Magazilla{% endblock %}</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Top Nav -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <a href="/shop" class="nav-logo">✨ Magazilla</a>
+        </div>
+        <div class="nav-right">
+            <a href="/cart" class="nav-icon cart-icon" id="cartIcon">
+                🛒 <span class="cart-badge" id="cartBadge" style="display:none">0</span>
+            </a>
+            <a href="/profile" class="nav-icon">👤</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+        <a href="/shop" class="bottom-nav-item {% if request.path == '/shop' or request.path == '/' %}active{% endif %}">
+            <span class="bottom-nav-icon">🏪</span>
+            <span class="bottom-nav-label">Shop</span>
+        </a>
+        <a href="/cart" class="bottom-nav-item {% if request.path == '/cart' %}active{% endif %}">
+            <span class="bottom-nav-icon">🛒</span>
+            <span class="bottom-nav-label">Cart</span>
+        </a>
+        <a href="/profile" class="bottom-nav-item {% if request.path == '/profile' %}active{% endif %}">
+            <span class="bottom-nav-icon">👤</span>
+            <span class="bottom-nav-label">Profile</span>
+        </a>
+    </nav>
+
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/shop.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

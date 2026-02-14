@@ -1,0 +1,32 @@
+{% extends "admin/base.html" %}
+{% block title %}Posts{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>📝 Posts ({{ posts|length }})</h1>
+    <a href="/admin/posts/new" class="btn btn-primary">+ New Post</a>
+</div>
+
+<table class="admin-table">
+    <thead><tr><th>Title</th><th>Views</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody>
+        {% for p in posts %}
+        <tr>
+            <td><strong>{{ p.title }}</strong></td>
+            <td>{{ p.views }}</td>
+            <td>{% if p.is_published %}<span class="badge badge-success">Published</span>{% else %}<span class="badge badge-warning">Draft</span>{% endif %}</td>
+            <td>{{ p.created_at.strftime('%b %d') }}</td>
+            <td class="admin-actions">
+                <a href="/admin/posts/{{ p.id }}/edit" class="btn btn-small">✏️</a>
+                <a href="/post/{{ p.id }}" class="btn btn-small" target="_blank">👁</a>
+                <form method="POST" action="/admin/posts/{{ p.id }}/delete" style="display:inline" onsubmit="return confirm('Delete?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-small btn-danger">🗑</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% if not posts %}<div class="empty-state"><p>No posts yet</p></div>{% endif %}
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} — Magazilla{% endblock %}
+
+{% block content %}
+<div class="post-detail">
+    {% if images %}
+    <div class="product-gallery">
+        <div class="gallery-carousel" id="galleryCarousel">
+            {% for img in images %}
+            <div class="gallery-slide {% if loop.first %}active{% endif %}">
+                {% if img.is_video %}
+                <video src="{{ img.image_url }}" autoplay muted loop playsinline></video>
+                {% else %}
+                <img src="{{ img.image_url }}" alt="{{ post.title }}">
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% if images|length > 1 %}
+        <div class="gallery-dots" id="galleryDots">
+            {% for img in images %}
+            <span class="gallery-dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></span>
+            {% endfor %}
+        </div>
+        <button class="gallery-arrow gallery-prev" id="galleryPrev">‹</button>
+        <button class="gallery-arrow gallery-next" id="galleryNext">›</button>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="post-content-wrapper">
+        <h1>{{ post.title }}</h1>
+        <div class="post-meta">
+            <span>📅 {{ post.created_at.strftime('%B %d, %Y') }}</span>
+            <span>👁 {{ post.views }}</span>
+        </div>
+        <div class="post-body">
+            {{ post.content|safe }}
+        </div>
+    </div>
+</div>
+
+<script>
+// Reuse gallery logic from product page
+(function(){
+    const slides = document.querySelectorAll('.gallery-slide');
+    const dots = document.querySelectorAll('.gallery-dot');
+    const prev = document.getElementById('galleryPrev');
+    const next = document.getElementById('galleryNext');
+    if(slides.length <= 1) return;
+    let current = 0;
+    function showSlide(i){
+        slides.forEach(s => s.classList.remove('active'));
+        dots.forEach(d => d.classList.remove('active'));
+        current = (i + slides.length) % slides.length;
+        slides[current].classList.add('active');
+        if(dots[current]) dots[current].classList.add('active');
+    }
+    if(prev) prev.onclick = () => showSlide(current - 1);
+    if(next) next.onclick = () => showSlide(current + 1);
+    dots.forEach(d => d.onclick = () => showSlide(parseInt(d.dataset.index)));
+    let startX = 0;
+    const carousel = document.getElementById('galleryCarousel');
+    carousel.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+    carousel.addEventListener('touchend', e => {
+        const diff = startX - e.changedTouches[0].clientX;
+        if(Math.abs(diff) > 50) showSlide(current + (diff > 0 ? 1 : -1));
+    });
+})();
+</script>
+{% endblock %}

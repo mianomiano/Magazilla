@@ -1,0 +1,76 @@
+{% extends "admin/base.html" %}
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>📂 Categories</h1>
+</div>
+
+<!-- Add/Edit Form -->
+<form method="POST" action="/admin/categories/save" style="max-width:500px;margin-bottom:32px;padding:16px;background:var(--bg-secondary);border-radius:12px;border:1px solid var(--border)">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="id" id="catId" value="">
+    <h3 id="catFormTitle" style="margin-bottom:12px">➕ New Category</h3>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" name="name" id="catName" required>
+        </div>
+        <div class="form-group">
+            <label>Slug</label>
+            <input type="text" name="slug" id="catSlug" required placeholder="e.g. digital-art">
+        </div>
+        <div class="form-group">
+            <label>Icon (emoji)</label>
+            <input type="text" name="icon" id="catIcon" value="📦">
+        </div>
+        <div class="form-group">
+            <label>Sort Order</label>
+            <input type="number" name="sort_order" id="catSort" value="0">
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="form-check">
+            <input type="checkbox" name="is_active" id="catActive" value="1" checked>
+            <label for="catActive">Active</label>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">💾 Save</button>
+</form>
+
+<!-- List -->
+<table class="admin-table">
+    <thead><tr><th>Icon</th><th>Name</th><th>Slug</th><th>Products</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+        {% for cat in categories %}
+        <tr>
+            <td>{{ cat.icon }}</td>
+            <td><strong>{{ cat.name }}</strong></td>
+            <td>{{ cat.slug }}</td>
+            <td>{{ cat.products.count() }}</td>
+            <td>{% if cat.is_active %}<span class="badge badge-success">Active</span>{% else %}<span class="badge badge-error">Hidden</span>{% endif %}</td>
+            <td class="admin-actions">
+                <button class="btn btn-small" onclick="editCat({{ cat.id }},'{{ cat.name }}','{{ cat.slug }}','{{ cat.icon }}',{{ cat.sort_order }},{{ 'true' if cat.is_active else 'false' }})">✏️</button>
+                <form method="POST" action="/admin/categories/{{ cat.id }}/delete" style="display:inline" onsubmit="return confirm('Delete?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-small btn-danger">🗑</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+function editCat(id,name,slug,icon,sort,active){
+    document.getElementById('catId').value=id;
+    document.getElementById('catName').value=name;
+    document.getElementById('catSlug').value=slug;
+    document.getElementById('catIcon').value=icon;
+    document.getElementById('catSort').value=sort;
+    document.getElementById('catActive').checked=active;
+    document.getElementById('catFormTitle').textContent='✏️ Edit Category';
+}
+</script>
+{% endblock %}

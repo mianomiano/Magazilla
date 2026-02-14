@@ -1,279 +1,144 @@
-{%extends 'base.html'%}
-{%block content%}
-<div class="content">
-<a href="{{url_for('public_bp.index')}}" class="back-btn">← Back</a>
+{% extends "base.html" %}
+{% block title %}{{ product.title }} — Magazilla{% endblock %}
 
+{% block content %}
 <div class="product-detail">
-<div class="product-detail-image">
-{%if product.thumbnail%}
-{%set thumb_url=r2_url(product.thumbnail)%}
-{%if product.thumbnail.endswith('.webm')%}
-<video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover">
-<source src="{{thumb_url}}" type="video/webm">
-</video>
-{%else%}
-<img src="{{thumb_url}}" alt="{{product.name}}">
-{%endif%}
-{%else%}
-<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem;color:var(--text-muted)">🎨</div>
-{%endif%}
-</div>
-
-<h1 class="product-detail-title">{{product.name}}</h1>
-<p class="product-detail-category">{{product.category}}</p>
-
-{%if product.description%}
-<p class="product-detail-description">{{product.description}}</p>
-{%endif%}
-
-<div class="product-detail-price {%if product.is_free%}free{%else%}paid{%endif%}">
-{%if product.is_free%}🆓 Free{%else%}⭐ {{product.price}} Stars{%endif%}
-</div>
-
-<div class="neu-card-inset product-stats-box" style="margin-bottom:16px">
-    <div style="display:flex;justify-content:space-around;text-align:center">
-        <div>
-            <div class="stats-number accent">{{product.download_count or 0}}</div>
-            <div class="stats-label">Downloads</div>
+    <!-- Gallery Carousel -->
+    <div class="product-gallery">
+        <div class="gallery-carousel" id="galleryCarousel">
+            <!-- Main thumbnail -->
+            {% if product.thumbnail_url %}
+            <div class="gallery-slide active">
+                {% if product.thumbnail_url.endswith('.webm') %}
+                <video src="{{ product.thumbnail_url }}" autoplay muted loop playsinline></video>
+                {% else %}
+                <img src="{{ product.thumbnail_url }}" alt="{{ product.title }}">
+                {% endif %}
+            </div>
+            {% endif %}
+            <!-- Gallery images -->
+            {% for img in gallery %}
+            <div class="gallery-slide">
+                {% if img.is_video %}
+                <video src="{{ img.image_url }}" autoplay muted loop playsinline></video>
+                {% else %}
+                <img src="{{ img.image_url }}" alt="{{ product.title }}">
+                {% endif %}
+            </div>
+            {% endfor %}
         </div>
-        <div>
-            <div class="stats-number secondary">{{product.category}}</div>
-            <div class="stats-label">Category</div>
+        <!-- Gallery dots -->
+        {% if gallery|length > 0 %}
+        <div class="gallery-dots" id="galleryDots">
+            <span class="gallery-dot active" data-index="0"></span>
+            {% for img in gallery %}
+            <span class="gallery-dot" data-index="{{ loop.index }}"></span>
+            {% endfor %}
         </div>
+        <button class="gallery-arrow gallery-prev" id="galleryPrev">‹</button>
+        <button class="gallery-arrow gallery-next" id="galleryNext">›</button>
+        {% endif %}
+    </div>
+
+    <!-- Product Info -->
+    <div class="product-info">
+        <h1 class="product-title">{{ product.title }}</h1>
+
+        <div class="product-meta">
+            {% if product.category %}
+            <span class="product-category">{{ product.category.icon }} {{ product.category.name }}</span>
+            {% endif %}
+            <span class="product-views">👁 {{ product.views }}</span>
+            <span class="product-purchases">🛒 {{ product.purchases }} sold</span>
+        </div>
+
+        <div class="product-price-big">⭐ {{ product.price_stars }} Stars</div>
+
+        {% if product.description %}
+        <div class="product-description">
+            {{ product.description|safe }}
+        </div>
+        {% endif %}
+
+        <div class="product-stock">
+            {% if product.stock == -1 %}
+            <span class="stock-badge in-stock">✅ In Stock</span>
+            {% elif product.stock > 0 %}
+            <span class="stock-badge in-stock">✅ {{ product.stock }} left</span>
+            {% else %}
+            <span class="stock-badge out-of-stock">❌ Sold Out</span>
+            {% endif %}
+        </div>
+
+        {% if product.in_stock %}
+        <button class="btn btn-primary btn-lg btn-add-cart" onclick="addToCart({{ product.id }})">
+            🛒 Add to Cart — ⭐ {{ product.price_stars }}
+        </button>
+        <button class="btn btn-secondary btn-lg" onclick="buyNow({{ product.id }})">
+            ⚡ Buy Now
+        </button>
+        {% else %}
+        <button class="btn btn-disabled btn-lg" disabled>❌ Sold Out</button>
+        {% endif %}
     </div>
 </div>
 
+<!-- Related Products -->
+{% if related %}
+<section class="section">
+    <h2 class="section-title">🔗 Related</h2>
+    <div class="carousel products-carousel">
+        {% for p in related %}
+        <a href="/product/{{ p.id }}" class="product-card">
+            <div class="product-card-media">
+                {% if p.thumbnail_url %}
+                    {% if p.thumbnail_url.endswith('.webm') %}
+                    <video src="{{ p.thumbnail_url }}" autoplay muted loop playsinline></video>
+                    {% else %}
+                    <img src="{{ p.thumbnail_url }}" alt="{{ p.title }}" loading="lazy">
+                    {% endif %}
+                {% else %}
+                <div class="product-placeholder">📦</div>
+                {% endif %}
+            </div>
+            <div class="product-card-body">
+                <h3 class="product-card-title">{{ p.title }}</h3>
+                <div class="product-card-price">⭐ {{ p.price_stars }}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 
-
-
-<div class="product-detail-actions" id="actions-container">
-{%if product.is_free%}
-    {%if product.file_path%}
-    <button id="download-btn" class="neu-btn neu-btn-primary neu-btn-full" onclick="handleDownload({{product.id}}, true)">
-        ⬇️ Download Free
-    </button>
-    {%else%}
-    <button class="neu-btn neu-btn-full" disabled style="opacity:0.5">📁 No file available</button>
-    {%endif%}
-{%elif purchased%}
-    {%if product.file_path%}
-    <button id="download-btn" class="neu-btn neu-btn-primary neu-btn-full" onclick="handleDownload({{product.id}}, false)">
-        ⬇️ Download
-    </button>
-    {%else%}
-    <button class="neu-btn neu-btn-full" disabled style="opacity:0.5">📁 No file available</button>
-    {%endif%}
-{%else%}
-<button id="buy-btn" class="neu-btn neu-btn-accent neu-btn-full" onclick="handleBuy({{product.id}}, {{product.price}})">
-    ⭐ Buy for {{product.price}} Stars
-</button>
-{%endif%}
-</div>
-
-<!-- Status message area -->
-<div id="status-message" style="display:none;margin-top:12px;padding:12px;border-radius:10px;text-align:center;font-size:0.85rem;"></div>
-
-</div>
-</div>
-
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
 <script>
-// Bot username from config
-const BOT_USERNAME = '{{bot_username or "mispicbot"}}';
-
-// Telegram WebApp
-const tg = window.Telegram?.WebApp;
-const isTelegramWebApp = !!(tg && tg.initData && tg.initData.length > 0);
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-const userId = tg?.initDataUnsafe?.user?.id;
-
-// Debug
-console.log('Product page loaded:', { isTelegramWebApp, userId, isMobile, isIOS, botUsername: BOT_USERNAME });
-
-function showStatus(message, type = 'info') {
-    const el = document.getElementById('status-message');
-    el.style.display = 'block';
-    el.innerHTML = message;
-    el.style.background = type === 'success' ? 'rgba(76,175,80,0.2)' : 
-                          type === 'error' ? 'rgba(244,67,54,0.2)' : 
-                          'rgba(33,150,243,0.2)';
-    el.style.color = type === 'success' ? '#4caf50' : 
-                     type === 'error' ? '#f44336' : 
-                     '#2196f3';
-}
-
-function hideStatus() {
-    document.getElementById('status-message').style.display = 'none';
-}
-
-function setButtonState(btnId, text, disabled = false) {
-    const btn = document.getElementById(btnId);
-    if (btn) {
-        btn.innerHTML = text;
-        btn.disabled = disabled;
-        btn.style.opacity = disabled ? '0.7' : '1';
+// Gallery carousel
+(function(){
+    const slides = document.querySelectorAll('.gallery-slide');
+    const dots = document.querySelectorAll('.gallery-dot');
+    const prev = document.getElementById('galleryPrev');
+    const next = document.getElementById('galleryNext');
+    if(slides.length <= 1) return;
+    let current = 0;
+    function showSlide(i){
+        slides.forEach(s => s.classList.remove('active'));
+        dots.forEach(d => d.classList.remove('active'));
+        current = (i + slides.length) % slides.length;
+        slides[current].classList.add('active');
+        if(dots[current]) dots[current].classList.add('active');
     }
-}
-
-async function handleDownload(productId, isFree) {
-    hideStatus();
-    console.log('Download requested:', { productId, isFree, isTelegramWebApp, userId });
-    
-    // If in Telegram WebApp with valid user, try bot delivery first
-    if (isTelegramWebApp && userId) {
-        setButtonState('download-btn', '📤 Sending...', true);
-        
-        try {
-            const response = await fetch('/api/send-file', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Telegram-Init-Data': tg.initData
-                },
-                body: JSON.stringify({
-                    product_id: productId,
-                    user_id: userId,
-                    is_free: isFree
-                })
-            });
-            
-            const data = await response.json();
-            console.log('Send file response:', data);
-            
-            if (data.ok) {
-                setButtonState('download-btn', '✅ Sent!', true);
-                showStatus('📦 File sent to your Telegram chat!<br><small>Close this to see it.</small>', 'success');
-                
-                // Close WebApp so user sees the message in chat
-                setTimeout(() => {
-                    tg.close();
-                }, 2000);
-                return;
-            } else {
-                // Check if user needs to start bot
-                const errorMsg = data.error || '';
-                if (errorMsg.toLowerCase().includes('start') || errorMsg.toLowerCase().includes('bot')) {
-                    showStatus('⚠️ Please start the bot first!<br><small>Tap button below, then come back.</small>', 'error');
-                    showStartBotButton();
-                    setButtonState('download-btn', '⬇️ Try Again', false);
-                    return;
-                }
-                throw new Error(data.error || 'Send failed');
-            }
-        } catch (error) {
-            console.error('Send error:', error);
-            // Fallback to direct download
-            directDownload(productId, isFree);
-        }
-    } else {
-        // Not in Telegram WebApp or no user ID - direct download
-        directDownload(productId, isFree);
-    }
-}
-
-function directDownload(productId, isFree) {
-    setButtonState('download-btn', '⬇️ Downloading...', true);
-    
-    const downloadUrl = `/api/download/${productId}?free=${isFree}`;
-    
-    if (isTelegramWebApp && isMobile) {
-        // Mobile Telegram - open in external browser
-        showStatus('📥 Opening download...', 'info');
-        
-        setTimeout(() => {
-            const fullUrl = window.location.origin + downloadUrl;
-            tg.openLink(fullUrl);
-            setButtonState('download-btn', '⬇️ Download', false);
-            hideStatus();
-        }, 300);
-    } else {
-        // Desktop or regular browser
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.setAttribute('download', '');
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        setTimeout(() => {
-            setButtonState('download-btn', '⬇️ Download', false);
-        }, 2000);
-    }
-}
-
-function showStartBotButton() {
-    // Don't add duplicate button
-    if (document.getElementById('start-bot-btn')) return;
-    
-    const container = document.getElementById('actions-container');
-    const btn = document.createElement('button');
-    btn.id = 'start-bot-btn';
-    btn.className = 'neu-btn neu-btn-full';
-    btn.style.marginTop = '10px';
-    btn.style.background = 'var(--accent)';
-    btn.innerHTML = '🤖 Start Bot';
-    btn.onclick = function() {
-        const botLink = `https://t.me/${BOT_USERNAME}?start=download`;
-        if (tg) {
-            tg.openTelegramLink(botLink);
-        } else {
-            window.open(botLink, '_blank');
-        }
-    };
-    container.appendChild(btn);
-}
-
-async function handleBuy(productId, price) {
-    if (!isTelegramWebApp) {
-        showStatus('⚠️ Please open in Telegram to purchase.', 'error');
-        return;
-    }
-    
-    setButtonState('buy-btn', '⏳ Loading...', true);
-    
-    try {
-        const response = await fetch('/api/create-invoice-link', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Telegram-Init-Data': tg.initData
-            },
-            body: JSON.stringify({ product_id: productId })
-        });
-        
-        const data = await response.json();
-        
-        if (data.invoice_link) {
-            tg.openInvoice(data.invoice_link, function(status) {
-                console.log('Payment status:', status);
-                
-                if (status === 'paid') {
-                    showStatus('🎉 Payment successful!', 'success');
-                    setTimeout(() => location.reload(), 1500);
-                } else if (status === 'cancelled') {
-                    setButtonState('buy-btn', `⭐ Buy for ${price} Stars`, false);
-                } else if (status === 'failed') {
-                    showStatus('❌ Payment failed.', 'error');
-                    setButtonState('buy-btn', `⭐ Buy for ${price} Stars`, false);
-                } else {
-                    setButtonState('buy-btn', `⭐ Buy for ${price} Stars`, false);
-                }
-            });
-        } else {
-            throw new Error(data.error || 'Could not create invoice');
-        }
-    } catch (error) {
-        console.error('Buy error:', error);
-        showStatus('❌ ' + (error.message || 'Error'), 'error');
-        setButtonState('buy-btn', `⭐ Buy for ${price} Stars`, false);
-    }
-}
-
-// Initialize Telegram WebApp
-if (tg) {
-    tg.expand();
-    tg.ready();
-}
+    if(prev) prev.onclick = () => showSlide(current - 1);
+    if(next) next.onclick = () => showSlide(current + 1);
+    dots.forEach(d => d.onclick = () => showSlide(parseInt(d.dataset.index)));
+    // Swipe support
+    let startX = 0;
+    const carousel = document.getElementById('galleryCarousel');
+    carousel.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+    carousel.addEventListener('touchend', e => {
+        const diff = startX - e.changedTouches[0].clientX;
+        if(Math.abs(diff) > 50) showSlide(current + (diff > 0 ? 1 : -1));
+    });
+})();
 </script>
-{%endblock%}
+{% endblock %}

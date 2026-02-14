@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin{% endblock %} — Magazilla</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .admin-layout{display:flex;min-height:100vh}
+        .admin-sidebar{width:220px;background:var(--bg-secondary);padding:16px;border-right:1px solid var(--border)}
+        .admin-sidebar .logo{font-size:18px;font-weight:700;margin-bottom:24px;color:var(--text-primary)}
+        .admin-nav a{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;color:var(--text-secondary);text-decoration:none;margin-bottom:4px;font-size:14px}
+        .admin-nav a:hover,.admin-nav a.active{background:var(--accent);color:#fff}
+        .admin-main{flex:1;padding:24px;overflow-y:auto}
+        .admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+        .admin-header h1{font-size:24px}
+        .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+        .stat-card{background:var(--bg-secondary);border-radius:12px;padding:20px;border:1px solid var(--border)}
+        .stat-card .stat-value{font-size:28px;font-weight:700;color:var(--accent)}
+        .stat-card .stat-label{font-size:12px;color:var(--text-secondary);margin-top:4px}
+        .admin-table{width:100%;border-collapse:collapse;font-size:14px}
+        .admin-table th{text-align:left;padding:12px;background:var(--bg-secondary);border-bottom:2px solid var(--border);font-size:12px;text-transform:uppercase;color:var(--text-secondary)}
+        .admin-table td{padding:12px;border-bottom:1px solid var(--border)}
+        .admin-table tr:hover td{background:var(--bg-secondary)}
+        .form-group{margin-bottom:16px}
+        .form-group label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-secondary)}
+        .form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);font-size:14px}
+        .form-group textarea{min-height:100px;resize:vertical}
+        .form-check{display:flex;align-items:center;gap:8px}
+        .form-check input{width:auto}
+        .admin-actions{display:flex;gap:8px;flex-wrap:wrap}
+        @media(max-width:768px){
+            .admin-layout{flex-direction:column}
+            .admin-sidebar{width:100%;padding:12px;border-right:none;border-bottom:1px solid var(--border)}
+            .admin-nav{display:flex;overflow-x:auto;gap:4px}
+            .admin-nav a{white-space:nowrap;padding:8px 12px;font-size:13px}
+            .admin-main{padding:16px}
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="logo">⚙️ Admin</div>
+            <nav class="admin-nav">
+                <a href="/admin" {% if request.path == '/admin' %}class="active"{% endif %}>📊 Dashboard</a>
+                <a href="/admin/products" {% if '/products' in request.path %}class="active"{% endif %}>📦 Products</a>
+                <a href="/admin/categories" {% if '/categories' in request.path %}class="active"{% endif %}>📂 Categories</a>
+                <a href="/admin/orders" {% if '/orders' in request.path %}class="active"{% endif %}>💰 Orders</a>
+                <a href="/admin/posts" {% if '/posts' in request.path %}class="active"{% endif %}>📝 Posts</a>
+                <a href="/admin/users" {% if '/users' in request.path %}class="active"{% endif %}>👥 Users</a>
+                <a href="/shop">🏪 Shop</a>
+                <a href="/admin/logout">🚪 Logout</a>
+            </nav>
+        </aside>
+        <main class="admin-main">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

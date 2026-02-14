@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Profile — Magazilla{% endblock %}
+
+{% block content %}
+<div id="profileLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading profile...</p>
+</div>
+
+<div id="profileContent" style="display:none">
+    <!-- User Card -->
+    <div class="profile-card">
+        <div class="profile-avatar" id="profileAvatar">👤</div>
+        <h2 class="profile-name" id="profileName">User</h2>
+        <p class="profile-username" id="profileUsername">@username</p>
+        <div class="profile-stats">
+            <div class="profile-stat">
+                <span class="profile-stat-value" id="profileSpent">0</span>
+                <span class="profile-stat-label">⭐ Spent</span>
+            </div>
+            <div class="profile-stat">
+                <span class="profile-stat-value" id="profileOrders">0</span>
+                <span class="profile-stat-label">Orders</span>
+            </div>
+            <div class="profile-stat">
+                <span class="profile-stat-value" id="profileSince">-</span>
+                <span class="profile-stat-label">Member</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders -->
+    <div class="section">
+        <h2 class="section-title">📦 Order History</h2>
+        <div id="ordersList"></div>
+        <div id="noOrders" class="empty-state" style="display:none">
+            <p>No orders yet</p>
+            <a href="/shop" class="btn btn-primary">Start Shopping</a>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Cart — Magazilla{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🛒 Your Cart</h1>
+</div>
+
+<div id="cartLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading cart...</p>
+</div>
+
+<div id="cartContent" style="display:none">
+    <div id="cartItems"></div>
+
+    <div id="cartSummary" class="cart-summary" style="display:none">
+        <div class="cart-total">
+            <span>Total:</span>
+            <span class="cart-total-amount">⭐ <span id="cartTotal">0</span> Stars</span>
+        </div>
+        <button class="btn btn-primary btn-lg btn-checkout" onclick="checkout()">
+            ⚡ Pay with Telegram Stars
+        </button>
+    </div>
+
+    <div id="cartEmpty" class="empty-state" style="display:none">
+        <p>🛒 Your cart is empty</p>
+        <a href="/shop" class="btn btn-primary">Browse Shop</a>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+<script>loadCart();</script>
+{% endblock %}

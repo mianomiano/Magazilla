@@ -1,857 +1,114 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-    <meta name="csrf-token" content="{{csrf_token()}}">
-    <title>{{settings.app_name}}</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Balsamiq+Sans:wght@400;700&family=Grandstander:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Russo+One&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="{{url_for('static',filename='css/style.css')}}">
-    
-    {% set primary = settings.primary_color %}
-    {% set secondary = settings.secondary_color %}
-    {% set accent = settings.accent_color %}
-    
-    {# Calculate primary-light (slightly lighter/different from primary) #}
-    {% set pr = primary[1:3]|int(base=16) %}
-    {% set pg = primary[3:5]|int(base=16) %}
-    {% set pb = primary[5:7]|int(base=16) %}
-    {% set brightness = (pr * 299 + pg * 587 + pb * 114) / 1000 %}
-    {% set is_dark = brightness < 128 %}
-    
-    {# Create primary-light color #}
-    {% if is_dark %}
-        {% set pl_r = [pr + 20, 255]|min %}
-        {% set pl_g = [pg + 20, 255]|min %}
-        {% set pl_b = [pb + 20, 255]|min %}
-    {% else %}
-        {% set pl_r = [pr - 20, 0]|max %}
-        {% set pl_g = [pg - 20, 0]|max %}
-        {% set pl_b = [pb - 20, 0]|max %}
+{% extends "base.html" %}
+{% block title %}Shop — Magazilla{% endblock %}
+
+{% block content %}
+<!-- Search -->
+<div class="search-bar">
+    <input type="text" id="searchInput" placeholder="🔍 Search products..." class="search-input">
+</div>
+
+<!-- Posts / Announcements Carousel -->
+{% if posts %}
+<section class="section">
+    <h2 class="section-title">📢 News</h2>
+    <div class="carousel posts-carousel">
+        {% for post in posts %}
+        <a href="/post/{{ post.id }}" class="post-card">
+            {% set first_img = post.images.order_by(post.images._entity.sort_order).first() %}
+            {% if first_img %}
+            <div class="post-card-media">
+                {% if first_img.is_video %}
+                <video src="{{ first_img.image_url }}" autoplay muted loop playsinline></video>
+                {% else %}
+                <img src="{{ first_img.image_url }}" alt="{{ post.title }}">
+                {% endif %}
+            </div>
+            {% endif %}
+            <div class="post-card-body">
+                <h3>{{ post.title }}</h3>
+                <span class="post-date">{{ post.created_at.strftime('%b %d') }}</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Categories -->
+{% if categories %}
+<section class="section">
+    <h2 class="section-title">📂 Categories</h2>
+    <div class="categories-scroll">
+        <a href="/shop" class="category-chip {% if not current_category %}active{% endif %}">🔥 All</a>
+        {% for cat in categories %}
+        <a href="/shop/category/{{ cat.slug }}" class="category-chip {% if current_category and current_category.id == cat.id %}active{% endif %}">
+            {{ cat.icon }} {{ cat.name }}
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Products -->
+{% if featured %}
+<section class="section">
+    <h2 class="section-title">⭐ Featured</h2>
+    <div class="carousel products-carousel">
+        {% for product in featured %}
+        <a href="/product/{{ product.id }}" class="product-card featured-card">
+            <div class="product-card-media">
+                {% if product.thumbnail_url %}
+                    {% if product.thumbnail_url.endswith('.webm') %}
+                    <video src="{{ product.thumbnail_url }}" autoplay muted loop playsinline></video>
+                    {% else %}
+                    <img src="{{ product.thumbnail_url }}" alt="{{ product.title }}" loading="lazy">
+                    {% endif %}
+                {% else %}
+                <div class="product-placeholder">📦</div>
+                {% endif %}
+                {% if product.is_featured %}<span class="badge badge-featured">⭐</span>{% endif %}
+            </div>
+            <div class="product-card-body">
+                <h3 class="product-card-title">{{ product.title }}</h3>
+                <div class="product-card-price">⭐ {{ product.price_stars }}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- All Products Grid -->
+<section class="section">
+    <h2 class="section-title">
+        {% if current_category %}{{ current_category.icon }} {{ current_category.name }}{% else %}🛍 All Products{% endif %}
+    </h2>
+    <div class="products-grid" id="productsGrid">
+        {% for product in latest %}
+        <a href="/product/{{ product.id }}" class="product-card" data-title="{{ product.title|lower }}">
+            <div class="product-card-media">
+                {% if product.thumbnail_url %}
+                    {% if product.thumbnail_url.endswith('.webm') %}
+                    <video src="{{ product.thumbnail_url }}" autoplay muted loop playsinline></video>
+                    {% else %}
+                    <img src="{{ product.thumbnail_url }}" alt="{{ product.title }}" loading="lazy">
+                    {% endif %}
+                {% else %}
+                <div class="product-placeholder">📦</div>
+                {% endif %}
+                {% if not product.in_stock %}<span class="badge badge-oos">Sold out</span>{% endif %}
+            </div>
+            <div class="product-card-body">
+                <h3 class="product-card-title">{{ product.title }}</h3>
+                <div class="product-card-price">⭐ {{ product.price_stars }}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% if not latest %}
+    <div class="empty-state">
+        <p>🏪 No products yet. Check back soon!</p>
+    </div>
     {% endif %}
-    {% set primary_light = '#%02x%02x%02x' % (pl_r, pl_g, pl_b) %}
-    
-    {# Calculate if secondary is dark or light #}
-    {% set sr = secondary[1:3]|int(base=16) %}
-    {% set sg = secondary[3:5]|int(base=16) %}
-    {% set sb = secondary[5:7]|int(base=16) %}
-    {% set sec_brightness = (sr * 299 + sg * 587 + sb * 114) / 1000 %}
-    {% set sec_is_dark = sec_brightness < 128 %}
-    
-    <style>
-        :root {
-            /* Main Colors */
-            --primary: {{primary}};
-            --primary-light: {{primary_light}};
-            --secondary: {{secondary}};
-            --accent: {{accent}};
-            
-            /* Auto Text Colors based on background */
-            --text: {% if is_dark %}#ffffff{% else %}#1a1a1a{% endif %};
-            --text-on-primary: {% if is_dark %}#ffffff{% else %}#1a1a1a{% endif %};
-            --text-dim: {% if is_dark %}#b0b0b0{% else %}#555555{% endif %};
-            --text-muted: {% if is_dark %}#808080{% else %}#888888{% endif %};
-            --text-on-secondary: {% if sec_is_dark %}#ffffff{% else %}#1a1a1a{% endif %};
-            
-            /* Derived Colors */
-            --card-bg: {% if is_dark %}rgba(255,255,255,0.06){% else %}rgba(0,0,0,0.04){% endif %};
-            --card-border: {% if is_dark %}rgba(255,255,255,0.1){% else %}rgba(0,0,0,0.1){% endif %};
-            --input-bg: {% if is_dark %}rgba(0,0,0,0.3){% else %}rgba(0,0,0,0.05){% endif %};
-            --hover-overlay: {% if is_dark %}rgba(255,255,255,0.05){% else %}rgba(0,0,0,0.05){% endif %};
-            --shadow-color: {% if is_dark %}rgba(0,0,0,0.5){% else %}rgba(0,0,0,0.15){% endif %};
-            --shadow-dark: {% if is_dark %}rgba(0,0,0,0.5){% else %}rgba(0,0,0,0.15){% endif %};
-            --shadow-light: {% if is_dark %}rgba(255,255,255,0.05){% else %}rgba(255,255,255,0.5){% endif %};
-            
-            /* Override Telegram's variables immediately */
-            --tg-theme-bg-color: {{primary}} !important;
-            --tg-theme-secondary-bg-color: {{primary_light}} !important;
-            --tg-theme-text-color: {% if is_dark %}#ffffff{% else %}#1a1a1a{% endif %} !important;
-            --tg-theme-hint-color: {% if is_dark %}#808080{% else %}#888888{% endif %} !important;
-            --tg-theme-button-color: {{secondary}} !important;
-            --tg-theme-button-text-color: {% if sec_is_dark %}#ffffff{% else %}#1a1a1a{% endif %} !important;
-            --tg-theme-link-color: {{accent}} !important;
-        }
-        
-        /* ==================== RESET ALL COLORS ==================== */
-        
-        * {
-            box-sizing: border-box;
-        }
-        
-        /* ==================== BACKGROUND ==================== */
-        
-        html,
-        body, 
-        .app-container {
-            background: var(--primary) !important;
-            background-color: var(--primary) !important;
-            color: var(--text-on-primary) !important;
-        }
-        
-        /* ==================== TEXT - Uses ACCENT ==================== */
-        
-        /* Main text */
-        body,
-        p,
-        span,
-        div,
-        label,
-        .product-name,
-        .product-description,
-        .category-name {
-            color: var(--text-on-primary) !important;
-        }
-        
-        /* Muted/secondary text */
-        .text-muted,
-        .product-category,
-        .meta-info,
-        .subtitle,
-        small {
-            color: var(--text-muted) !important;
-        }
-        
-        /* Highlighted text, prices, important numbers - ACCENT */
-        .product-price,
-        .price,
-        .stars-amount,
-        .stat-value,
-        .highlight,
-        .accent-text,
-        h1, h2, h3 {
-            color: var(--accent) !important;
-        }
-        
-        /* ==================== BUTTONS - ALL use SECONDARY ==================== */
-        
-        /* All buttons base */
-        button,
-        .btn,
-        .neu-btn,
-        .neu-btn-primary,
-        .btn-primary,
-        .btn-secondary,
-        .download-btn,
-        .buy-btn,
-        .save-btn,
-        .filter-btn,
-        .category-btn,
-        input[type="submit"],
-        input[type="button"] {
-            background: var(--secondary) !important;
-            color: var(--text-on-secondary) !important;
-            border: none !important;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        /* Button hover */
-        button:hover,
-        .btn:hover,
-        .neu-btn:hover,
-        .neu-btn-primary:hover,
-        .btn-primary:hover,
-        .download-btn:hover,
-        .buy-btn:hover,
-        .filter-btn:hover,
-        .category-btn:hover {
-            filter: brightness(1.1);
-            transform: translateY(-1px);
-        }
-        
-        /* Button active/pressed */
-        button:active,
-        .btn:active,
-        .neu-btn:active {
-            filter: brightness(0.95);
-            transform: translateY(1px);
-        }
-        
-        /* Ghost/outline buttons - transparent with accent border */
-        .btn-ghost,
-        .btn-outline {
-            background: transparent !important;
-            color: var(--accent) !important;
-            border: 2px solid var(--accent) !important;
-        }
-        
-        .btn-ghost:hover,
-        .btn-outline:hover {
-            background: var(--accent) !important;
-            color: var(--primary) !important;
-        }
-        
-        /* Filter buttons - special case, shows active state */
-        .filter-btn,
-        .category-btn {
-            background: var(--card-bg) !important;
-            color: var(--text-on-primary) !important;
-            border: 1px solid var(--card-border) !important;
-        }
-        
-        .filter-btn.active,
-        .filter-btn:hover,
-        .category-btn.active,
-        .category-btn:hover {
-            background: var(--secondary) !important;
-            color: var(--text-on-secondary) !important;
-            border-color: var(--secondary) !important;
-        }
-        
-        /* ==================== CARDS ==================== */
-        
-        .product-card,
-        .category-card,
-        .settings-card,
-        .stat-card,
-        .card,
-        .neu-card {
-            background: var(--primary-light) !important;
-            border: 1px solid var(--card-border) !important;
-            color: var(--text-on-primary) !important;
-        }
-        
-        .neu-card-inset,
-        .product-stats-box {
-            background: var(--primary-light) !important;
-            color: var(--text-on-primary) !important;
-        }
-        
-        /* ==================== BADGES - Use ACCENT ==================== */
-        
-        .product-badge,
-        .badge {
-            background: var(--accent) !important;
-            color: var(--primary) !important;
-            font-weight: 600;
-        }
-        
-        .product-badge.free,
-        .badge-free {
-            background: transparent !important;
-            color: var(--accent) !important;
-            border: 1px solid var(--accent) !important;
-        }
-        
-        .product-badge.paid,
-        .product-badge.premium,
-        .badge-paid,
-        .badge-premium {
-            background: var(--accent) !important;
-            color: {% if is_dark %}var(--primary){% else %}#ffffff{% endif %} !important;
-        }
-        
-        /* ==================== INPUTS ==================== */
-        
-        input,
-        textarea,
-        select,
-        .neu-input,
-        .neu-select {
-            background: var(--primary) !important;
-            border: 1px solid var(--card-border) !important;
-            color: var(--text-on-primary) !important;
-        }
-        
-        input::placeholder,
-        textarea::placeholder,
-        .neu-input::placeholder {
-            color: var(--text-muted) !important;
-        }
-        
-        input:focus,
-        textarea:focus,
-        select:focus,
-        .neu-input:focus,
-        .neu-select:focus {
-            border-color: var(--accent) !important;
-            outline: none !important;
-            box-shadow: 0 0 0 3px {% if is_dark %}rgba(255,255,255,0.1){% else %}rgba(0,0,0,0.1){% endif %} !important;
-        }
-        
-        /* ==================== HEADER/LOGO ==================== */
-        
-        .logo-area,
-        .header-area,
-        header,
-        .header {
-            background: var(--primary) !important;
-            border-bottom: 1px solid var(--card-border) !important;
-        }
-        
-        /* ==================== PRODUCT DETAIL ==================== */
-        
-        .product-detail {
-            background: var(--primary) !important;
-        }
-        
-        .product-detail-image {
-            background: var(--primary-light) !important;
-        }
-        
-        .product-detail-image img,
-        .product-detail-image video {
-            background: var(--primary-light) !important;
-        }
-        
-        .product-detail-title {
-            color: var(--text-on-primary) !important;
-        }
-        
-        .product-detail-category {
-            color: var(--text-muted) !important;
-        }
-        
-        .product-detail-description {
-            color: var(--text-dim) !important;
-        }
-        
-        .product-detail-price.free {
-            color: var(--secondary) !important;
-        }
-        
-        .product-detail-price.paid {
-            color: var(--accent) !important;
-        }
-        
-        /* Stats in product detail */
-        .stats-number {
-            font-size: 1.2rem;
-            font-weight: 700;
-        }
-        
-        .stats-number.accent {
-            color: var(--accent) !important;
-        }
-        
-        .stats-number.secondary {
-            color: var(--secondary) !important;
-        }
-        
-        .stats-label {
-            font-size: 0.7rem;
-            color: var(--text-dim) !important;
-        }
-        
-        /* ==================== BACK BUTTON ==================== */
-        
-        .back-btn {
-            background: var(--primary-light) !important;
-            color: var(--text-dim) !important;
-        }
-        
-        /* ==================== ADMIN ELEMENTS ==================== */
-        
-        .admin-title {
-            color: var(--text-on-primary) !important;
-        }
-        
-        .admin-product-item {
-            background: var(--primary-light) !important;
-        }
-        
-        .admin-product-name {
-            color: var(--text-on-primary) !important;
-        }
-        
-        .admin-product-meta {
-            color: var(--text-muted) !important;
-        }
-        
-        .admin-product-thumb {
-            background: var(--primary) !important;
-        }
-        
-        .admin-btn-sm {
-            background: var(--primary) !important;
-            color: var(--text-dim) !important;
-        }
-        
-        .admin-btn-sm.delete {
-            color: #ff4757 !important;
-        }
-        
-        .admin-btn-sm.delete:hover {
-            background: #ff4757 !important;
-            color: #fff !important;
-        }
-        
-        /* ==================== MODALS & DROPDOWNS ==================== */
-        
-        .modal-content,
-        .popup-content,
-        .dropdown-menu {
-            background: var(--primary) !important;
-            border: 1px solid var(--card-border) !important;
-            box-shadow: 0 10px 40px var(--shadow-color) !important;
-        }
-        
-        /* ==================== TOAST ==================== */
-        
-        .toast {
-            background: var(--primary-light) !important;
-            color: var(--text-on-primary) !important;
-        }
-        
-        .toast.success {
-            border-left: 3px solid var(--secondary) !important;
-        }
-        
-        .toast.error {
-            border-left: 3px solid #ff4757 !important;
-        }
-        
-        /* ==================== LINKS ==================== */
-        
-        a {
-            color: var(--accent) !important;
-            text-decoration: none;
-        }
-        
-        a:hover {
-            filter: brightness(1.2);
-        }
-        
-        /* ==================== DIVIDERS ==================== */
-        
-        hr,
-        .divider {
-            border-color: var(--card-border) !important;
-            background: var(--card-border) !important;
-        }
-        
-        /* ==================== THUMBNAILS ==================== */
-        
-        .product-thumbnail {
-            background: var(--primary) !important;
-        }
-        
-        .product-info {
-            background: var(--primary-light) !important;
-        }
-        
-        /* ==================== SCROLLBAR ==================== */
-        
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: var(--primary);
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: var(--card-border);
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--secondary);
-        }
-        
-        /* ==================== FONT FAMILY ==================== */
-        
-        {% if settings.font_family == 'balsamiq' %}
-        body, button, input, textarea, select { font-family: 'Balsamiq Sans', cursive !important; }
-        {% elif settings.font_family == 'grandstander' %}
-        body, button, input, textarea, select { font-family: 'Grandstander', cursive !important; }
-        {% elif settings.font_family == 'montserrat' %}
-        body, button, input, textarea, select { font-family: 'Montserrat', sans-serif !important; }
-        {% elif settings.font_family == 'russo' %}
-        body, button, input, textarea, select { font-family: 'Russo One', sans-serif !important; }
-        {% else %}
-        body, button, input, textarea, select { font-family: 'Inter', -apple-system, sans-serif !important; }
-        {% endif %}
-        
-        /* ==================== BUTTON STYLE ==================== */
-        
-        {% if settings.button_style == 'flat' %}
-        button, .btn, .neu-btn, .neu-btn-primary, .filter-btn {
-            box-shadow: none !important;
-        }
-        
-        {% elif settings.button_style == 'bubble' %}
-        button, .btn, .neu-btn, .neu-btn-primary {
-            box-shadow: 0 4px 0 rgba(0,0,0,0.3) !important;
-        }
-        button:active, .btn:active, .neu-btn:active {
-            box-shadow: 0 1px 0 rgba(0,0,0,0.3) !important;
-            transform: translateY(3px) !important;
-        }
-        
-        {% elif settings.button_style == 'glow' %}
-        button, .btn, .neu-btn, .neu-btn-primary, .download-btn, .buy-btn {
-            box-shadow: 0 0 20px {{secondary}}66 !important;
-        }
-        button:hover, .btn:hover, .neu-btn:hover {
-            box-shadow: 0 0 30px {{secondary}}99 !important;
-        }
-        
-        {% else %}
-        /* Soft (default) */
-        button, .btn, .neu-btn, .neu-btn-primary {
-            box-shadow: 0 2px 8px var(--shadow-color) !important;
-        }
-        {% endif %}
-        
-        /* ==================== BUTTON ROUNDNESS ==================== */
-        
-        {% if settings.button_roundness == 'sharp' %}
-        button, .btn, .neu-btn, .filter-btn, .product-card, 
-        .badge, input, textarea, select, .modal-content { 
-            border-radius: 4px !important; 
-        }
-        
-        {% elif settings.button_roundness == 'pill' %}
-        button, .btn, .neu-btn, .filter-btn { 
-            border-radius: 50px !important; 
-        }
-        .product-card, .modal-content { 
-            border-radius: 20px !important; 
-        }
-        .badge { 
-            border-radius: 12px !important; 
-        }
-        input, textarea, select {
-            border-radius: 12px !important;
-        }
-        
-        {% else %}
-        /* Rounded (default) */
-        button, .btn, .neu-btn, .filter-btn { 
-            border-radius: 12px !important; 
-        }
-        .product-card { 
-            border-radius: 16px !important; 
-        }
-        input, textarea, select {
-            border-radius: 8px !important;
-        }
-        .badge {
-            border-radius: 6px !important;
-        }
-        {% endif %}
-        
-        /* ==================== CARD SIZE ==================== */
-        
-        {% if settings.card_size == 'small' %}
-        .products-grid {
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 8px !important;
-        }
-        .product-name { font-size: 12px !important; }
-        
-        {% elif settings.card_size == 'large' %}
-        .products-grid {
-            grid-template-columns: 1fr !important;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
-        {% else %}
-        .products-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
-        {% endif %}
-        
-        /* ==================== CARD SHAPE ==================== */
-        
-        {% if settings.card_shape == 'rectangle' %}
-        .product-thumbnail { 
-            aspect-ratio: 3/4 !important; 
-        }
-        {% endif %}
-        
-        /* ==================== CARD INFO ==================== */
-        
-        {% if settings.card_info == 'image' %}
-        .product-info { 
-            display: none !important; 
-        }
-        {% elif settings.card_info == 'minimal' %}
-        .product-category, .product-price, .product-description { 
-            display: none !important; 
-        }
-        {% endif %}
-        
-        /* ==================== HEADER SIZE ==================== */
-        
-        {% if settings.header_size == 'compact' %}
-        .logo-area { 
-            min-height: 40px !important; 
-            padding: 8px 16px !important; 
-        }
-        .logo-area img, .logo-area video { 
-            max-height: 50px !important; 
-        }
-        
-        {% elif settings.header_size == 'tall' %}
-        .logo-area { 
-            min-height: 120px !important; 
-            padding: 24px 16px !important; 
-        }
-        .logo-area img, .logo-area video { 
-            max-height: 180px !important; 
-        }
-        {% endif %}
-        
-        /* ==================== SHOW/HIDE FILTERS ==================== */
-        
-        {% if not settings.show_filters %}
-        .category-filter, .filters-container { 
-            display: none !important; 
-        }
-        {% endif %}
-        
-        /* ==================== CONTENT AREA ==================== */
-        
-        .content {
-            background: var(--primary) !important;
-        }
-        
-        .category-filter {
-            background: var(--primary) !important;
-        }
-        
-        /* ==================== SETTINGS/APPEARANCE SECTIONS ==================== */
-        
-        .settings-section,
-        .appearance-section,
-        section {
-            background: var(--primary-light) !important;
-            color: var(--text-on-primary) !important;
-        }
-        
-        .settings-section h3,
-        .appearance-section h3,
-        .section-title,
-        section h3 {
-            color: var(--text-on-primary) !important;
-        }
-        
-        .settings-section label,
-        .appearance-section label,
-        section label {
-            color: var(--text-dim) !important;
-        }
-        
-        /* ==================== ADMIN FAB ==================== */
-        
-        #admin-fab {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            z-index: 9999;
-            display: none;
-        }
-        
-        #admin-fab-btn {
-            width: 56px;
-            height: 56px;
-            border-radius: 50% !important;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            border: none !important;
-            color: white !important;
-            font-size: 22px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        #admin-fab-btn:hover {
-            transform: scale(1.05);
-        }
-        
-        #admin-menu {
-            display: none;
-            position: absolute;
-            bottom: 65px;
-            right: 0;
-            background: var(--primary) !important;
-            border-radius: 12px !important;
-            box-shadow: 0 4px 20px var(--shadow-color) !important;
-            overflow: hidden;
-            min-width: 200px;
-            border: 1px solid var(--card-border) !important;
-        }
-        
-        #admin-menu a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 18px;
-            color: var(--text-on-primary) !important;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            border-bottom: 1px solid var(--card-border) !important;
-        }
-        
-        #admin-menu a:last-child {
-            border-bottom: none !important;
-        }
-        
-        #admin-menu a:hover {
-            background: var(--hover-overlay) !important;
-        }
-        
-        #admin-menu-header {
-            padding: 12px 18px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            color: white !important;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-    </style>
-</head>
-<body>
-    <div class="app-container">
-        {%block content%}{%endblock%}
-    </div>
-    
-    <!-- Admin FAB -->
-    <div id="admin-fab">
-        <button id="admin-fab-btn" onclick="toggleAdminMenu()">⚙️</button>
-        <div id="admin-menu">
-            <div id="admin-menu-header">🔐 Admin Panel</div>
-            <a href="/admin"><span>📊</span> Dashboard</a>
-            <a href="/admin/purchases"><span>💰</span> Purchases</a>
-            <a href="/admin/product/new"><span>➕</span> Add Product</a>
-            <a href="/admin/appearance"><span>🎨</span> Appearance</a>
-            <a href="/admin/settings"><span>⚙️</span> Settings</a>
-        </div>
-    </div>
-    
-    <script src="{{url_for('static',filename='js/app.js')}}"></script>
-    <script>
-    (function() {
-        // ==================== TELEGRAM THEME SYNC ====================
-        
-        const tg = window.Telegram?.WebApp;
-        
-        // Theme colors from server (Jinja)
-        const themeColors = {
-            primary: '{{primary}}',
-            primaryLight: '{{primary_light}}',
-            secondary: '{{secondary}}',
-            accent: '{{accent}}',
-            text: '{% if is_dark %}#ffffff{% else %}#1a1a1a{% endif %}',
-            textDim: '{% if is_dark %}#b0b0b0{% else %}#555555{% endif %}',
-            textMuted: '{% if is_dark %}#808080{% else %}#888888{% endif %}',
-            textOnSecondary: '{% if sec_is_dark %}#ffffff{% else %}#1a1a1a{% endif %}'
-        };
-        
-        // Apply theme to Telegram native components
-        function applyTelegramTheme() {
-            if (!tg) return;
-            
-            try {
-                // Set Telegram's background color (body area)
-                if (tg.setBackgroundColor) {
-                    tg.setBackgroundColor(themeColors.primary);
-                }
-                
-                // Set Telegram's header color
-                if (tg.setHeaderColor) {
-                    tg.setHeaderColor(themeColors.primary);
-                }
-                
-                // Set bottom bar color (Telegram v7.10+)
-                if (tg.setBottomBarColor) {
-                    tg.setBottomBarColor(themeColors.primaryLight);
-                }
-                
-                console.log('✅ Telegram theme applied:', themeColors.primary);
-            } catch(e) {
-                console.log('Telegram theme error:', e);
-            }
-            
-            // Override Telegram's CSS variables
-            const root = document.documentElement;
-            root.style.setProperty('--tg-theme-bg-color', themeColors.primary);
-            root.style.setProperty('--tg-theme-secondary-bg-color', themeColors.primaryLight);
-            root.style.setProperty('--tg-theme-text-color', themeColors.text);
-            root.style.setProperty('--tg-theme-hint-color', themeColors.textMuted);
-            root.style.setProperty('--tg-theme-button-color', themeColors.secondary);
-            root.style.setProperty('--tg-theme-button-text-color', themeColors.textOnSecondary);
-            root.style.setProperty('--tg-theme-link-color', themeColors.accent);
-        }
-        
-        // Initialize Telegram WebApp
-        if (tg) {
-            tg.ready();
-            tg.expand(); // Expand to full height
-            
-            // Apply theme immediately
-            applyTelegramTheme();
-            
-            // Re-apply when Telegram theme changes (user switches dark/light mode)
-            tg.onEvent('themeChanged', function() {
-                console.log('Telegram theme changed event');
-                // Re-apply our theme to override Telegram's
-                setTimeout(applyTelegramTheme, 100);
-            });
-        }
-        
-        // ==================== ADMIN MENU ====================
-        
-        let menuOpen = false;
-        
-        window.toggleAdminMenu = function() {
-            const menu = document.getElementById('admin-menu');
-            menuOpen = !menuOpen;
-            menu.style.display = menuOpen ? 'block' : 'none';
-        };
-        
-        document.addEventListener('click', function(e) {
-            const fab = document.getElementById('admin-fab');
-            if (fab && !fab.contains(e.target) && menuOpen) {
-                document.getElementById('admin-menu').style.display = 'none';
-                menuOpen = false;
-            }
-        });
-        
-        // ==================== ADMIN CHECK ====================
-        
-        async function checkAdminStatus() {
-            try {
-                if (!tg || !tg.initData) return;
-                
-                const response = await fetch('/api/check-admin', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Telegram-Init-Data': tg.initData
-                    },
-                    body: JSON.stringify({})
-                });
-                
-                const data = await response.json();
-                if (data.is_admin) {
-                    document.getElementById('admin-fab').style.display = 'block';
-                }
-            } catch (e) {
-                console.log('Admin check error:', e);
-            }
-        }
-        
-        // Run on DOM ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', checkAdminStatus);
-        } else {
-            checkAdminStatus();
-        }
-    })();
-    </script>
-</body>
-</html>
+</section>
+{% endblock %}
