@@ -9,6 +9,7 @@ from functools import wraps
 
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash, abort
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.utils import secure_filename
 
 from config import Config
@@ -17,6 +18,7 @@ from models import db, User, Category, Product, ProductImage, CartItem, Order, O
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
+csrf = CSRFProtect(app)
 
 with app.app_context():
     db.create_all()
