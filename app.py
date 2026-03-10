@@ -898,15 +898,9 @@ def admin_post_delete(post_id):
 
 @app.route('/admin/users')
 @require_admin
-def is_admin_user(user):
-    admin_ids = Config.ADMIN_TELEGRAM_IDS
-    if not admin_ids:
-        return False
-    # Handle both list and string formats
-    if isinstance(admin_ids, list):
-        return user.telegram_id in admin_ids
-    id_list = [int(x.strip()) for x in str(admin_ids).split(',') if x.strip()]
-    return user.telegram_id in id_list
+def admin_users():
+    users = User.query.order_by(User.created_at.desc()).all()
+    return render_template('admin/users.html', users=users)
 
 
 
