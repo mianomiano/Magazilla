@@ -157,8 +157,7 @@ def is_admin_user(user):
     admin_ids = Config.ADMIN_TELEGRAM_IDS
     if not admin_ids:
         return False
-    id_list = [int(x.strip()) for x in str(admin_ids).split(',') if x.strip()]
-    return user.telegram_id in id_list
+    return user.telegram_id in admin_ids
 
 
 def require_admin(f):
