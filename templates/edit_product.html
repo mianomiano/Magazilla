@@ -1,0 +1,109 @@
+{%extends 'base.html'%}
+{%block content%}
+<div class="content">
+<a href="{{url_for('admin_bp.dashboard')}}" class="back-btn">← Back</a>
+<h1 class="admin-title" style="margin-bottom:16px">{%if product%}✏️ Edit{%else%}➕ New{%endif%} Product</h1>
+
+{%with messages = get_flashed_messages(with_categories=true)%}
+{%if messages%}
+<div class="flash-messages">
+{%for category, message in messages%}
+<div class="flash flash-{{category}}">{{message}}</div>
+{%endfor%}
+</div>
+{%endif%}
+{%endwith%}
+
+<form method="POST" enctype="multipart/form-data" class="neu-card">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+
+<div class="neu-input-group">
+<label>Name *</label>
+<input type="text" name="name" class="neu-input" value="{{product.name if product else ''}}" required>
+</div>
+
+<div class="neu-input-group">
+<label>Description</label>
+<textarea name="description" class="neu-input">{{product.description if product else ''}}</textarea>
+</div>
+
+<div class="neu-input-group">
+<label>Category</label>
+<select name="category" class="neu-select" onchange="handleCategoryChange(this)">
+{%for c in categories%}
+<option value="{{c}}" {%if product and product.category==c%}selected{%endif%}>{{c}}</option>
+{%endfor%}
+<option value="_custom">+ Custom</option>
+</select>
+</div>
+
+<div class="neu-input-group" id="custom_category_field" style="display:none">
+<label>Custom Category</label>
+<input type="text" name="custom_category" class="neu-input">
+</div>
+
+<div class="neu-input-group">
+<label class="neu-checkbox">
+<input type="checkbox" id="is_free" name="is_free" {%if product and product.is_free%}checked{%elif not product%}checked{%endif%} onchange="togglePriceField()">
+<span class="neu-checkmark"></span>
+<span>Free Product</span>
+</label>
+</div>
+
+<div class="neu-input-group" id="price_field" style="{%if not product or product.is_free%}display:none{%endif%}">
+<label>Price (Stars) ⭐</label>
+<input type="number" name="price" class="neu-input" value="{{product.price if product else 1}}" min="0" max="10000">
+</div>
+
+{%if product%}
+<div class="neu-input-group">
+<label class="neu-checkbox">
+<input type="checkbox" name="is_active" {%if product.is_active%}checked{%endif%}>
+<span class="neu-checkmark"></span>
+<span>Active (visible in store)</span>
+</label>
+</div>
+{%endif%}
+
+<div class="neu-input-group">
+<label>Thumbnail</label>
+<div class="file-upload">
+<input type="file" name="thumbnail" accept="image/*,video/webm" onchange="previewImage(this,'thumb_preview');updateFileName(this,'thumb_label')">
+<div class="file-upload-icon">🖼️</div>
+<div class="file-upload-text" id="thumb_label">{%if product and product.thumbnail%}Current: uploaded{%else%}Click to upload{%endif%}</div>
+</div>
+{%if product and product.thumbnail%}
+{%set thumb_url=r2_url(product.thumbnail)%}
+{%if product.thumbnail.endswith('.webm')%}
+<video id="thumb_preview" autoplay loop muted playsinline style="margin-top:10px;max-width:120px;border-radius:8px">
+<source src="{{thumb_url}}" type="video/webm">
+</video>
+{%else%}
+<img id="thumb_preview" src="{{thumb_url}}" style="margin-top:10px;max-width:120px;border-radius:8px">
+{%endif%}
+{%else%}
+<img id="thumb_preview" style="display:none;margin-top:10px;max-width:120px;border-radius:8px">
+{%endif%}
+</div>
+
+<div class="neu-input-group">
+<label>Product File *</label>
+<div class="file-upload">
+<input type="file" name="file" onchange="updateFileName(this,'file_label')">
+<div class="file-upload-icon">📁</div>
+<div class="file-upload-text" id="file_label">{%if product and product.file_path%}Current: uploaded{%else%}Click to upload{%endif%}</div>
+</div>
+</div>
+
+<button type="submit" class="neu-btn neu-btn-primary neu-btn-full" style="margin-top:8px">
+{%if product%}💾 Save Changes{%else%}➕ Create Product{%endif%}
+</button>
+</form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    togglePriceField();
+});
+</script>
+{%endblock%}

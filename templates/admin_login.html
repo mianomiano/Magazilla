@@ -1,0 +1,22 @@
+{%extends 'base.html'%}
+{%block content%}
+<div class="content" style="display:flex;align-items:center;justify-content:center;min-height:80vh">
+<div class="neu-card" style="width:100%;max-width:300px">
+<h1 style="text-align:center;margin-bottom:20px;font-size:1.2rem">🔐 Admin Login</h1>
+{%if error%}
+<div style="background:rgba(255,71,87,0.2);border:1px solid #ff4757;border-radius:6px;padding:8px;margin-bottom:14px;text-align:center;color:#ff4757;font-size:0.8rem">
+{{error}}
+</div>
+{%endif%}
+<form method="POST">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+<div class="neu-input-group">
+<label>Password</label>
+<input type="password" name="password" class="neu-input" required autofocus>
+</div>
+<button type="submit" class="neu-btn neu-btn-primary neu-btn-full">🔓 Login</button>
+</form>
+<a href="{{url_for('public_bp.index')}}" style="display:block;text-align:center;margin-top:14px;color:var(--tm);text-decoration:none;font-size:0.8rem">← Back to Store</a>
+</div>
+</div>
+{%endblock%}
