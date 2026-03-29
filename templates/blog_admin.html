@@ -1,0 +1,75 @@
+{%extends 'base.html'%}
+{%block content%}
+<div class="content">
+
+{%with messages = get_flashed_messages(with_categories=true)%}
+{%if messages%}
+<div class="flash-messages">
+{%for category, message in messages%}
+<div class="flash flash-{{category}}">{{message}}</div>
+{%endfor%}
+</div>
+{%endif%}
+{%endwith%}
+
+<div class="admin-header">
+    <h1 class="admin-title">📝 Blog</h1>
+    <div style="display:flex;gap:8px">
+        <a href="{{url_for('admin_bp.blog_new')}}" class="neu-btn neu-btn-primary">+ New Post</a>
+        <a href="{{url_for('admin_bp.dashboard')}}" class="neu-btn">← Back</a>
+    </div>
+</div>
+
+{%if posts%}
+<div class="admin-product-list">
+{%for post in posts%}
+<div class="admin-product-item">
+    <div class="admin-product-thumb" style="background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:1.4rem">
+        {%if post.cover_image%}
+        <img src="{{r2_url(post.cover_image)}}" alt="{{post.title}}" style="width:100%;height:100%;object-fit:cover">
+        {%else%}
+        📝
+        {%endif%}
+    </div>
+    <div class="admin-product-info">
+        <div class="admin-product-name">
+            {{post.title}}
+            {%if not post.is_published%}
+            <span style="color:var(--tm)">(Draft)</span>
+            {%endif%}
+        </div>
+        <div class="admin-product-meta">
+            {{post.created_at.strftime('%b %d, %Y') if post.created_at else ''}}
+            {%if post.tags%} · {{post.tags}}{%endif%}
+            {%if post.excerpt%} · {{post.excerpt[:60]}}…{%endif%}
+        </div>
+    </div>
+    <div class="admin-product-actions">
+        <a href="{{url_for('admin_bp.blog_edit', pid=post.id)}}" class="admin-btn-sm">Edit</a>
+        <form method="POST" action="{{url_for('admin_bp.blog_toggle', pid=post.id)}}" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+            <button type="submit" class="admin-btn-sm">
+                {%if post.is_published%}Unpublish{%else%}Publish{%endif%}
+            </button>
+        </form>
+        {%if post.is_published%}
+        <a href="{{url_for('public_bp.blog_post', slug=post.slug)}}" class="admin-btn-sm" target="_blank">View</a>
+        {%endif%}
+        <form method="POST" action="{{url_for('admin_bp.blog_delete', pid=post.id)}}" style="display:inline" onsubmit="return confirm('Delete &quot;{{post.title}}&quot;?')">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+            <button type="submit" class="admin-btn-sm delete">Del</button>
+        </form>
+    </div>
+</div>
+{%endfor%}
+</div>
+{%else%}
+<div class="empty-state">
+    <div class="empty-state-icon">📝</div>
+    <p class="empty-state-text">No blog posts yet</p>
+    <a href="{{url_for('admin_bp.blog_new')}}" class="neu-btn neu-btn-primary" style="margin-top:12px">Write your first post</a>
+</div>
+{%endif%}
+
+</div>
+{%endblock%}

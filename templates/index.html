@@ -21,6 +21,187 @@
 </header>
 {%endif%}
 
+{# ══════════════════════════════════════════════════════════════
+   PAGE BUILDER BLOCKS — rendered when blocks exist, otherwise
+   the default product grid is shown below.
+   ══════════════════════════════════════════════════════════════ #}
+{%if blocks%}
+
+{%for block in blocks%}
+
+{# ─── product_grid ─────────────────────────────────────── #}
+{%if block.block_type == 'product_grid'%}
+{%set cfg = block.get_config()%}
+{%if settings.show_filters%}
+<div class="category-filter">
+<button class="filter-btn active" data-category="all">All</button>
+<button class="filter-btn" data-category="free">🆓 Free</button>
+{%for c in categories%}
+<button class="filter-btn" data-category="{{c}}">{{c}}</button>
+{%endfor%}
+</div>
+{%endif%}
+<div class="content">
+{%if products%}
+<div class="products-grid">
+{%for p in products%}
+<div class="product-card" data-category="{{p.category}}" data-free="{{'true' if p.is_free else 'false'}}" onclick="viewProduct({{p.id}})">
+<div class="product-thumbnail">
+{%if p.thumbnail%}
+{%set thumb_url=r2_url(p.thumbnail)%}
+{%if p.thumbnail.endswith('.webm')%}
+<video autoplay loop muted playsinline><source src="{{thumb_url}}" type="video/webm"></video>
+{%else%}
+<img src="{{thumb_url}}" alt="{{p.name}}">
+{%endif%}
+{%else%}
+<span class="placeholder-icon">🎨</span>
+{%endif%}
+<span class="product-badge {%if p.is_free%}badge-free{%else%}badge-paid{%endif%}">
+{%if p.is_free%}FREE{%else%}⭐{{p.price}}{%endif%}
+</span>
+</div>
+<div class="product-info">
+<h3 class="product-name">{{p.name}}</h3>
+<p class="product-category">{{p.category}}</p>
+<div class="product-price {%if p.is_free%}free{%else%}paid{%endif%}">{%if p.is_free%}Free{%else%}⭐{{p.price}}{%endif%}</div>
+</div>
+</div>
+{%endfor%}
+</div>
+{%else%}
+<div class="empty-state"><div class="empty-state-icon">📦</div><p class="empty-state-text">No products available</p></div>
+{%endif%}
+</div>
+
+{# ─── featured_product ─────────────────────────────────── #}
+{%elif block.block_type == 'featured_product'%}
+{%set cfg = block.get_config()%}
+{%set fp = all_products.get(cfg.get('product_id'))%}
+{%if fp%}
+<div class="content" style="margin-bottom:0">
+<div class="neu-card" onclick="viewProduct({{fp.id}})" style="cursor:pointer;display:flex;gap:14px;align-items:center">
+<div style="width:80px;height:80px;flex-shrink:0;border-radius:12px;overflow:hidden;background:var(--pl)">
+{%if fp.thumbnail%}
+{%set tu=r2_url(fp.thumbnail)%}
+{%if fp.thumbnail.endswith('.webm')%}
+<video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"><source src="{{tu}}" type="video/webm"></video>
+{%else%}
+<img src="{{tu}}" alt="{{fp.name}}" style="width:100%;height:100%;object-fit:cover">
+{%endif%}
+{%else%}
+<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:1.8rem">🎨</div>
+{%endif%}
+</div>
+<div style="flex:1;min-width:0">
+<div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--td);margin-bottom:3px">⭐ Featured</div>
+<div style="font-weight:700;font-size:1rem;margin-bottom:4px">{{fp.name}}</div>
+<div style="font-size:0.85rem;color:{{'var(--s)' if fp.is_free else 'var(--a)'}}">
+{%if fp.is_free%}Free{%else%}⭐{{fp.price}} Stars{%endif%}
+</div>
+</div>
+</div>
+</div>
+{%endif%}
+
+{# ─── blog_posts ───────────────────────────────────────── #}
+{%elif block.block_type == 'blog_posts'%}
+{%set cfg = block.get_config()%}
+{%set limit = cfg.get('limit', 3)|int%}
+{%set shown_posts = recent_posts[:limit]%}
+{%if shown_posts%}
+<div class="content" style="margin-bottom:0">
+<div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--td);margin-bottom:10px">📝 Latest Posts</div>
+{%for post in shown_posts%}
+<a href="{{url_for('public_bp.blog_post', slug=post.slug)}}" style="text-decoration:none;color:inherit;display:block;margin-bottom:10px">
+<div class="neu-card" style="display:flex;gap:12px;align-items:center;padding:12px">
+{%if post.cover_image%}
+<div style="width:54px;height:54px;flex-shrink:0;border-radius:8px;overflow:hidden"><img src="{{r2_url(post.cover_image)}}" alt="{{post.title}}" style="width:100%;height:100%;object-fit:cover"></div>
+{%else%}
+<div style="width:54px;height:54px;flex-shrink:0;border-radius:8px;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:1.4rem">📝</div>
+{%endif%}
+<div style="flex:1;min-width:0">
+<div style="font-weight:600;font-size:0.88rem;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{post.title}}</div>
+<div style="font-size:0.75rem;color:var(--tm)">{{post.created_at.strftime('%b %d') if post.created_at else ''}}</div>
+</div>
+</div>
+</a>
+{%endfor%}
+<a href="{{url_for('public_bp.blog')}}" class="neu-btn" style="width:100%;text-align:center;margin-top:4px;display:block">All Posts →</a>
+</div>
+{%endif%}
+
+{# ─── donation ─────────────────────────────────────────── #}
+{%elif block.block_type == 'donation'%}
+{%set cfg = block.get_config()%}
+<div class="content" style="margin-bottom:0">
+<div class="neu-card" style="text-align:center;padding:28px 20px">
+<div style="font-size:2rem;margin-bottom:8px">💜</div>
+<h3 style="font-weight:800;font-size:1.1rem;margin-bottom:8px">{{cfg.get('title', 'Support Us')}}</h3>
+{%if cfg.get('description')%}
+<p style="color:var(--td);font-size:0.88rem;margin-bottom:18px;line-height:1.5">{{cfg.get('description')}}</p>
+{%endif%}
+<button class="neu-btn neu-btn-primary" style="width:100%;max-width:280px" onclick="handleDonation({{cfg.get('amount', 50)}})">
+{{cfg.get('button_text', 'Donate ⭐')}}
+{%if cfg.get('amount')%} — ⭐{{cfg.get('amount')}}{%endif%}
+</button>
+</div>
+</div>
+
+{# ─── ad_banner ────────────────────────────────────────── #}
+{%elif block.block_type == 'ad_banner'%}
+{%set cfg = block.get_config()%}
+<div class="content" style="margin-bottom:0">
+{%if cfg.get('image')%}
+{%set ad_img = r2_url(cfg['image'])%}
+{%if cfg.get('link')%}
+<a href="{{cfg['link']}}" target="_blank" rel="noopener" style="display:block">
+<img src="{{ad_img}}" alt="{{cfg.get('alt','Advertisement')}}" style="width:100%;border-radius:14px;display:block">
+</a>
+{%else%}
+<img src="{{ad_img}}" alt="{{cfg.get('alt','Advertisement')}}" style="width:100%;border-radius:14px;display:block">
+{%endif%}
+{%endif%}
+{%if cfg.get('ad_code')%}
+{{cfg['ad_code']|safe}}
+{%endif%}
+</div>
+
+{# ─── divider ──────────────────────────────────────────── #}
+{%elif block.block_type == 'divider'%}
+{%set cfg = block.get_config()%}
+<div class="content" style="margin-bottom:0;padding:4px 0">
+{%if cfg.get('style') == 'dots'%}
+<div style="text-align:center;color:var(--td);font-size:1.2rem;letter-spacing:8px">· · ·</div>
+{%elif cfg.get('style') == 'space'%}
+<div style="height:24px"></div>
+{%else%}
+<hr style="border:none;border-top:1px solid var(--cb);margin:8px 0">
+{%endif%}
+</div>
+
+{# ─── text_section ─────────────────────────────────────── #}
+{%elif block.block_type == 'text_section'%}
+{%set cfg = block.get_config()%}
+<div class="content" style="margin-bottom:0">
+<div class="neu-card">
+{%if cfg.get('heading')%}
+<h3 style="font-weight:700;font-size:1rem;margin-bottom:10px">{{cfg.get('heading')}}</h3>
+{%endif%}
+{%if cfg.get('body')%}
+<div style="color:var(--td);font-size:0.9rem;line-height:1.65">{{cfg.get('body')|safe}}</div>
+{%endif%}
+</div>
+</div>
+
+{%endif%}
+{%endfor%}
+
+{# ══════════════════════════════════════════════════════════════
+   DEFAULT VIEW — shown when no blocks are configured
+   ══════════════════════════════════════════════════════════════ #}
+{%else%}
+
 <div class="category-filter">
 <button class="filter-btn active" data-category="all">All</button>
 <button class="filter-btn" data-category="free">🆓 Free</button>
@@ -68,4 +249,7 @@
 </div>
 {%endif%}
 </div>
+
+{%endif%}
+
 {%endblock%}

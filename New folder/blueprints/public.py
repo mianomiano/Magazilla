@@ -1,6 +1,6 @@
 """Public routes for the shop frontend"""
-from flask import Blueprint, render_template, request, jsonify, redirect, abort
-from models import db, Product, Purchase, Block, BlogPost
+from flask import Blueprint, render_template, request, jsonify, redirect
+from models import db, Product, Purchase
 from utils.decorators import limiter
 from utils.telegram_auth import validate_telegram_init_data
 from r2_storage import get_r2_url
@@ -35,22 +35,13 @@ def index():
         purchases = Purchase.query.filter_by(user_id=user_id, is_verified=True).all()
         purchased_ids = {p.product_id for p in purchases}
     
-    # Fetch page builder blocks (visible, ordered)
-    blocks = Block.query.filter_by(is_visible=True).order_by(Block.position).all()
-    # Pre-load needed data for block rendering
-    all_products = {p.id: p for p in Product.query.filter_by(is_active=True).all()}
-    recent_posts = BlogPost.query.filter_by(is_published=True).order_by(BlogPost.created_at.desc()).limit(10).all()
-
     return render_template(
         'index.html',
         products=products,
         categories=categories,
         purchased_ids=purchased_ids,
         user_id=user_id,
-        r2_url=get_r2_url,
-        blocks=blocks,
-        all_products=all_products,
-        recent_posts=recent_posts,
+        r2_url=get_r2_url
     )
 
 
@@ -182,16 +173,3 @@ def category_products(cat_name):
 def health_check():
     """Health check endpoint for Railway"""
     return jsonify({'status': 'ok'}), 200
-
-# ─── Public Blog ─────────────────────────────────────────────────────────────
-
-@public_bp.route('/blog')
-def blog():
-    posts = BlogPost.query.filter_by(is_published=True).order_by(BlogPost.created_at.desc()).all()
-    return render_template('blog.html', posts=posts, r2_url=get_r2_url)
-
-
-@public_bp.route('/blog/<slug>')
-def blog_post(slug):
-    post = BlogPost.query.filter_by(slug=slug, is_published=True).first_or_404()
-    return render_template('blog_post.html', post=post, r2_url=get_r2_url)

@@ -1,0 +1,128 @@
+{%extends 'base.html'%}
+{%block content%}
+<div class="content">
+
+{%with messages = get_flashed_messages(with_categories=true)%}
+{%if messages%}
+<div class="flash-messages">
+{%for category, message in messages%}
+<div class="flash flash-{{category}}">{{message}}</div>
+{%endfor%}
+</div>
+{%endif%}
+{%endwith%}
+
+<div class="admin-header">
+    <h1 class="admin-title">🧩 Page Builder</h1>
+    <a href="{{url_for('admin_bp.dashboard')}}" class="neu-btn">← Back</a>
+</div>
+
+<p style="color:var(--td);font-size:0.85rem;margin-bottom:16px">
+    Add, reorder, and configure blocks that appear on your public store page.
+    When no blocks are added, the default product grid is shown.
+</p>
+
+<!-- Add Block -->
+<div class="neu-card" style="margin-bottom:20px">
+    <h3 style="font-size:0.9rem;margin-bottom:12px;color:var(--td)">➕ Add Block</h3>
+    <form method="POST" action="{{url_for('admin_bp.builder_add')}}">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <select name="block_type" class="neu-input" style="flex:1;min-width:160px">
+                {%for btype in block_types%}
+                <option value="{{btype}}">{{block_type_labels[btype]}}</option>
+                {%endfor%}
+            </select>
+            <button type="submit" class="neu-btn neu-btn-primary">Add Block</button>
+        </div>
+    </form>
+</div>
+
+<!-- Block List -->
+{%if blocks%}
+<div id="block-list" style="display:flex;flex-direction:column;gap:10px">
+{%for block in blocks%}
+<div class="neu-card block-item" data-id="{{block.id}}" style="display:flex;align-items:center;gap:12px;{%if not block.is_visible%}opacity:0.5{%endif%}">
+    <span class="drag-handle" style="cursor:grab;font-size:1.3rem;touch-action:none">⠿</span>
+    <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:0.9rem;margin-bottom:2px">
+            {{block_type_labels.get(block.block_type, block.block_type)}}
+        </div>
+        <div style="font-size:0.78rem;color:var(--td);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">
+            {{block.title or '—'}}
+            {%if not block.is_visible%}<span style="color:#ff4757"> · hidden</span>{%endif%}
+        </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0">
+        <a href="{{url_for('admin_bp.builder_edit', bid=block.id)}}" class="admin-btn-sm">Edit</a>
+        <form method="POST" action="{{url_for('admin_bp.builder_toggle', bid=block.id)}}">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+            <button type="submit" class="admin-btn-sm">{%if block.is_visible%}Hide{%else%}Show{%endif%}</button>
+        </form>
+        <form method="POST" action="{{url_for('admin_bp.builder_delete', bid=block.id)}}" onsubmit="return confirm('Delete this block?')">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+            <button type="submit" class="admin-btn-sm delete">Del</button>
+        </form>
+    </div>
+</div>
+{%endfor%}
+</div>
+{%else%}
+<div class="empty-state">
+    <div class="empty-state-icon">🧩</div>
+    <p class="empty-state-text">No blocks yet — add your first block above</p>
+</div>
+{%endif%}
+
+</div>
+
+<style>
+.block-item { transition: opacity 0.2s; }
+.drag-handle:active { cursor: grabbing; }
+.drag-over { outline: 2px dashed var(--s); border-radius: 12px; }
+</style>
+
+<script>
+// Simple drag-and-drop reorder
+const list = document.getElementById('block-list');
+if (list) {
+    let dragging = null;
+
+    list.querySelectorAll('.block-item').forEach(item => {
+        item.setAttribute('draggable', 'true');
+
+        item.addEventListener('dragstart', e => {
+            dragging = item;
+            setTimeout(() => item.style.opacity = '0.4', 0);
+        });
+        item.addEventListener('dragend', () => {
+            item.style.opacity = '';
+            list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            saveOrder();
+        });
+        item.addEventListener('dragover', e => {
+            e.preventDefault();
+            if (item !== dragging) {
+                list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+                item.classList.add('drag-over');
+                const rect = item.getBoundingClientRect();
+                const mid = rect.top + rect.height / 2;
+                if (e.clientY < mid) {
+                    list.insertBefore(dragging, item);
+                } else {
+                    list.insertBefore(dragging, item.nextSibling);
+                }
+            }
+        });
+    });
+
+    function saveOrder() {
+        const ids = Array.from(list.querySelectorAll('.block-item')).map(el => el.dataset.id);
+        const fd = new FormData();
+        ids.forEach(id => fd.append('order[]', id));
+        fd.append('csrf_token', document.querySelector('[name=csrf_token]').value);
+        fetch('{{url_for("admin_bp.builder_reorder")}}', { method: 'POST', body: fd });
+    }
+}
+</script>
+{%endblock%}

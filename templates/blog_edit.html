@@ -1,0 +1,91 @@
+{%extends 'base.html'%}
+{%block content%}
+<div class="content">
+
+{%with messages = get_flashed_messages(with_categories=true)%}
+{%if messages%}
+<div class="flash-messages">
+{%for category, message in messages%}
+<div class="flash flash-{{category}}">{{message}}</div>
+{%endfor%}
+</div>
+{%endif%}
+{%endwith%}
+
+<div class="admin-header">
+    <h1 class="admin-title">{%if post%}✏️ Edit Post{%else%}✍️ New Post{%endif%}</h1>
+    <a href="{{url_for('admin_bp.blog_admin')}}" class="neu-btn">← Blog</a>
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+
+<div class="neu-card" style="margin-bottom:14px">
+    <div class="neu-input-group">
+        <label>Title *</label>
+        <input type="text" name="title" class="neu-input" value="{{post.title if post else ''}}" placeholder="Post title" required>
+    </div>
+
+    <div class="neu-input-group">
+        <label>Excerpt</label>
+        <textarea name="excerpt" class="neu-input" rows="2" placeholder="Short description shown in listings...">{{post.excerpt if post else ''}}</textarea>
+    </div>
+
+    <div class="neu-input-group">
+        <label>Tags (comma-separated)</label>
+        <input type="text" name="tags" class="neu-input" value="{{post.tags if post else ''}}" placeholder="design, tutorial, news">
+    </div>
+</div>
+
+<!-- Cover image -->
+<div class="neu-card" style="margin-bottom:14px">
+    {%if post and post.cover_image%}
+    <p style="font-size:0.8rem;color:var(--td);margin-bottom:8px">Current cover:</p>
+    <img src="{{r2_url(post.cover_image)}}" style="max-width:100%;max-height:200px;border-radius:12px;object-fit:cover;margin-bottom:12px">
+    {%endif%}
+    <div class="neu-input-group">
+        <label>Cover Image</label>
+        <input type="file" name="cover_image" class="neu-input" accept="image/*,video/webm,video/mp4" onchange="previewCover(this)">
+    </div>
+    <div id="cover_preview"></div>
+</div>
+
+<!-- Content -->
+<div class="neu-card" style="margin-bottom:14px">
+    <div class="neu-input-group">
+        <label>Content (HTML allowed)</label>
+        <textarea name="content" class="neu-input" rows="12" placeholder="Write your post content here...
+        
+You can use HTML: <b>bold</b>, <i>italic</i>, <a href='...'>links</a>, etc.">{{post.content if post else ''}}</textarea>
+    </div>
+</div>
+
+<!-- Publish toggle -->
+<div class="neu-card" style="margin-bottom:16px">
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" name="is_published" {{'checked' if post and post.is_published else ''}}>
+        <span>Published (visible on public blog)</span>
+    </label>
+</div>
+
+<button type="submit" class="neu-btn neu-btn-primary neu-btn-full">
+    💾 {%if post%}Save Changes{%else%}Publish Post{%endif%}
+</button>
+</form>
+
+</div>
+
+<script>
+function previewCover(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const container = document.getElementById('cover_preview');
+        if (file.type.startsWith('video/')) {
+            container.innerHTML = '<video autoplay loop muted playsinline style="max-width:100%;max-height:160px;border-radius:10px;margin-top:8px"><source src="'+URL.createObjectURL(file)+'" type="'+file.type+'"></video>';
+        } else {
+            container.innerHTML = '<img src="'+URL.createObjectURL(file)+'" style="max-width:100%;max-height:160px;border-radius:10px;margin-top:8px;object-fit:cover">';
+        }
+    }
+}
+</script>
+{%endblock%}

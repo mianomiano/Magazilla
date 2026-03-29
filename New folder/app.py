@@ -123,25 +123,7 @@ def migrate_database():
         # ===== ADMIN_AUDIT_LOG TABLE =====
         if not inspector.has_table('admin_audit_log'):
             print("  ➕ Creating admin_audit_log table...")
-
-        # ===== BLOG_POST TABLE =====
-        if inspector.has_table('blog_post'):
-            columns = {col['name'] for col in inspector.get_columns('blog_post')}
-            for col_name, col_type in {
-                'slug': 'VARCHAR(300)',
-                'excerpt': 'TEXT DEFAULT \'\'',
-                'cover_image': 'VARCHAR(500) DEFAULT \'\'',
-                'tags': 'VARCHAR(500) DEFAULT \'\'',
-                'is_published': 'BOOLEAN DEFAULT FALSE',
-                'updated_at': 'TIMESTAMP',
-            }.items():
-                if col_name not in columns:
-                    print(f"  ➕ Adding blog_post.{col_name}...")
-                    with db.engine.begin() as conn:
-                        conn.execute(sa.text(
-                            f'ALTER TABLE blog_post ADD COLUMN {col_name} {col_type}'
-                        ))
-
+        
         print("✅ Database schema up to date")
     
     except Exception as e:

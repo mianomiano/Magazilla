@@ -1,0 +1,147 @@
+{%extends 'base.html'%}
+{%block content%}
+<div class="content">
+
+{%with messages = get_flashed_messages(with_categories=true)%}
+{%if messages%}
+<div class="flash-messages">
+{%for category, message in messages%}
+<div class="flash flash-{{category}}">{{message}}</div>
+{%endfor%}
+</div>
+{%endif%}
+{%endwith%}
+
+<div class="admin-header">
+    <h1 class="admin-title">✏️ Edit Block</h1>
+    <a href="{{url_for('admin_bp.builder')}}" class="neu-btn">← Builder</a>
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+<input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+
+<!-- Common fields -->
+<div class="neu-card" style="margin-bottom:16px">
+    <div style="font-size:0.75rem;font-weight:600;color:var(--td);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">
+        {{block_type_labels.get(block.block_type, block.block_type)}}
+    </div>
+
+    <div class="neu-input-group">
+        <label>Admin Label</label>
+        <input type="text" name="title" class="neu-input" value="{{block.title or ''}}" placeholder="Label for this block">
+    </div>
+
+    <label class="option-card" style="display:flex;align-items:center;gap:10px;padding:10px;margin-top:8px">
+        <input type="checkbox" name="is_visible" {{'checked' if block.is_visible else ''}}>
+        <span>Visible on public page</span>
+    </label>
+</div>
+
+<!-- ── product_grid has no extra config ── -->
+{%if block.block_type == 'product_grid'%}
+<div class="neu-card" style="margin-bottom:16px">
+    <p style="color:var(--td);font-size:0.85rem">
+        This block automatically shows all active products in a grid.
+        Manage which products appear via the Products section.
+    </p>
+</div>
+
+{%elif block.block_type == 'featured_product'%}
+<div class="neu-card" style="margin-bottom:16px">
+    <div class="neu-input-group">
+        <label>Featured Product</label>
+        <select name="product_id" class="neu-input">
+            <option value="">— Choose product —</option>
+            {%for p in products%}
+            <option value="{{p.id}}" {{'selected' if cfg.get('product_id')==p.id else ''}}>
+                {{p.name}} {{'(Free)' if p.is_free else '(⭐'+p.price|string+')'}}
+            </option>
+            {%endfor%}
+        </select>
+    </div>
+</div>
+
+{%elif block.block_type == 'blog_posts'%}
+<div class="neu-card" style="margin-bottom:16px">
+    <div class="neu-input-group">
+        <label>Number of posts to show</label>
+        <input type="number" name="limit" class="neu-input" value="{{cfg.get('limit', 3)}}" min="1" max="20">
+    </div>
+</div>
+
+{%elif block.block_type == 'donation'%}
+<div class="neu-card" style="margin-bottom:16px">
+    <div class="neu-input-group">
+        <label>Heading</label>
+        <input type="text" name="donation_title" class="neu-input" value="{{cfg.get('title', 'Support Us')}}" placeholder="Support Us">
+    </div>
+    <div class="neu-input-group">
+        <label>Description</label>
+        <textarea name="donation_description" class="neu-input" rows="3" placeholder="Help us keep creating...">{{cfg.get('description', '')}}</textarea>
+    </div>
+    <div class="neu-input-group">
+        <label>Button Text</label>
+        <input type="text" name="donation_button" class="neu-input" value="{{cfg.get('button_text', 'Donate ⭐')}}" placeholder="Donate ⭐">
+    </div>
+    <div class="neu-input-group">
+        <label>Stars Amount</label>
+        <input type="number" name="donation_amount" class="neu-input" value="{{cfg.get('amount', 50)}}" min="1" placeholder="50">
+    </div>
+</div>
+
+{%elif block.block_type == 'ad_banner'%}
+<div class="neu-card" style="margin-bottom:16px">
+    {%if cfg.get('image')%}
+    <div style="margin-bottom:12px">
+        <p style="font-size:0.8rem;color:var(--td);margin-bottom:6px">Current image:</p>
+        <img src="{{r2_url(cfg['image'])}}" style="max-width:100%;max-height:160px;border-radius:10px;object-fit:contain">
+    </div>
+    {%endif%}
+    <div class="neu-input-group">
+        <label>Banner Image</label>
+        <input type="file" name="ad_image" class="neu-input" accept="image/*">
+    </div>
+    <div class="neu-input-group">
+        <label>Link URL</label>
+        <input type="url" name="ad_link" class="neu-input" value="{{cfg.get('link', '')}}" placeholder="https://...">
+    </div>
+    <div class="neu-input-group">
+        <label>Alt Text</label>
+        <input type="text" name="ad_alt" class="neu-input" value="{{cfg.get('alt', '')}}" placeholder="Advertisement">
+    </div>
+    <div class="neu-input-group">
+        <label>Ad Script / HTML (optional)</label>
+        <textarea name="ad_code" class="neu-input" rows="3" placeholder="<script>...</script>">{{cfg.get('ad_code', '')}}</textarea>
+    </div>
+</div>
+
+{%elif block.block_type == 'text_section'%}
+<div class="neu-card" style="margin-bottom:16px">
+    <div class="neu-input-group">
+        <label>Heading</label>
+        <input type="text" name="text_heading" class="neu-input" value="{{cfg.get('heading', '')}}" placeholder="Section heading">
+    </div>
+    <div class="neu-input-group">
+        <label>Body (HTML allowed)</label>
+        <textarea name="text_body" class="neu-input" rows="6" placeholder="Write your content...">{{cfg.get('body', '')}}</textarea>
+    </div>
+</div>
+
+{%elif block.block_type == 'divider'%}
+<div class="neu-card" style="margin-bottom:16px">
+    <div class="neu-input-group">
+        <label>Divider Style</label>
+        <select name="divider_style" class="neu-input">
+            {%for s in ['line', 'dots', 'space']%}
+            <option value="{{s}}" {{'selected' if cfg.get('style')==s else ''}}>{{s|capitalize}}</option>
+            {%endfor%}
+        </select>
+    </div>
+</div>
+{%endif%}
+
+<button type="submit" class="neu-btn neu-btn-primary neu-btn-full">💾 Save Block</button>
+</form>
+
+</div>
+{%endblock%}

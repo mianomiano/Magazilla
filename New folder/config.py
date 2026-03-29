@@ -16,7 +16,7 @@ class Config:
     TESTING = os.getenv("TESTING", "false").lower() == "true"
     
     # ----- CORE SECURITY -----
-    SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("SESSION_SECRET", "")
+    SECRET_KEY = os.getenv("SECRET_KEY", "")
     if not SECRET_KEY:
         import secrets
         SECRET_KEY = secrets.token_hex(32)
@@ -76,10 +76,10 @@ class Config:
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     
-    # Use psycopg2 for PostgreSQL
+    # Use psycopg for PostgreSQL
     if DATABASE_URL.startswith("postgresql://"):
         SQLALCHEMY_DATABASE_URI = DATABASE_URL.replace(
-            "postgresql://", "postgresql+psycopg2://", 1
+            "postgresql://", "postgresql+psycopg://", 1
         )
     else:
         SQLALCHEMY_DATABASE_URI = DATABASE_URL
