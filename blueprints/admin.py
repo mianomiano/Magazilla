@@ -734,6 +734,7 @@ def blog_new():
             excerpt=request.form.get('excerpt', '').strip(),
             content=request.form.get('content', '').strip(),
             tags=request.form.get('tags', '').strip(),
+            post_type=request.form.get('post_type', 'large'),
             is_published=request.form.get('is_published') == 'on',
         )
 
@@ -779,6 +780,7 @@ def blog_edit(pid):
         post.excerpt = request.form.get('excerpt', '').strip()
         post.content = request.form.get('content', '').strip()
         post.tags = request.form.get('tags', '').strip()
+        post.post_type = request.form.get('post_type', 'large')
         post.is_published = request.form.get('is_published') == 'on'
         post.updated_at = datetime.utcnow()
 

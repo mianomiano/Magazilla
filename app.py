@@ -133,6 +133,7 @@ def migrate_database():
                 'cover_image': 'VARCHAR(500) DEFAULT \'\'',
                 'images': "TEXT DEFAULT '[]'",
                 'tags': 'VARCHAR(500) DEFAULT \'\'',
+                'post_type': "VARCHAR(20) DEFAULT 'large'",
                 'is_published': 'BOOLEAN DEFAULT FALSE',
                 'updated_at': 'TIMESTAMP',
             }.items():

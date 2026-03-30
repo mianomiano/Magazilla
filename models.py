@@ -142,6 +142,7 @@ class BlogPost(db.Model):
     cover_image = db.Column(db.String(500), default='')            # R2 key
     images = db.Column(db.Text, default='[]')                      # JSON array of R2 keys
     tags = db.Column(db.String(500), default='')                   # comma-separated
+    post_type = db.Column(db.String(20), default='large')          # 'large' or 'small'
     is_published = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

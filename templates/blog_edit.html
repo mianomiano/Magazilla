@@ -35,6 +35,20 @@
         <label>Tags (comma-separated)</label>
         <input type="text" name="tags" class="neu-input" value="{{post.tags if post else ''}}" placeholder="design, tutorial, news">
     </div>
+
+    <div class="neu-input-group">
+        <label>Card Layout</label>
+        <div style="display:flex;gap:10px;margin-top:4px">
+            <label style="flex:1;cursor:pointer">
+                <input type="radio" name="post_type" value="large" {{'checked' if not post or (post.post_type or 'large') == 'large' else ''}} style="margin-right:6px">
+                <strong>Wide</strong> — full-width with image left, text right, gallery carousel
+            </label>
+            <label style="flex:1;cursor:pointer">
+                <input type="radio" name="post_type" value="small" {{'checked' if post and post.post_type == 'small' else ''}} style="margin-right:6px">
+                <strong>Small</strong> — compact card, 3 per row, image on top
+            </label>
+        </div>
+    </div>
 </div>
 
 <!-- Cover image -->
