@@ -1,6 +1,7 @@
 """Public routes for the shop frontend"""
+import json
 from flask import Blueprint, render_template, request, jsonify, redirect, abort
-from models import db, Product, Purchase, Block, BlogPost
+from models import db, Product, Purchase, Block, BlogPost, AppSettings
 from utils.decorators import limiter
 from utils.telegram_auth import validate_telegram_init_data
 from r2_storage import get_r2_url
@@ -9,18 +10,28 @@ from config import Config
 public_bp = Blueprint('public_bp', __name__)
 
 
+def _get_app_categories():
+    """Return the admin-defined list of categories."""
+    app_s = AppSettings.query.first()
+    if app_s:
+        try:
+            cats = json.loads(app_s.categories or '[]')
+            if cats:
+                return cats
+        except Exception:
+            pass
+    return []
+
+
 @public_bp.route('/')
 def index():
     """Main shop page"""
-    products = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).all()
-    
-    # Get unique categories from products
-    categories = set()
-    for p in products:
-        if p.category:
-            categories.add(p.category)
-    categories = sorted(list(categories))
-    
+    all_active = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).all()
+    all_products_map = {p.id: p for p in all_active}
+
+    # Categories from AppSettings (admin-defined)
+    categories = _get_app_categories()
+
     # Get user_id from initData if available (for showing purchase status)
     user_id = None
     init_data = request.args.get('initData')
@@ -28,29 +39,60 @@ def index():
         user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
         if user_data:
             user_id = user_data.get('id')
-    
+
     # Get purchased product IDs for this user
     purchased_ids = set()
     if user_id:
         purchases = Purchase.query.filter_by(user_id=user_id, is_verified=True).all()
         purchased_ids = {p.product_id for p in purchases}
-    
+
     # Fetch page builder blocks (visible, ordered)
     blocks = Block.query.filter_by(is_visible=True).order_by(Block.position).all()
-    # Pre-load needed data for block rendering
-    all_products = {p.id: p for p in Product.query.filter_by(is_active=True).all()}
     recent_posts = BlogPost.query.filter_by(is_published=True).order_by(BlogPost.created_at.desc()).limit(10).all()
 
     return render_template(
         'index.html',
-        products=products,
+        products=all_active,
         categories=categories,
         purchased_ids=purchased_ids,
         user_id=user_id,
         r2_url=get_r2_url,
         blocks=blocks,
-        all_products=all_products,
+        all_products=all_products_map,
         recent_posts=recent_posts,
+    )
+
+
+@public_bp.route('/products')
+def products_page():
+    """Dedicated products page with search + category filter."""
+    q = request.args.get('q', '').strip().lower()
+    cat = request.args.get('cat', '').strip()
+
+    all_active = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).all()
+    categories = _get_app_categories()
+
+    # User auth
+    user_id = None
+    init_data = request.args.get('initData')
+    if init_data:
+        user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
+        if user_data:
+            user_id = user_data.get('id')
+    purchased_ids = set()
+    if user_id:
+        purchases = Purchase.query.filter_by(user_id=user_id, is_verified=True).all()
+        purchased_ids = {p.product_id for p in purchases}
+
+    return render_template(
+        'products.html',
+        products=all_active,
+        categories=categories,
+        q=q,
+        active_cat=cat,
+        purchased_ids=purchased_ids,
+        user_id=user_id,
+        r2_url=get_r2_url,
     )
 
 

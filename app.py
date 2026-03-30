@@ -183,6 +183,14 @@ def migrate_database():
                 print("  ➕ Adding app_settings.custom_js...")
                 with db.engine.begin() as conn:
                     conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN custom_js TEXT DEFAULT ''"))
+            if 'custom_html' not in columns:
+                print("  ➕ Adding app_settings.custom_html...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN custom_html TEXT DEFAULT ''"))
+            if 'categories' not in columns:
+                print("  ➕ Adding app_settings.categories...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN categories TEXT DEFAULT '[]'"))
 
         print("✅ Database schema up to date")
     

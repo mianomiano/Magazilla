@@ -768,13 +768,13 @@
         }
     </style>
 {% if settings and settings.custom_head %}{{settings.custom_head|safe}}{% endif %}
-{% if settings and settings.custom_css %}<style>{{settings.custom_css|safe}}</style>{% endif %}
 </head>
 <body>
 {% if settings.background_svg %}
 <div id="bg-svg-layer">{{settings.background_svg|safe}}</div>
 {% endif %}
     <div class="app-container">
+        {% if settings and settings.custom_html %}<div id="custom-html-banner">{{settings.custom_html|safe}}</div>{% endif %}
         {%block content%}{%endblock%}
     </div>
     
@@ -913,6 +913,5 @@
     })();
     </script>
     {%block scripts%}{%endblock%}
-{% if settings and settings.custom_js %}<script>{{settings.custom_js|safe}}</script>{% endif %}
 </body>
 </html>

@@ -32,19 +32,21 @@
 {# ─── product_grid ─────────────────────────────────────── #}
 {%if block.block_type == 'product_grid'%}
 {%set cfg = block.get_config()%}
-{%if settings.show_filters%}
-<div class="category-filter">
-<button class="filter-btn active" data-category="all">All</button>
-<button class="filter-btn" data-category="free">🆓 Free</button>
-{%for c in categories%}
-<button class="filter-btn" data-category="{{c}}">{{c}}</button>
-{%endfor%}
-</div>
+{%set pid_list = cfg.get('product_ids', [])%}
+{%if pid_list%}
+  {%set grid_products = pid_list | map('int') | map(attribute=none) | list%}
+  {# resolve from all_products map #}
+  {%set grid_products = []%}
+  {%for pid in pid_list%}
+    {%if all_products.get(pid)%}{%set _ = grid_products.append(all_products[pid])%}{%endif%}
+  {%endfor%}
+{%else%}
+  {%set grid_products = products%}
 {%endif%}
 <div class="content">
-{%if products%}
+{%if grid_products%}
 <div class="products-grid">
-{%for p in products%}
+{%for p in grid_products%}
 <div class="product-card" data-category="{{p.category}}" data-free="{{'true' if p.is_free else 'false'}}" onclick="viewProduct({{p.id}})">
 <div class="product-thumbnail">
 {%if p.thumbnail%}
@@ -69,6 +71,7 @@
 </div>
 {%endfor%}
 </div>
+<a href="{{url_for('public_bp.products_page')}}" class="neu-btn" style="width:100%;text-align:center;margin-top:14px;display:block">🛍 Browse All Products →</a>
 {%else%}
 <div class="empty-state"><div class="empty-state-icon">📦</div><p class="empty-state-text">No products available</p></div>
 {%endif%}

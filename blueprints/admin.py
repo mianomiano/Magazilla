@@ -157,9 +157,14 @@ def purchases():
 @admin_required
 def new_product():
     """Create new product"""
-    categories = list(set([
-        c[0] for c in db.session.query(Product.category).distinct().all()
-    ] + ['Icons', 'UI Kits', 'Templates', 'Stickers', 'General']))
+    import json as _json
+    _app_s = AppSettings.query.first()
+    try:
+        categories = _json.loads(_app_s.categories or '[]') if _app_s else []
+    except Exception:
+        categories = []
+    if not categories:
+        categories = ['Icons', 'UI Kits', 'Templates', 'Stickers', 'General']
     
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -238,10 +243,15 @@ def new_product():
 @admin_required
 def edit_product(pid):
     """Edit existing product"""
+    import json as _json
     product = Product.query.get_or_404(pid)
-    categories = list(set([
-        c[0] for c in db.session.query(Product.category).distinct().all()
-    ] + ['Icons', 'UI Kits', 'Templates', 'Stickers', 'General']))
+    _app_s = AppSettings.query.first()
+    try:
+        categories = _json.loads(_app_s.categories or '[]') if _app_s else []
+    except Exception:
+        categories = []
+    if not categories:
+        categories = ['Icons', 'UI Kits', 'Templates', 'Stickers', 'General']
     
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -349,6 +359,14 @@ def settings():
         db.session.add(app_settings)
         db.session.commit()
     
+    import json as _json
+    # Parse categories from AppSettings
+    try:
+        cats_list = _json.loads(app_settings.categories or '[]')
+    except Exception:
+        cats_list = []
+    categories_text = '\n'.join(cats_list)
+
     if request.method == 'POST':
         app_settings.app_name = request.form.get('app_name', 'Magazilla').strip()
 
@@ -362,15 +380,18 @@ def settings():
                     app_settings.logo_path = key
 
         app_settings.custom_head = request.form.get('custom_head', '').strip()
-        app_settings.custom_css = request.form.get('custom_css', '').strip()
-        app_settings.custom_js = request.form.get('custom_js', '').strip()
+        app_settings.custom_html = request.form.get('custom_html', '').strip()
+
+        raw_cats = request.form.get('categories', '')
+        cats = [c.strip() for c in raw_cats.splitlines() if c.strip()]
+        app_settings.categories = _json.dumps(cats)
 
         db.session.commit()
         log_admin_action('update_settings', 'App settings updated')
         flash('Settings updated!', 'success')
         return redirect(url_for('admin_bp.dashboard'))
-    
-    return render_template('settings.html', settings=app_settings)
+
+    return render_template('settings.html', settings=app_settings, categories_text=categories_text)
     
 @admin_bp.route('/remove-logo', methods=['POST'])
 @admin_required
@@ -594,7 +615,11 @@ def builder_edit(bid):
 
         cfg = block.get_config()
 
-        if block.block_type == 'featured_product':
+        if block.block_type == 'product_grid':
+            product_ids = request.form.getlist('product_ids')
+            cfg['product_ids'] = [int(i) for i in product_ids if i]
+
+        elif block.block_type == 'featured_product':
             pid = request.form.get('product_id')
             if pid:
                 cfg['product_id'] = int(pid)

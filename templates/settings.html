@@ -44,25 +44,24 @@
 </div>
 </div>
 
-<h2 style="margin:20px 0 12px;font-size:0.85rem;color:var(--td)">🧩 Custom Code Injection</h2>
-<p style="font-size:0.72rem;color:var(--tm);margin-bottom:14px;line-height:1.5">Injected on every page. Use for analytics, custom fonts, meta tags, or any overrides.</p>
+<h2 style="margin:20px 0 12px;font-size:0.85rem;color:var(--td)">🗂 Product Categories</h2>
+<p style="font-size:0.72rem;color:var(--tm);margin-bottom:10px;line-height:1.5">Define available categories. One per line. Used as dropdown options when creating/editing products and as filter tabs on the Shop page.</p>
+<div class="neu-input-group">
+<textarea name="categories" class="neu-input" rows="6" style="resize:vertical" placeholder="Icons&#10;UI Kits&#10;Templates&#10;Stickers&#10;Fonts&#10;General">{{categories_text}}</textarea>
+</div>
+
+<h2 style="margin:20px 0 12px;font-size:0.85rem;color:var(--td)">🧩 Custom Code</h2>
 
 <div class="neu-input-group">
-<label style="display:flex;align-items:center;gap:6px"><span style="background:var(--a);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-weight:700">&lt;HEAD&gt;</span> Extra &lt;head&gt; tags</label>
-<p style="font-size:0.68rem;color:var(--tm);margin:4px 0 8px">Meta tags, link tags, external scripts (e.g. Google Analytics snippet)</p>
-<textarea name="custom_head" class="neu-input" rows="4" style="font-family:monospace;font-size:0.75rem;resize:vertical" placeholder="<!-- e.g. <meta name=&quot;theme-color&quot; content=&quot;#000&quot;> -->">{{settings.custom_head or ''}}</textarea>
+<label style="display:flex;align-items:center;gap:6px"><span style="background:var(--a);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-weight:700">&lt;HEAD&gt;</span> Head Tags</label>
+<p style="font-size:0.68rem;color:var(--tm);margin:4px 0 8px">Analytics, meta tags, external font or CDN links. Injected inside &lt;head&gt; on every page.</p>
+<textarea name="custom_head" class="neu-input" rows="3" style="font-family:monospace;font-size:0.75rem;resize:vertical" placeholder="<!-- e.g. Google Analytics or custom meta tags -->">{{settings.custom_head or ''}}</textarea>
 </div>
 
 <div class="neu-input-group">
-<label style="display:flex;align-items:center;gap:6px"><span style="background:#1a73e8;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-weight:700">CSS</span> Custom CSS</label>
-<p style="font-size:0.68rem;color:var(--tm);margin:4px 0 8px">Override styles. Write plain CSS rules, no &lt;style&gt; tags needed.</p>
-<textarea name="custom_css" class="neu-input" rows="6" style="font-family:monospace;font-size:0.75rem;resize:vertical" placeholder="/* e.g. body { font-size: 15px; } */">{{settings.custom_css or ''}}</textarea>
-</div>
-
-<div class="neu-input-group">
-<label style="display:flex;align-items:center;gap:6px"><span style="background:#f4a800;color:#000;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-weight:700">JS</span> Custom JavaScript</label>
-<p style="font-size:0.68rem;color:var(--tm);margin:4px 0 8px">Runs after page load. Write plain JS, no &lt;script&gt; tags needed.</p>
-<textarea name="custom_js" class="neu-input" rows="6" style="font-family:monospace;font-size:0.75rem;resize:vertical" placeholder="// e.g. console.log('hello world');">{{settings.custom_js or ''}}</textarea>
+<label style="display:flex;align-items:center;gap:6px"><span style="background:#e84393;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:4px;font-weight:700">HTML</span> Custom Banner / Header Block</label>
+<p style="font-size:0.68rem;color:var(--tm);margin:4px 0 8px">Full HTML block shown at the top of every page. You can include inline &lt;style&gt; and &lt;script&gt; tags for animated banners, countdown timers, announcement bars, etc. No need for &lt;html&gt;, &lt;body&gt; or &lt;head&gt; wrappers.</p>
+<textarea name="custom_html" class="neu-input" rows="8" style="font-family:monospace;font-size:0.75rem;resize:vertical" placeholder="&lt;div class=&quot;my-banner&quot;&gt;Hello!&lt;/div&gt;&#10;&lt;style&gt;.my-banner { background: red; color: white; padding: 12px; text-align: center; }&lt;/style&gt;">{{settings.custom_html or ''}}</textarea>
 </div>
 
 <button type="submit" class="neu-btn neu-btn-primary neu-btn-full" style="margin-top:12px">💾 Save Settings</button>
@@ -82,7 +81,6 @@ function previewLogo(input) {
         const file = input.files[0];
         const container = document.getElementById('logo_preview');
         document.getElementById('logo_label').textContent = file.name;
-        
         if(file.type.startsWith('video/')) {
             container.innerHTML = '<video autoplay loop muted playsinline style="max-width:100%;max-height:150px;border-radius:12px"><source src="'+URL.createObjectURL(file)+'" type="'+file.type+'"></video>';
         } else {

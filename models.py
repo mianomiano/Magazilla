@@ -82,8 +82,10 @@ class AppSettings(db.Model):
 
     # Custom code injection
     custom_head = db.Column(db.Text, default='')  # injected inside <head>
-    custom_css = db.Column(db.Text, default='')   # injected as <style>
-    custom_js = db.Column(db.Text, default='')    # injected as <script>
+    custom_html = db.Column(db.Text, default='')  # HTML banner (with inline style/script) injected at top of page
+
+    # Product categories (JSON list of strings)
+    categories = db.Column(db.Text, default='[]')
 
 
 class AdminAuditLog(db.Model):

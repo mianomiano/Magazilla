@@ -1,0 +1,211 @@
+{%extends 'base.html'%}
+{%block content%}
+
+{# ── Header ── #}
+{%if settings.logo_path or settings.app_name%}
+<header class="header">
+<div class="header-inner">
+<a href="{{url_for('public_bp.index')}}" style="text-decoration:none;display:flex;align-items:center;gap:6px;color:var(--td);font-size:0.8rem;font-weight:600">← Back</a>
+<div class="logo-area" style="flex:1;text-align:center">
+{%if settings.logo_path%}
+{%set logo_url=r2_url(settings.logo_path)%}
+{%if settings.logo_path.endswith('.webm')%}
+<video autoplay loop muted playsinline style="max-height:44px"><source src="{{logo_url}}" type="video/webm"></video>
+{%else%}
+<img src="{{logo_url}}" alt="{{settings.app_name}}" style="max-height:44px">
+{%endif%}
+{%elif settings.app_name%}
+<span class="logo-text">{{settings.app_name}}</span>
+{%endif%}
+</div>
+<div style="width:48px"></div>
+</div>
+</header>
+{%endif%}
+
+<div class="content">
+
+{# ── Search + Title ── #}
+<div style="margin-bottom:14px">
+<h2 style="font-size:1rem;font-weight:700;color:var(--td);margin-bottom:12px">🛍 All Products</h2>
+<div style="position:relative">
+<input id="search-input" type="search" placeholder="Search products…" value="{{q}}"
+    style="width:100%;padding:10px 36px 10px 14px;border-radius:12px;border:none;background:var(--pl);color:var(--td);font-size:0.9rem;box-shadow:inset 2px 2px 6px var(--sd),inset -2px -2px 6px var(--sl);outline:none"
+    oninput="filterProducts()">
+<span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);opacity:0.5;pointer-events:none">🔍</span>
+</div>
+</div>
+
+{# ── Category Filter Pills ── #}
+{%if categories%}
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px" id="cat-filter">
+<button class="filter-btn {{'active' if not active_cat else ''}}" data-cat="" onclick="setCat(this,'')">All</button>
+<button class="filter-btn {{'active' if active_cat=='__free__' else ''}}" data-cat="__free__" onclick="setCat(this,'__free__')">🆓 Free</button>
+{%for c in categories%}
+<button class="filter-btn {{'active' if active_cat==c else ''}}" data-cat="{{c}}" onclick="setCat(this,'{{c}}')">{{c}}</button>
+{%endfor%}
+</div>
+{%endif%}
+
+{# ── No products state ── #}
+{%if not products%}
+<div class="empty-state">
+<div class="empty-state-icon">📦</div>
+<p class="empty-state-text">No products yet</p>
+</div>
+{%else%}
+
+{# ── Featured First Product ── #}
+{%set fp = products[0]%}
+<div id="featured-card" class="neu-card" style="margin-bottom:18px;display:flex;gap:14px;align-items:stretch;padding:0;overflow:hidden;cursor:pointer" onclick="window.location='/product/{{fp.id}}'">
+<div style="width:42%;min-height:140px;background:var(--pl);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
+{%if fp.thumbnail%}
+{%set fthumb=r2_url(fp.thumbnail)%}
+{%if fp.thumbnail.endswith('.webm')%}
+<video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:contain"><source src="{{fthumb}}" type="video/webm"></video>
+{%else%}
+<img src="{{fthumb}}" alt="{{fp.name}}" style="width:100%;height:100%;object-fit:contain">
+{%endif%}
+{%else%}
+<span style="font-size:3rem">🎨</span>
+{%endif%}
+</div>
+<div style="flex:1;padding:14px 14px 14px 0;display:flex;flex-direction:column;justify-content:space-between;min-width:0">
+<div>
+<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+<span style="background:var(--a);color:#fff;font-size:0.6rem;font-weight:800;letter-spacing:0.06em;padding:2px 7px;border-radius:4px;text-transform:uppercase">NEW</span>
+{%if fp.category%}<span style="font-size:0.65rem;color:var(--a);border:1px solid var(--a);border-radius:10px;padding:1px 7px">{{fp.category}}</span>{%endif%}
+</div>
+<h3 style="font-size:0.95rem;font-weight:700;color:var(--a);margin:0 0 5px;line-height:1.2">{{fp.name}}</h3>
+{%if fp.description%}
+<p style="font-size:0.75rem;color:var(--tm);line-height:1.4;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">{{fp.description.split('-')[0].strip()}}</p>
+{%endif%}
+</div>
+<div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+<span style="font-size:0.85rem;font-weight:700;color:var(--td)">{%if fp.is_free%}Free{%else%}⭐ {{fp.price}}{%endif%}</span>
+<span style="font-size:0.7rem;background:var(--a);color:#fff;padding:3px 10px;border-radius:8px">View →</span>
+</div>
+</div>
+</div>
+
+{# ── Products Grid ── #}
+<div id="products-list">
+{%if products | length > 1%}
+<div class="products-grid" id="products-grid">
+{%for p in products[1:]%}
+<div class="product-card" data-name="{{p.name | lower}}" data-category="{{p.category}}" data-free="{{'true' if p.is_free else 'false'}}" onclick="viewProduct({{p.id}})">
+<div class="product-thumbnail">
+{%if p.thumbnail%}
+{%set thumb_url=r2_url(p.thumbnail)%}
+{%if p.thumbnail.endswith('.webm')%}
+<video autoplay loop muted playsinline><source src="{{thumb_url}}" type="video/webm"></video>
+{%else%}
+<img src="{{thumb_url}}" alt="{{p.name}}">
+{%endif%}
+{%else%}
+<span class="placeholder-icon">🎨</span>
+{%endif%}
+<span class="product-badge {%if p.is_free%}badge-free{%else%}badge-paid{%endif%}">
+{%if p.is_free%}FREE{%else%}⭐{{p.price}}{%endif%}
+</span>
+</div>
+<div class="product-info">
+<h3 class="product-name">{{p.name}}</h3>
+<p class="product-category">{{p.category}}</p>
+<div class="product-price {%if p.is_free%}free{%else%}paid{%endif%}">{%if p.is_free%}Free{%else%}⭐{{p.price}}{%endif%}</div>
+</div>
+</div>
+{%endfor%}
+</div>
+{%endif%}
+<div id="no-results" style="display:none" class="empty-state">
+<div class="empty-state-icon">🔍</div>
+<p class="empty-state-text">No products match your search</p>
+</div>
+</div>
+
+{%endif%}
+</div>
+
+<script>
+let currentCat = '{{active_cat}}';
+
+function viewProduct(pid) {
+    window.location = '/product/' + pid;
+}
+
+function setCat(btn, cat) {
+    currentCat = cat;
+    document.querySelectorAll('#cat-filter .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterProducts();
+}
+
+function filterProducts() {
+    const q = document.getElementById('search-input').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('#products-grid .product-card');
+    const featured = document.getElementById('featured-card');
+    let visibleCount = 0;
+
+    // Apply filter to featured card (always product[0])
+    {%if products%}
+    const fp = {
+        name: '{{products[0].name | lower | replace("'", "\\'")}}',
+        category: '{{products[0].category | lower}}',
+        isFree: {{'true' if products[0].is_free else 'false'}}
+    };
+    const featMatch = matchProduct(fp.name, fp.category, fp.isFree, q, currentCat);
+    featured.style.display = featMatch ? 'flex' : 'none';
+    if (featMatch) visibleCount++;
+    {%endif%}
+
+    cards.forEach(card => {
+        const name = card.getAttribute('data-name') || '';
+        const cat = card.getAttribute('data-category') || '';
+        const isFree = card.getAttribute('data-free') === 'true';
+        const show = matchProduct(name, cat.toLowerCase(), isFree, q, currentCat);
+        card.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+    });
+
+    document.getElementById('no-results').style.display = visibleCount === 0 ? 'block' : 'none';
+}
+
+function matchProduct(name, cat, isFree, q, currentCat) {
+    if (q && !name.includes(q)) return false;
+    if (currentCat === '__free__' && !isFree) return false;
+    if (currentCat && currentCat !== '__free__' && cat !== currentCat.toLowerCase()) return false;
+    return true;
+}
+
+// Apply initial filter if URL has q or cat params
+window.addEventListener('DOMContentLoaded', function() {
+    const q = '{{q}}';
+    if (q) {
+        document.getElementById('search-input').value = q;
+    }
+    filterProducts();
+});
+</script>
+
+<style>
+.filter-btn {
+    background: var(--pl);
+    border: none;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.75rem;
+    color: var(--tm);
+    cursor: pointer;
+    box-shadow: 3px 3px 8px var(--sd), -3px -3px 8px var(--sl);
+    transition: all 0.15s;
+    font-family: inherit;
+    white-space: nowrap;
+}
+.filter-btn.active {
+    background: var(--a);
+    color: #fff;
+    box-shadow: none;
+}
+</style>
+{%endblock%}
