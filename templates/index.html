@@ -80,24 +80,31 @@
 {%set fp = all_products.get(cfg.get('product_id'))%}
 {%if fp%}
 <div class="content" style="margin-bottom:0">
-<div class="neu-card" onclick="viewProduct({{fp.id}})" style="cursor:pointer;display:flex;gap:14px;align-items:center">
-<div style="width:80px;height:80px;flex-shrink:0;border-radius:12px;overflow:hidden;background:var(--pl)">
+<div class="neu-card featured-hero" onclick="viewProduct({{fp.id}})" style="cursor:pointer;overflow:hidden;padding:0">
 {%if fp.thumbnail%}
 {%set tu=r2_url(fp.thumbnail)%}
+<div style="width:100%;aspect-ratio:16/7;position:relative;overflow:hidden;background:var(--pl)">
 {%if fp.thumbnail.endswith('.webm')%}
 <video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"><source src="{{tu}}" type="video/webm"></video>
 {%else%}
-<img src="{{tu}}" alt="{{fp.name}}" style="width:100%;height:100%;object-fit:cover">
+<img src="{{tu}}" alt="{{fp.name}}" style="width:100%;height:100%;object-fit:cover;display:block">
 {%endif%}
-{%else%}
-<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:1.8rem">🎨</div>
-{%endif%}
+<span style="position:absolute;top:10px;left:10px;background:var(--a);color:var(--p);font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:20px">⭐ Featured</span>
+<span style="position:absolute;top:10px;right:10px;background:var(--pl);backdrop-filter:blur(8px);color:{{'var(--s)' if fp.is_free else 'var(--a)'}};font-size:0.78rem;font-weight:700;padding:4px 10px;border-radius:20px">
+{%if fp.is_free%}FREE{%else%}⭐{{fp.price}}{%endif%}
+</span>
 </div>
-<div style="flex:1;min-width:0">
-<div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--td);margin-bottom:3px">⭐ Featured</div>
-<div style="font-weight:700;font-size:1rem;margin-bottom:4px">{{fp.name}}</div>
-<div style="font-size:0.85rem;color:{{'var(--s)' if fp.is_free else 'var(--a)'}}">
-{%if fp.is_free%}Free{%else%}⭐{{fp.price}} Stars{%endif%}
+{%else%}
+<div style="width:100%;aspect-ratio:16/7;display:flex;align-items:center;justify-content:center;font-size:4rem;background:var(--pl);position:relative">🎨
+<span style="position:absolute;top:10px;left:10px;background:var(--a);color:var(--p);font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:3px 8px;border-radius:20px">⭐ Featured</span>
+</div>
+{%endif%}
+<div style="padding:14px 16px 16px">
+<div style="font-size:0.72rem;color:var(--td);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">{{fp.category}}</div>
+<h3 style="font-size:1.1rem;font-weight:800;margin:0 0 10px">{{fp.name}}</h3>
+{%if fp.description%}<p style="font-size:0.83rem;color:var(--td);margin:0 0 12px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{fp.description}}</p>{%endif%}
+<div class="neu-btn neu-btn-primary" style="display:inline-block;font-size:0.82rem;padding:8px 18px">
+{%if fp.is_free%}⬇️ Get Free{%else%}⭐ Buy for {{fp.price}} Stars{%endif%}
 </div>
 </div>
 </div>
@@ -111,18 +118,31 @@
 {%set shown_posts = recent_posts[:limit]%}
 {%if shown_posts%}
 <div class="content" style="margin-bottom:0">
-<div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--td);margin-bottom:10px">📝 Latest Posts</div>
+<div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--td);margin-bottom:12px">📝 Latest Posts</div>
 {%for post in shown_posts%}
-<a href="{{url_for('public_bp.blog_post', slug=post.slug)}}" style="text-decoration:none;color:inherit;display:block;margin-bottom:10px">
-<div class="neu-card" style="display:flex;gap:12px;align-items:center;padding:12px">
+<a href="{{url_for('public_bp.blog_post', slug=post.slug)}}" style="text-decoration:none;color:inherit;display:block;margin-bottom:14px">
+<div class="neu-card" style="overflow:hidden;padding:0">
 {%if post.cover_image%}
-<div style="width:54px;height:54px;flex-shrink:0;border-radius:8px;overflow:hidden"><img src="{{r2_url(post.cover_image)}}" alt="{{post.title}}" style="width:100%;height:100%;object-fit:cover"></div>
+{%set cover_url=r2_url(post.cover_image)%}
+<div style="width:100%;aspect-ratio:16/7;overflow:hidden;background:var(--pl)">
+{%if post.cover_image.endswith('.webm') or post.cover_image.endswith('.mp4')%}
+<video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"><source src="{{cover_url}}"></video>
 {%else%}
-<div style="width:54px;height:54px;flex-shrink:0;border-radius:8px;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:1.4rem">📝</div>
+<img src="{{cover_url}}" alt="{{post.title}}" style="width:100%;height:100%;object-fit:cover;display:block">
 {%endif%}
-<div style="flex:1;min-width:0">
-<div style="font-weight:600;font-size:0.88rem;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{post.title}}</div>
-<div style="font-size:0.75rem;color:var(--tm)">{{post.created_at.strftime('%b %d') if post.created_at else ''}}</div>
+</div>
+{%else%}
+<div style="width:100%;aspect-ratio:16/7;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:2.5rem">📝</div>
+{%endif%}
+<div style="padding:12px 14px 14px">
+<div style="font-weight:700;font-size:0.95rem;margin-bottom:6px;line-height:1.35">{{post.title}}</div>
+{%if post.excerpt%}<div style="font-size:0.8rem;color:var(--td);line-height:1.45;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{post.excerpt}}</div>{%endif%}
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+<span style="font-size:0.72rem;color:var(--td)">{{post.created_at.strftime('%b %d, %Y') if post.created_at else ''}}</span>
+<div style="display:flex;gap:4px;flex-wrap:wrap">
+{%for t in post.tag_list()[:3]%}<span style="font-size:0.68rem;background:var(--pl);border-radius:4px;padding:2px 7px;color:var(--td)">{{t}}</span>{%endfor%}
+</div>
+</div>
 </div>
 </div>
 </a>
@@ -252,4 +272,48 @@
 
 {%endif%}
 
+{%endblock%}
+
+{%block scripts%}
+<script>
+const tg = window.Telegram?.WebApp;
+const isTelegramWebApp = !!(tg && tg.initData && tg.initData.length > 0);
+
+async function handleDonation(amount) {
+    if (!isTelegramWebApp) {
+        alert('Please open in Telegram to donate.');
+        return;
+    }
+    const btn = event && event.currentTarget;
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Loading…'; }
+    try {
+        const res = await fetch('/api/create-donation-invoice', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': tg.initData },
+            body: JSON.stringify({ amount })
+        });
+        const data = await res.json();
+        if (data.invoice_link) {
+            tg.openInvoice(data.invoice_link, (status) => {
+                if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.label || '💜 Donate'; }
+                if (status === 'paid') {
+                    tg.showAlert('💜 Thank you for your support!');
+                }
+            });
+        } else {
+            if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.label || '💜 Donate'; }
+            alert(data.error || 'Could not create donation invoice');
+        }
+    } catch (e) {
+        if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.label || '💜 Donate'; }
+        alert('Error: ' + e.message);
+    }
+}
+
+document.querySelectorAll('[onclick^="handleDonation"]').forEach(btn => {
+    btn.dataset.label = btn.innerHTML;
+});
+
+if (tg) { tg.expand(); tg.ready(); }
+</script>
 {%endblock%}

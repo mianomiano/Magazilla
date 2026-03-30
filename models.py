@@ -12,10 +12,18 @@ class Product(db.Model):
     is_free = db.Column(db.Boolean, default=True)
     category = db.Column(db.String(100), default='General')
     thumbnail = db.Column(db.String(500))
+    images = db.Column(db.Text, default='[]')          # JSON array of R2 keys
     file_path = db.Column(db.String(500))
     download_count = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
+
+    def get_images(self):
+        import json
+        try:
+            return json.loads(self.images or '[]')
+        except Exception:
+            return []
     
     def to_dict(self):
         return {
@@ -67,6 +75,7 @@ class AppSettings(db.Model):
     card_info = db.Column(db.String(20), default='full')  # full, minimal, image
     header_size = db.Column(db.String(20), default='normal')  # compact, normal, tall
     show_filters = db.Column(db.Boolean, default=True)
+    background_svg = db.Column(db.Text, default='')    # SVG code or R2 key
 
 
 class AdminAuditLog(db.Model):
@@ -128,6 +137,7 @@ class BlogPost(db.Model):
     excerpt = db.Column(db.Text, default='')
     content = db.Column(db.Text, default='')
     cover_image = db.Column(db.String(500), default='')            # R2 key
+    images = db.Column(db.Text, default='[]')                      # JSON array of R2 keys
     tags = db.Column(db.String(500), default='')                   # comma-separated
     is_published = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -135,3 +145,10 @@ class BlogPost(db.Model):
 
     def tag_list(self):
         return [t.strip() for t in (self.tags or '').split(',') if t.strip()]
+
+    def get_images(self):
+        import json
+        try:
+            return json.loads(self.images or '[]')
+        except Exception:
+            return []

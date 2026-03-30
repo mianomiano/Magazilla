@@ -73,6 +73,47 @@ def create_invoice():
         return jsonify({'error': 'Internal server error'}), 500
 
 
+@api_bp.route('/create-donation-invoice', methods=['POST'])
+@limiter.limit("10 per minute")
+@telegram_auth_required
+def create_donation_invoice():
+    """Create Telegram Stars invoice for donation"""
+    try:
+        data = request.json
+        amount = data.get('amount')
+        if not amount or int(amount) < 1:
+            return jsonify({'error': 'amount required (min 1 Star)'}), 400
+
+        amount = int(amount)
+        settings = AppSettings.query.first()
+        app_name = settings.app_name if settings else 'Magazilla'
+        user_id = get_telegram_user_id()
+
+        bot_token = Config.BOT_TOKEN
+        url = f"https://api.telegram.org/bot{bot_token}/createInvoiceLink"
+
+        payload = {
+            'title': f'Donate to {app_name}'[:32],
+            'description': f'Support {app_name} with {amount} Stars — thank you!'[:255],
+            'payload': json.dumps({'type': 'donation', 'user_id': user_id, 'amount': amount}),
+            'provider_token': '',
+            'currency': 'XTR',
+            'prices': json.dumps([{'label': 'Donation', 'amount': amount}])
+        }
+
+        response = requests.post(url, data=payload, timeout=10)
+        result = response.json()
+
+        if result.get('ok'):
+            return jsonify({'invoice_link': result['result']})
+        else:
+            return jsonify({'error': result.get('description', 'Failed to create invoice')}), 400
+
+    except Exception as e:
+        print(f"Donation invoice error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
 @api_bp.route('/webhook/telegram', methods=['POST'])
 def telegram_webhook():
     """Telegram webhook - verified by Telegram's servers"""

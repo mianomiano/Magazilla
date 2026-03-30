@@ -623,6 +623,26 @@
             padding: 0 !important; 
             aspect-ratio: auto !important;
         }
+
+        /* Background SVG */
+        {% if settings.background_svg %}
+        #bg-svg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 0.06;
+        }
+        #bg-svg-layer svg {
+            width: 100%;
+            height: 100%;
+        }
+        .app-container {
+            position: relative;
+            z-index: 1;
+        }
+        {% endif %}
         
         /* ==================== SHOW/HIDE FILTERS ==================== */
         
@@ -738,6 +758,9 @@
     </style>
 </head>
 <body>
+{% if settings.background_svg %}
+<div id="bg-svg-layer">{{settings.background_svg|safe}}</div>
+{% endif %}
     <div class="app-container">
         {%block content%}{%endblock%}
     </div>
@@ -876,5 +899,6 @@
         }
     })();
     </script>
+    {%block scripts%}{%endblock%}
 </body>
 </html>

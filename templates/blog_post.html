@@ -27,8 +27,15 @@
 </div>
 
 {%if post.cover_image%}
-<div style="width:100%;max-height:240px;border-radius:16px;overflow:hidden;margin-bottom:20px">
-    <img src="{{r2_url(post.cover_image)}}" alt="{{post.title}}" style="width:100%;height:100%;object-fit:cover;display:block">
+{%set cover_url=r2_url(post.cover_image)%}
+<div style="width:100%;max-height:300px;border-radius:16px;overflow:hidden;margin-bottom:20px">
+{%if post.cover_image.endswith('.webm') or post.cover_image.endswith('.mp4')%}
+<video autoplay loop muted playsinline style="width:100%;max-height:300px;object-fit:cover;display:block">
+<source src="{{cover_url}}" type="{{'video/webm' if post.cover_image.endswith('.webm') else 'video/mp4'}}">
+</video>
+{%else%}
+<img src="{{cover_url}}" alt="{{post.title}}" style="width:100%;max-height:300px;object-fit:cover;display:block">
+{%endif%}
 </div>
 {%endif%}
 
@@ -51,6 +58,37 @@
     {{post.content|safe}}
 </div>
 
+{# ─── Gallery carousel ─────────────────────────────────── #}
+{%set gallery = post.get_images()%}
+{%if gallery%}
+<div style="margin-top:28px;margin-bottom:24px">
+<div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--td);margin-bottom:12px">🖼️ Gallery</div>
+<div id="blog-gallery" style="position:relative">
+<div id="gallery-track" style="display:flex;overflow-x:auto;gap:10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:8px;scrollbar-width:none">
+{%for img_key in gallery%}
+{%set img_url=r2_url(img_key)%}
+<div style="flex:0 0 80%;max-width:320px;scroll-snap-align:start;border-radius:12px;overflow:hidden;background:var(--pl)">
+{%if img_key.endswith('.webm') or img_key.endswith('.mp4')%}
+<video autoplay loop muted playsinline style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">
+<source src="{{img_url}}" type="{{'video/webm' if img_key.endswith('.webm') else 'video/mp4'}}">
+</video>
+{%else%}
+<img src="{{img_url}}" alt="Gallery image {{loop.index}}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">
+{%endif%}
+</div>
+{%endfor%}
+</div>
+{%if gallery|length > 1%}
+<div style="display:flex;justify-content:center;gap:6px;margin-top:10px" id="gallery-dots">
+{%for img_key in gallery%}
+<div class="gdot {{'gdot-active' if loop.first else ''}}" data-idx="{{loop.index0}}" style="width:7px;height:7px;border-radius:50%;background:{{'var(--secondary)' if loop.first else 'var(--card-border)'}};cursor:pointer;transition:background 0.2s"></div>
+{%endfor%}
+</div>
+{%endif%}
+</div>
+</div>
+{%endif%}
+
 <div style="margin-top:32px;padding-top:20px;border-top:1px solid var(--cb)">
     <a href="{{url_for('public_bp.blog')}}" class="neu-btn">← More Posts</a>
     <a href="{{url_for('public_bp.index')}}" class="neu-btn" style="margin-left:8px">🛒 Store</a>
@@ -68,5 +106,28 @@
 .blog-content blockquote { border-left:3px solid var(--s);padding-left:14px;color:var(--td);margin:16px 0;font-style:italic }
 .blog-content code { background:var(--pl);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.87em }
 .blog-content pre { background:var(--pl);padding:14px;border-radius:10px;overflow-x:auto;font-family:monospace;font-size:0.85em;margin-bottom:14px }
+#gallery-track::-webkit-scrollbar { display:none }
 </style>
+
+<script>
+(function(){
+    const track = document.getElementById('gallery-track');
+    const dots = document.querySelectorAll('.gdot');
+    if (!track || !dots.length) return;
+    track.addEventListener('scroll', function() {
+        const idx = Math.round(track.scrollLeft / track.clientWidth);
+        dots.forEach((d,i) => {
+            d.style.background = i === idx ? 'var(--secondary)' : 'var(--card-border)';
+        });
+    }, { passive: true });
+    dots.forEach(d => {
+        d.addEventListener('click', function() {
+            const items = track.children;
+            if (items[d.dataset.idx]) {
+                items[d.dataset.idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+            }
+        });
+    });
+})();
+</script>
 {%endblock%}

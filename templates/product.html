@@ -73,8 +73,61 @@
 <!-- Status message area -->
 <div id="status-message" style="display:none;margin-top:12px;padding:12px;border-radius:10px;text-align:center;font-size:0.85rem;"></div>
 
+{# ─── Image gallery ──────────────────────────────────────── #}
+{%set gallery = product.get_images()%}
+{%if gallery%}
+<div style="margin-top:24px">
+<div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px">🖼️ Gallery</div>
+<div id="prod-gallery-track" style="display:flex;overflow-x:auto;gap:10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:6px;scrollbar-width:none">
+{%for img_key in gallery%}
+{%set img_url=r2_url(img_key)%}
+<div style="flex:0 0 85%;max-width:340px;scroll-snap-align:start;border-radius:12px;overflow:hidden;background:var(--primary-light)">
+{%if img_key.endswith('.webm') or img_key.endswith('.mp4')%}
+<video autoplay loop muted playsinline style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">
+<source src="{{img_url}}" type="{{'video/webm' if img_key.endswith('.webm') else 'video/mp4'}}">
+</video>
+{%else%}
+<img src="{{img_url}}" alt="Product image {{loop.index}}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">
+{%endif%}
+</div>
+{%endfor%}
+</div>
+{%if gallery|length > 1%}
+<div style="display:flex;justify-content:center;gap:6px;margin-top:8px" id="prod-gallery-dots">
+{%for img_key in gallery%}
+<div class="pgdot" data-idx="{{loop.index0}}" style="width:7px;height:7px;border-radius:50%;background:{{'var(--secondary)' if loop.first else 'var(--card-border)'}};cursor:pointer;transition:background 0.2s"></div>
+{%endfor%}
+</div>
+{%endif%}
+</div>
+{%endif%}
+
 </div>
 </div>
+
+<style>
+#prod-gallery-track::-webkit-scrollbar { display:none }
+</style>
+
+<script>
+(function(){
+    const track = document.getElementById('prod-gallery-track');
+    const dots = document.querySelectorAll('.pgdot');
+    if (!track || !dots.length) return;
+    track.addEventListener('scroll', function() {
+        const idx = Math.round(track.scrollLeft / track.clientWidth);
+        dots.forEach((d,i) => {
+            d.style.background = i === idx ? 'var(--secondary)' : 'var(--card-border)';
+        });
+    }, { passive: true });
+    dots.forEach(d => {
+        d.addEventListener('click', function() {
+            const items = track.children;
+            if (items[d.dataset.idx]) items[d.dataset.idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+        });
+    });
+})();
+</script>
 
 <script>
 // Bot username from config

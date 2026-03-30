@@ -131,6 +131,7 @@ def migrate_database():
                 'slug': 'VARCHAR(300)',
                 'excerpt': 'TEXT DEFAULT \'\'',
                 'cover_image': 'VARCHAR(500) DEFAULT \'\'',
+                'images': "TEXT DEFAULT '[]'",
                 'tags': 'VARCHAR(500) DEFAULT \'\'',
                 'is_published': 'BOOLEAN DEFAULT FALSE',
                 'updated_at': 'TIMESTAMP',
@@ -141,6 +142,22 @@ def migrate_database():
                         conn.execute(sa.text(
                             f'ALTER TABLE blog_post ADD COLUMN {col_name} {col_type}'
                         ))
+
+        # ===== PRODUCT TABLE =====
+        if inspector.has_table('product'):
+            columns = {col['name'] for col in inspector.get_columns('product')}
+            if 'images' not in columns:
+                print("  ➕ Adding product.images...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE product ADD COLUMN images TEXT DEFAULT '[]'"))
+
+        # ===== APP_SETTINGS — background_svg =====
+        if inspector.has_table('app_settings'):
+            columns = {col['name'] for col in inspector.get_columns('app_settings')}
+            if 'background_svg' not in columns:
+                print("  ➕ Adding app_settings.background_svg...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN background_svg TEXT DEFAULT ''"))
 
         print("✅ Database schema up to date")
     

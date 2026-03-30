@@ -213,7 +213,17 @@ def new_product():
                 key = upload_to_r2(file, 'files')
                 if key:
                     product.file_path = key
-        
+
+        gallery_files = request.files.getlist('gallery_images')
+        gallery_keys = []
+        for gf in gallery_files[:10]:
+            if gf and gf.filename:
+                gkey = upload_to_r2(gf, 'gallery')
+                if gkey:
+                    gallery_keys.append(gkey)
+        if gallery_keys:
+            product.images = json.dumps(gallery_keys)
+
         db.session.add(product)
         db.session.commit()
         
@@ -287,7 +297,20 @@ def edit_product(pid):
                 key = upload_to_r2(file, 'files')
                 if key:
                     product.file_path = key
-        
+
+        if request.form.get('clear_images') == '1':
+            for old_key in product.get_images():
+                delete_from_r2(old_key)
+            product.images = '[]'
+        gallery_files = request.files.getlist('gallery_images')
+        gallery_keys = list(product.get_images())
+        for gf in gallery_files[:10]:
+            if gf and gf.filename:
+                gkey = upload_to_r2(gf, 'gallery')
+                if gkey:
+                    gallery_keys.append(gkey)
+        product.images = json.dumps(gallery_keys[:10])
+
         db.session.commit()
         log_admin_action('edit_product', json.dumps({'product_id': product.id, 'name': product.name}))
         flash(f'Product "{product.name}" updated!', 'success')
@@ -440,7 +463,11 @@ def appearance():
         
         # Show filters
         app_settings.show_filters = request.form.get('show_filters') == 'on'
-        
+
+        # Background SVG (inline code)
+        bg_svg = request.form.get('background_svg', '').strip()
+        app_settings.background_svg = bg_svg
+
         db.session.commit()
         log_admin_action('update_appearance', 'Appearance settings updated')
         flash('Appearance updated!', 'success')
@@ -698,6 +725,16 @@ def blog_new():
                 if key:
                     post.cover_image = key
 
+        gallery_files = request.files.getlist('gallery_images')
+        gallery_keys = []
+        for gf in gallery_files[:10]:
+            if gf and gf.filename:
+                gkey = upload_to_r2(gf, 'gallery')
+                if gkey:
+                    gallery_keys.append(gkey)
+        if gallery_keys:
+            post.images = json.dumps(gallery_keys)
+
         db.session.add(post)
         db.session.commit()
         log_admin_action('blog_create', f"Created post: {title}")
@@ -734,6 +771,19 @@ def blog_edit(pid):
                 key = upload_to_r2(f, 'blog')
                 if key:
                     post.cover_image = key
+
+        if request.form.get('clear_images') == '1':
+            for old_key in post.get_images():
+                delete_from_r2(old_key)
+            post.images = '[]'
+        gallery_files = request.files.getlist('gallery_images')
+        gallery_keys = list(post.get_images())
+        for gf in gallery_files[:10]:
+            if gf and gf.filename:
+                gkey = upload_to_r2(gf, 'gallery')
+                if gkey:
+                    gallery_keys.append(gkey)
+        post.images = json.dumps(gallery_keys[:10])
 
         db.session.commit()
         log_admin_action('blog_edit', f"Edited post id={post.id}")

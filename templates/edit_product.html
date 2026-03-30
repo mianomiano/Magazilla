@@ -87,6 +87,33 @@
 </div>
 
 <div class="neu-input-group">
+<label>Gallery Images <span style="font-size:0.75em;font-weight:normal;opacity:0.7">(optional, up to 10 — supports .jpg, .png, .webm, .mp4)</span></label>
+{%if product and product.get_images()%}
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+{%for img_key in product.get_images()%}
+{%set ig_url=r2_url(img_key)%}
+<div style="position:relative;width:70px;height:70px;border-radius:8px;overflow:hidden;background:var(--pl)">
+{%if img_key.endswith('.webm') or img_key.endswith('.mp4')%}
+<video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"><source src="{{ig_url}}"></video>
+{%else%}
+<img src="{{ig_url}}" style="width:100%;height:100%;object-fit:cover">
+{%endif%}
+</div>
+{%endfor%}
+</div>
+<label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;color:var(--td);margin-bottom:8px">
+<input type="checkbox" name="clear_images" value="1"> Remove all existing gallery images
+</label>
+{%endif%}
+<div class="file-upload">
+<input type="file" name="gallery_images" multiple accept="image/*,video/webm,video/mp4" id="gallery_input" onchange="previewGallery(this)">
+<div class="file-upload-icon">🖼️</div>
+<div class="file-upload-text" id="gallery_label">Click to upload gallery images</div>
+</div>
+<div id="gallery_preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+</div>
+
+<div class="neu-input-group">
 <label>Product File *</label>
 <div class="file-upload">
 <input type="file" name="file" onchange="updateFileName(this,'file_label')">
@@ -105,5 +132,29 @@
 document.addEventListener('DOMContentLoaded', function() {
     togglePriceField();
 });
+function previewGallery(input) {
+    const container = document.getElementById('gallery_preview');
+    const label = document.getElementById('gallery_label');
+    container.innerHTML = '';
+    if (!input.files.length) return;
+    label.textContent = input.files.length + ' file(s) selected';
+    Array.from(input.files).slice(0,10).forEach(f => {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--pl)';
+        if (f.type.startsWith('video/')) {
+            const v = document.createElement('video');
+            v.autoplay = v.loop = v.muted = v.playsInline = true;
+            v.style.cssText = 'width:100%;height:100%;object-fit:cover';
+            v.src = URL.createObjectURL(f);
+            wrap.appendChild(v);
+        } else {
+            const img = document.createElement('img');
+            img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+            img.src = URL.createObjectURL(f);
+            wrap.appendChild(img);
+        }
+        container.appendChild(wrap);
+    });
+}
 </script>
 {%endblock%}
