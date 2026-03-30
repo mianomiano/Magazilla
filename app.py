@@ -166,6 +166,10 @@ def migrate_database():
                 print("  ➕ Adding app_settings.card_color...")
                 with db.engine.begin() as conn:
                     conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN card_color VARCHAR(20) DEFAULT ''"))
+            if 'svg_opacity' not in columns:
+                print("  ➕ Adding app_settings.svg_opacity...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN svg_opacity INTEGER DEFAULT 15"))
 
         print("✅ Database schema up to date")
     

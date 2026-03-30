@@ -479,6 +479,14 @@ def appearance():
         bg_svg = request.form.get('background_svg', '').strip()
         app_settings.background_svg = bg_svg
 
+        # SVG opacity
+        try:
+            svg_opacity = int(request.form.get('svg_opacity', 15))
+            svg_opacity = max(1, min(100, svg_opacity))
+        except (ValueError, TypeError):
+            svg_opacity = 15
+        app_settings.svg_opacity = svg_opacity
+
         db.session.commit()
         log_admin_action('update_appearance', 'Appearance settings updated')
         flash('Appearance updated!', 'success')

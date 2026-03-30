@@ -78,6 +78,7 @@ class AppSettings(db.Model):
     header_size = db.Column(db.String(20), default='normal')  # compact, normal, tall
     show_filters = db.Column(db.Boolean, default=True)
     background_svg = db.Column(db.Text, default='')    # SVG code or R2 key
+    svg_opacity = db.Column(db.Integer, default=15)   # 1-100 percent
 
 
 class AdminAuditLog(db.Model):
