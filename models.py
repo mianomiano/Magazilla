@@ -65,6 +65,8 @@ class AppSettings(db.Model):
     primary_color = db.Column(db.String(20), default='#090c11')
     secondary_color = db.Column(db.String(20), default='#afe81f')
     accent_color = db.Column(db.String(20), default='#1534fe')
+    text_color = db.Column(db.String(20), default='')
+    card_color = db.Column(db.String(20), default='')
     
     # Appearance settings
     font_family = db.Column(db.String(50), default='inter')  # inter, balsamiq, grandstander, montserrat, russo

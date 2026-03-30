@@ -161,7 +161,7 @@
 {%if cfg.get('description')%}
 <p style="color:var(--td);font-size:0.88rem;margin-bottom:18px;line-height:1.5">{{cfg.get('description')}}</p>
 {%endif%}
-<button class="neu-btn neu-btn-primary" style="width:100%;max-width:280px" onclick="handleDonation({{cfg.get('amount', 50)}})">
+<button class="neu-btn neu-btn-primary" style="width:100%;max-width:280px" onclick="handleDonation({{cfg.get('amount', 50)}}, this)">
 {{cfg.get('button_text', 'Donate ⭐')}}
 {%if cfg.get('amount')%} — ⭐{{cfg.get('amount')}}{%endif%}
 </button>
@@ -279,12 +279,16 @@
 const tg = window.Telegram?.WebApp;
 const isTelegramWebApp = !!(tg && tg.initData && tg.initData.length > 0);
 
-async function handleDonation(amount) {
+function showMsg(msg) {
+    if (tg && tg.showAlert) { tg.showAlert(msg); } else { alert(msg); }
+}
+
+async function handleDonation(amount, btn) {
     if (!isTelegramWebApp) {
-        alert('Please open in Telegram to donate.');
+        showMsg('Please open in Telegram to donate.');
         return;
     }
-    const btn = event && event.currentTarget;
+    const origLabel = btn ? btn.innerHTML : null;
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Loading…'; }
     try {
         const res = await fetch('/api/create-donation-invoice', {
@@ -295,18 +299,18 @@ async function handleDonation(amount) {
         const data = await res.json();
         if (data.invoice_link) {
             tg.openInvoice(data.invoice_link, (status) => {
-                if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.label || '💜 Donate'; }
+                if (btn) { btn.disabled = false; btn.innerHTML = origLabel || '⭐ Donate'; }
                 if (status === 'paid') {
                     tg.showAlert('💜 Thank you for your support!');
                 }
             });
         } else {
-            if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.label || '💜 Donate'; }
-            alert(data.error || 'Could not create donation invoice');
+            if (btn) { btn.disabled = false; btn.innerHTML = origLabel || '⭐ Donate'; }
+            showMsg(data.error || 'Could not create donation invoice');
         }
     } catch (e) {
-        if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.label || '💜 Donate'; }
-        alert('Error: ' + e.message);
+        if (btn) { btn.disabled = false; btn.innerHTML = origLabel || '⭐ Donate'; }
+        showMsg('Error: ' + e.message);
     }
 }
 

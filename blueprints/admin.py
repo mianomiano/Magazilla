@@ -415,16 +415,27 @@ def appearance():
         primary_color = request.form.get('primary_color', '#090c11')
         secondary_color = request.form.get('secondary_color', '#afe81f')
         accent_color = request.form.get('accent_color', '#1534fe')
-        
+        text_color = request.form.get('text_color', '').strip()
+        card_color = request.form.get('card_color', '').strip()
+
         for color in [primary_color, secondary_color, accent_color]:
             valid, error = validate_color(color)
             if not valid:
                 flash(error, 'error')
                 return render_template('appearance.html', settings=app_settings)
-        
+
+        for color in [text_color, card_color]:
+            if color:
+                valid, error = validate_color(color)
+                if not valid:
+                    flash(error, 'error')
+                    return render_template('appearance.html', settings=app_settings)
+
         app_settings.primary_color = primary_color
         app_settings.secondary_color = secondary_color
         app_settings.accent_color = accent_color
+        app_settings.text_color = text_color
+        app_settings.card_color = card_color
         
         # Font
         font = request.form.get('font_family', 'inter')

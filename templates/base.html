@@ -25,17 +25,20 @@
     {% set brightness = (pr * 299 + pg * 587 + pb * 114) / 1000 %}
     {% set is_dark = brightness < 128 %}
     
-    {# Create primary-light color #}
-    {% if is_dark %}
+    {# Create primary-light color — use card_color if set, otherwise auto-derive #}
+    {% if settings.card_color %}
+        {% set primary_light = settings.card_color %}
+    {% elif is_dark %}
         {% set pl_r = [pr + 20, 255]|min %}
         {% set pl_g = [pg + 20, 255]|min %}
         {% set pl_b = [pb + 20, 255]|min %}
+        {% set primary_light = '#%02x%02x%02x' % (pl_r, pl_g, pl_b) %}
     {% else %}
         {% set pl_r = [pr - 20, 0]|max %}
         {% set pl_g = [pg - 20, 0]|max %}
         {% set pl_b = [pb - 20, 0]|max %}
+        {% set primary_light = '#%02x%02x%02x' % (pl_r, pl_g, pl_b) %}
     {% endif %}
-    {% set primary_light = '#%02x%02x%02x' % (pl_r, pl_g, pl_b) %}
     
     {# Calculate if secondary is dark or light #}
     {% set sr = secondary[1:3]|int(base=16) %}
@@ -52,9 +55,11 @@
             --secondary: {{secondary}};
             --accent: {{accent}};
             
-            /* Auto Text Colors based on background */
-            --text: {% if is_dark %}#ffffff{% else %}#1a1a1a{% endif %};
-            --text-on-primary: {% if is_dark %}#ffffff{% else %}#1a1a1a{% endif %};
+            /* Text Colors — use manual override if set, otherwise auto from background brightness */
+            {% set auto_text = '#ffffff' if is_dark else '#1a1a1a' %}
+            {% set use_text = settings.text_color if settings.text_color else auto_text %}
+            --text: {{use_text}};
+            --text-on-primary: {{use_text}};
             --text-dim: {% if is_dark %}#b0b0b0{% else %}#555555{% endif %};
             --text-muted: {% if is_dark %}#808080{% else %}#888888{% endif %};
             --text-on-secondary: {% if sec_is_dark %}#ffffff{% else %}#1a1a1a{% endif %};
@@ -71,7 +76,7 @@
             /* Override Telegram's variables immediately */
             --tg-theme-bg-color: {{primary}} !important;
             --tg-theme-secondary-bg-color: {{primary_light}} !important;
-            --tg-theme-text-color: {% if is_dark %}#ffffff{% else %}#1a1a1a{% endif %} !important;
+            --tg-theme-text-color: {{use_text}} !important;
             --tg-theme-hint-color: {% if is_dark %}#808080{% else %}#888888{% endif %} !important;
             --tg-theme-button-color: {{secondary}} !important;
             --tg-theme-button-text-color: {% if sec_is_dark %}#ffffff{% else %}#1a1a1a{% endif %} !important;

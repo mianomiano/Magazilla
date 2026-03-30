@@ -42,6 +42,32 @@
                                class="color-text" id="accentColorText" onchange="syncColor('accent')">
                     </div>
                 </div>
+                <div class="color-row">
+                    <label>Text <span style="font-size:0.75rem;opacity:0.6">(blank = auto)</span></label>
+                    <div class="color-input-wrap">
+                        <input type="color" id="textColor"
+                               value="{{ settings.text_color or '#ffffff' }}"
+                               onchange="document.getElementById('textColorText').value=this.value;updatePreview()">
+                        <input type="text" name="text_color" id="textColorText"
+                               value="{{ settings.text_color }}"
+                               class="color-text" placeholder="auto"
+                               onchange="if(this.value)document.getElementById('textColor').value=this.value;updatePreview()">
+                        <button type="button" onclick="clearColor('text')" style="margin-left:6px;font-size:0.75rem;padding:2px 8px">✕</button>
+                    </div>
+                </div>
+                <div class="color-row">
+                    <label>Card BG <span style="font-size:0.75rem;opacity:0.6">(blank = auto)</span></label>
+                    <div class="color-input-wrap">
+                        <input type="color" id="cardColor"
+                               value="{{ settings.card_color or settings.primary_color }}"
+                               onchange="document.getElementById('cardColorText').value=this.value;updatePreview()">
+                        <input type="text" name="card_color" id="cardColorText"
+                               value="{{ settings.card_color }}"
+                               class="color-text" placeholder="auto"
+                               onchange="if(this.value)document.getElementById('cardColor').value=this.value;updatePreview()">
+                        <button type="button" onclick="clearColor('card')" style="margin-left:6px;font-size:0.75rem;padding:2px 8px">✕</button>
+                    </div>
+                </div>
             </div>
             
             <!-- Font Section -->
@@ -837,7 +863,14 @@ const fontFamilies = {
 function syncColor(type) {
     const textInput = document.getElementById(type + 'ColorText');
     const colorInput = document.getElementById(type + 'Color');
-    colorInput.value = textInput.value;
+    if (textInput.value) colorInput.value = textInput.value;
+    updatePreview();
+}
+
+// Clear optional color (reset to auto)
+function clearColor(type) {
+    const textInput = document.getElementById(type + 'ColorText');
+    if (textInput) textInput.value = '';
     updatePreview();
 }
 
@@ -861,6 +894,10 @@ function updatePreview() {
     document.getElementById('primaryColorText').value = primaryColor;
     document.getElementById('secondaryColorText').value = secondaryColor;
     document.getElementById('accentColorText').value = accentColor;
+    const textColorEl = document.getElementById('textColorText');
+    if (textColorEl && textColorEl.value) document.getElementById('textColor').value = textColorEl.value;
+    const cardColorEl = document.getElementById('cardColorText');
+    if (cardColorEl && cardColorEl.value) document.getElementById('cardColor').value = cardColorEl.value;
     
     const font = document.querySelector('input[name="font_family"]:checked')?.value || 'inter';
     const btnStyle = document.querySelector('input[name="button_style"]:checked')?.value || 'soft';

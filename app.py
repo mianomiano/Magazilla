@@ -151,13 +151,21 @@ def migrate_database():
                 with db.engine.begin() as conn:
                     conn.execute(sa.text("ALTER TABLE product ADD COLUMN images TEXT DEFAULT '[]'"))
 
-        # ===== APP_SETTINGS — background_svg =====
+        # ===== APP_SETTINGS — background_svg, text_color, card_color =====
         if inspector.has_table('app_settings'):
             columns = {col['name'] for col in inspector.get_columns('app_settings')}
             if 'background_svg' not in columns:
                 print("  ➕ Adding app_settings.background_svg...")
                 with db.engine.begin() as conn:
                     conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN background_svg TEXT DEFAULT ''"))
+            if 'text_color' not in columns:
+                print("  ➕ Adding app_settings.text_color...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN text_color VARCHAR(20) DEFAULT ''"))
+            if 'card_color' not in columns:
+                print("  ➕ Adding app_settings.card_color...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN card_color VARCHAR(20) DEFAULT ''"))
 
         print("✅ Database schema up to date")
     
