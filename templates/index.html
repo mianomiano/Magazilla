@@ -279,13 +279,27 @@
 const tg = window.Telegram?.WebApp;
 const isTelegramWebApp = !!(tg && tg.initData && tg.initData.length > 0);
 
+function showToast(msg, duration) {
+    var t = document.getElementById('_toast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = '_toast';
+        t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(30,30,30,0.95);color:#fff;padding:12px 22px;border-radius:12px;font-size:14px;z-index:9999;max-width:90vw;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:opacity 0.3s;pointer-events:none';
+        document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    clearTimeout(t._hide);
+    t._hide = setTimeout(function() { t.style.opacity = '0'; }, duration || 3500);
+}
+
 function showMsg(msg) {
-    if (isTelegramWebApp && tg && tg.showAlert) { tg.showAlert(msg); } else { alert(msg); }
+    if (isTelegramWebApp && tg && tg.showAlert) { tg.showAlert(msg); } else { showToast(msg, 4000); }
 }
 
 async function handleDonation(amount, btn) {
     if (!isTelegramWebApp) {
-        showMsg('Please open in Telegram to donate.');
+        showToast('⭐ Open in Telegram to donate Stars', 4000);
         return;
     }
     const origLabel = btn ? btn.innerHTML : null;

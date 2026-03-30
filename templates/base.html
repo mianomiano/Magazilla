@@ -644,12 +644,14 @@
             height: 100%;
             display: block;
         }
-        body, html {
+        html, body {
             position: relative;
         }
+        /* Let SVG show through content area everywhere, including mobile */
+        body,
         .app-container {
-            position: relative;
-            z-index: 1;
+            background: transparent !important;
+            background-color: transparent !important;
         }
         {% endif %}
         
