@@ -453,13 +453,16 @@ def check_admin():
     )
     
     if not init_data:
+        print("⚠️ check-admin: no initData provided")
         return jsonify({'is_admin': False})
     
     user_data = validate_telegram_init_data(init_data, Config.BOT_TOKEN)
     if not user_data:
+        print("⚠️ check-admin: initData validation failed")
         return jsonify({'is_admin': False})
     
     user_id = user_data.get('id')
     is_admin = user_id in Config.ADMIN_TELEGRAM_IDS
+    print(f"✅ check-admin: user_id={user_id} type={type(user_id).__name__}, admin_ids={Config.ADMIN_TELEGRAM_IDS}, is_admin={is_admin}")
     
     return jsonify({'is_admin': is_admin})

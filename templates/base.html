@@ -777,7 +777,7 @@
     </div>
     
     <!-- Admin FAB -->
-    <div id="admin-fab">
+    <div id="admin-fab" {% if session.get('is_admin') %}style="display:block"{% endif %}>
         <button id="admin-fab-btn" onclick="toggleAdminMenu()">⚙️</button>
         <div id="admin-menu">
             <div id="admin-menu-header">🔐 Admin Panel</div>
