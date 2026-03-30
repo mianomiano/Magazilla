@@ -171,6 +171,18 @@ def migrate_database():
                 print("  ➕ Adding app_settings.svg_opacity...")
                 with db.engine.begin() as conn:
                     conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN svg_opacity INTEGER DEFAULT 15"))
+            if 'custom_head' not in columns:
+                print("  ➕ Adding app_settings.custom_head...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN custom_head TEXT DEFAULT ''"))
+            if 'custom_css' not in columns:
+                print("  ➕ Adding app_settings.custom_css...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN custom_css TEXT DEFAULT ''"))
+            if 'custom_js' not in columns:
+                print("  ➕ Adding app_settings.custom_js...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN custom_js TEXT DEFAULT ''"))
 
         print("✅ Database schema up to date")
     

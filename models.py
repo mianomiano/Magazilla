@@ -80,6 +80,11 @@ class AppSettings(db.Model):
     background_svg = db.Column(db.Text, default='')    # SVG code or R2 key
     svg_opacity = db.Column(db.Integer, default=15)   # 1-100 percent
 
+    # Custom code injection
+    custom_head = db.Column(db.Text, default='')  # injected inside <head>
+    custom_css = db.Column(db.Text, default='')   # injected as <style>
+    custom_js = db.Column(db.Text, default='')    # injected as <script>
+
 
 class AdminAuditLog(db.Model):
     """Track all admin actions for security"""

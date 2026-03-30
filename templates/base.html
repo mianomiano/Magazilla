@@ -767,6 +767,8 @@
             letter-spacing: 0.5px;
         }
     </style>
+{% if settings and settings.custom_head %}{{settings.custom_head|safe}}{% endif %}
+{% if settings and settings.custom_css %}<style>{{settings.custom_css|safe}}</style>{% endif %}
 </head>
 <body>
 {% if settings.background_svg %}
@@ -911,5 +913,6 @@
     })();
     </script>
     {%block scripts%}{%endblock%}
+{% if settings and settings.custom_js %}<script>{{settings.custom_js|safe}}</script>{% endif %}
 </body>
 </html>

@@ -351,21 +351,7 @@ def settings():
     
     if request.method == 'POST':
         app_settings.app_name = request.form.get('app_name', 'Magazilla').strip()
-        
-        primary_color = request.form.get('primary_color', '#090c11')
-        secondary_color = request.form.get('secondary_color', '#afe81f')
-        accent_color = request.form.get('accent_color', '#1534fe')
-        
-        for color in [primary_color, secondary_color, accent_color]:
-            valid, error = validate_color(color)
-            if not valid:
-                flash(error, 'error')
-                return render_template('settings.html', settings=app_settings)
-        
-        app_settings.primary_color = primary_color
-        app_settings.secondary_color = secondary_color
-        app_settings.accent_color = accent_color
-        
+
         if 'logo' in request.files:
             file = request.files['logo']
             if file and file.filename:
@@ -374,7 +360,11 @@ def settings():
                 key = upload_to_r2(file, 'logos')
                 if key:
                     app_settings.logo_path = key
-        
+
+        app_settings.custom_head = request.form.get('custom_head', '').strip()
+        app_settings.custom_css = request.form.get('custom_css', '').strip()
+        app_settings.custom_js = request.form.get('custom_js', '').strip()
+
         db.session.commit()
         log_admin_action('update_settings', 'App settings updated')
         flash('Settings updated!', 'success')
