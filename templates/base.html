@@ -766,6 +766,77 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
+        /* ==================== BOTTOM NAV ==================== */
+
+        {% if nav_menu and nav_menu['enabled'] %}
+        :root {
+            --nav-active: {{ nav_menu['active_color'] if nav_menu['active_color'] else accent }};
+        }
+        .app-container {
+            padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
+        }
+        #admin-fab {
+            bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+        }
+        {% endif %}
+
+        #bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: var(--primary-light);
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            height: 58px;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        .bnav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            color: var(--text-muted) !important;
+            text-decoration: none !important;
+            font-size: 0.6rem !important;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            transition: color 0.15s, transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bnav-item:active {
+            transform: scale(0.92);
+        }
+
+        .bnav-item.bnav-active {
+            color: var(--nav-active) !important;
+        }
+
+        .bnav-icon {
+            width: 24px;
+            height: 24px;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .bnav-icon svg {
+            width: 24px;
+            height: 24px;
+            display: block;
+        }
+
+        .bnav-mode-icons .bnav-label { display: none; }
+        .bnav-mode-icons .bnav-icon { width: 26px; height: 26px; }
+        .bnav-mode-icons .bnav-icon svg { width: 26px; height: 26px; }
+        .bnav-mode-text .bnav-icon { display: none; }
+        .bnav-mode-text .bnav-item { font-size: 0.75rem !important; }
     </style>
 {% if settings and settings.custom_head %}{{settings.custom_head|safe}}{% endif %}
 </head>
@@ -778,6 +849,18 @@
         {%block content%}{%endblock%}
     </div>
     
+    {% if nav_menu and nav_menu['enabled'] %}
+    <nav id="bottom-nav" class="bnav-mode-{{nav_menu['mode']}}">
+      {% for item in nav_menu['menu_items'] %}
+      {% set is_active = (request.path == item['href']) or (item['href'] == '/products' and request.path == '/') %}
+      <a href="{{item['href']}}" class="bnav-item{%if is_active%} bnav-active{%endif%}">
+        <span class="bnav-icon">{{nav_icons.get(item['icon'], nav_icons.get('home',''))|safe}}</span>
+        <span class="bnav-label">{{item['name']}}</span>
+      </a>
+      {% endfor %}
+    </nav>
+    {% endif %}
+
     <!-- Admin FAB -->
     <div id="admin-fab" {% if session.get('is_admin') %}style="display:block"{% endif %}>
         <button id="admin-fab-btn" onclick="toggleAdminMenu()">⚙️</button>

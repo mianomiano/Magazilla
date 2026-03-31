@@ -396,6 +396,25 @@ def settings():
         blog_cats = [c.strip() for c in raw_blog_cats.splitlines() if c.strip()]
         app_settings.blog_categories = _json.dumps(blog_cats)
 
+        # Navigation menu
+        nav_enabled = request.form.get('nav_enabled') == 'on'
+        nav_mode = request.form.get('nav_mode', 'icons+text')
+        nav_active_color = request.form.get('nav_active_color', '').strip()
+        FIXED_HREFS = ['/products', '/blog', '#']
+        nav_items = []
+        for i, href in enumerate(FIXED_HREFS):
+            nav_items.append({
+                "name": request.form.get(f'nav_item_{i}_name', ['Shop', 'Blog', 'Contact'][i]).strip(),
+                "href": href,
+                "icon": request.form.get(f'nav_item_{i}_icon', ['store', 'blog', 'chat'][i]).strip(),
+            })
+        app_settings.nav_menu = _json.dumps({
+            "enabled": nav_enabled,
+            "mode": nav_mode,
+            "active_color": nav_active_color,
+            "menu_items": nav_items,
+        })
+
         db.session.commit()
         log_admin_action('update_settings', 'App settings updated')
         flash('Settings updated!', 'success')

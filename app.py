@@ -5,6 +5,7 @@ from config import Config
 from models import db, AppSettings
 from utils.decorators import limiter
 from r2_storage import get_r2_url
+from nav_icons import NAV_ICONS, ICON_LABELS
 
 # Import blueprints
 from blueprints.admin import admin_bp
@@ -43,7 +44,9 @@ def create_app():
                 db.session.commit()
             return s
         
-        return dict(r2_url=r2_url, settings=get_settings())
+        return dict(r2_url=r2_url, settings=get_settings(),
+                    nav_icons=NAV_ICONS, icon_labels=ICON_LABELS,
+                    nav_menu=get_settings().get_nav_menu())
     
     # Create/migrate tables
     with app.app_context():
@@ -195,6 +198,10 @@ def migrate_database():
                 print("  ➕ Adding app_settings.blog_categories...")
                 with db.engine.begin() as conn:
                     conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN blog_categories TEXT DEFAULT '[]'"))
+            if 'nav_menu' not in columns:
+                print("  ➕ Adding app_settings.nav_menu...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN nav_menu TEXT DEFAULT ''"))
 
         # blog_post table migrations
         if inspector.has_table('blog_post'):

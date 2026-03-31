@@ -90,6 +90,32 @@ class AppSettings(db.Model):
     # Blog post categories (JSON list of strings — separate from product categories)
     blog_categories = db.Column(db.Text, default='[]')
 
+    # Bottom navigation menu (JSON config)
+    nav_menu = db.Column(db.Text, default='')
+
+    def get_nav_menu(self):
+        import json
+        default = {
+            "enabled": True,
+            "mode": "icons+text",
+            "active_color": "",
+            "menu_items": [
+                {"name": "Shop", "href": "/products", "icon": "store"},
+                {"name": "Blog", "href": "/blog", "icon": "blog"},
+                {"name": "Contact", "href": "#", "icon": "chat"},
+            ]
+        }
+        if not self.nav_menu:
+            return default
+        try:
+            data = json.loads(self.nav_menu)
+            if "menu_items" not in data:
+                # backward compat: migrate old 'items' key
+                data["menu_items"] = data.pop("items", default["menu_items"])
+            return data
+        except Exception:
+            return default
+
 
 class AdminAuditLog(db.Model):
     """Track all admin actions for security"""
