@@ -22,31 +22,89 @@
 
 <div class="neu-card" style="margin-bottom:14px">
     <div class="neu-input-group">
-        <label>Title *</label>
+        <label>Title * <span style="font-size:0.73rem;font-weight:normal;opacity:0.6">(shown large on banner)</span></label>
         <input type="text" name="title" class="neu-input" value="{{post.title if post else ''}}" placeholder="Post title" required>
     </div>
 
+    <div class="neu-input-group" id="subtitle_field">
+        <label>Subtitle <span style="font-size:0.73rem;font-weight:normal;opacity:0.6">(second line shown on banner — 16:9 layout only)</span></label>
+        <input type="text" name="subtitle" class="neu-input" value="{{post.subtitle if post else ''}}" placeholder="Smaller text in accent colour below the title">
+    </div>
+
     <div class="neu-input-group">
-        <label>Excerpt</label>
+        <label>Excerpt <span style="font-size:0.73rem;font-weight:normal;opacity:0.6">(optional preview text on blog listing)</span></label>
         <textarea name="excerpt" class="neu-input" rows="2" placeholder="Short description shown in listings...">{{post.excerpt if post else ''}}</textarea>
     </div>
 
     <div class="neu-input-group">
-        <label>Tags (comma-separated)</label>
-        <input type="text" name="tags" class="neu-input" value="{{post.tags if post else ''}}" placeholder="design, tutorial, news">
+        <label>Category</label>
+        <select name="category" class="neu-input">
+            <option value="">— None —</option>
+            {%for cat in (blog_categories or [])%}
+            <option value="{{cat}}" {{'selected' if post and post.category == cat else ''}}>{{cat}}</option>
+            {%endfor%}
+            {%if post and post.category and post.category not in (blog_categories or [])%}
+            <option value="{{post.category}}" selected>{{post.category}}</option>
+            {%endif%}
+        </select>
+        {%if not blog_categories%}
+        <div style="font-size:0.72rem;color:var(--tm);margin-top:4px">No blog categories set yet — add them in Settings → Blog Post Categories.</div>
+        {%endif%}
     </div>
 
     <div class="neu-input-group">
-        <label>Card Layout</label>
-        <div style="display:flex;gap:10px;margin-top:4px">
-            <label style="flex:1;cursor:pointer">
-                <input type="radio" name="post_type" value="large" {{'checked' if not post or (post.post_type or 'large') == 'large' else ''}} style="margin-right:6px">
-                <strong>Wide</strong> — full-width with image left, text right, gallery carousel
+        <label>Tags <span style="font-size:0.73rem;font-weight:normal;opacity:0.6">(comma-separated)</span></label>
+        <input type="text" name="tags" class="neu-input" value="{{post.tags if post else ''}}" placeholder="design, tutorial, news">
+    </div>
+</div>
+
+<!-- Banner Layout -->
+<div class="neu-card" style="margin-bottom:14px">
+    <div class="neu-input-group">
+        <label>Banner Layout</label>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:6px">
+
+            <label style="cursor:pointer;display:flex;align-items:flex-start;gap:10px">
+                <input type="radio" name="post_type" value="banner_169"
+                    {{'checked' if not post or (post.post_type or 'banner_169') not in ('banner_245',) else ''}}
+                    onchange="toggleSubtitle(this)" style="margin-top:3px;flex-shrink:0">
+                <div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                        <strong>16:9 Banner</strong>
+                        <span style="font-size:0.68rem;background:var(--a);color:#fff;border-radius:20px;padding:2px 8px">1920 × 1080</span>
+                    </div>
+                    <!-- preview shape -->
+                    <div style="width:100%;max-width:280px;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:var(--pl);position:relative">
+                        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.6) 40%,rgba(0,0,0,0) 100%)"></div>
+                        <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 14px">
+                            <div style="font-weight:800;font-size:0.85rem;color:#fff;line-height:1.2;margin-bottom:3px">TITLE BLOG POST</div>
+                            <div style="font-size:0.7rem;color:var(--a);font-weight:600">Subtitle in accent colour</div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.72rem;color:var(--tm);margin-top:4px">Full image with gradient overlay — big title + subtitle</div>
+                </div>
             </label>
-            <label style="flex:1;cursor:pointer">
-                <input type="radio" name="post_type" value="small" {{'checked' if post and post.post_type == 'small' else ''}} style="margin-right:6px">
-                <strong>Small</strong> — compact card, 3 per row, image on top
+
+            <label style="cursor:pointer;display:flex;align-items:flex-start;gap:10px">
+                <input type="radio" name="post_type" value="banner_245"
+                    {{'checked' if post and post.post_type == 'banner_245' else ''}}
+                    onchange="toggleSubtitle(this)" style="margin-top:3px;flex-shrink:0">
+                <div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                        <strong>24:5 Banner</strong>
+                        <span style="font-size:0.68rem;background:var(--pl);color:var(--td);border-radius:20px;padding:2px 8px;border:1px solid var(--pl)">1920 × 400</span>
+                    </div>
+                    <!-- preview shape -->
+                    <div style="width:100%;max-width:280px;aspect-ratio:24/5;border-radius:14px;overflow:hidden;background:var(--pl);position:relative">
+                        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.6) 40%,rgba(0,0,0,0) 100%)"></div>
+                        <div style="position:absolute;bottom:0;left:0;right:0;padding:8px 14px">
+                            <div style="font-weight:800;font-size:0.8rem;color:#fff;line-height:1.2">TITLE BLOG POST 24:5 — SINGLE LINE</div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.72rem;color:var(--tm);margin-top:4px">Wide banner — title only, no subtitle</div>
+                </div>
             </label>
+
         </div>
     </div>
 </div>
@@ -93,10 +151,8 @@
 <!-- Content -->
 <div class="neu-card" style="margin-bottom:14px">
     <div class="neu-input-group">
-        <label>Content (HTML allowed)</label>
-        <textarea name="content" class="neu-input" rows="12" placeholder="Write your post content here...
-        
-You can use HTML: <b>bold</b>, <i>italic</i>, <a href='...'>links</a>, etc.">{{post.content if post else ''}}</textarea>
+        <label>Content <span style="font-size:0.73rem;font-weight:normal;opacity:0.6">(HTML allowed)</span></label>
+        <textarea name="content" class="neu-input" rows="12" placeholder="Write your post content here...">{{post.content if post else ''}}</textarea>
     </div>
 </div>
 
@@ -116,6 +172,16 @@ You can use HTML: <b>bold</b>, <i>italic</i>, <a href='...'>links</a>, etc.">{{p
 </div>
 
 <script>
+function toggleSubtitle(radio) {
+    const sf = document.getElementById('subtitle_field');
+    sf.style.display = radio.value === 'banner_169' ? '' : 'none';
+}
+// init on load
+(function(){
+    const checked = document.querySelector('input[name=post_type]:checked');
+    if (checked) toggleSubtitle(checked);
+})();
+
 function previewBlogGallery(input) {
     const container = document.getElementById('blog_gallery_preview');
     container.innerHTML = '';

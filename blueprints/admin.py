@@ -360,12 +360,18 @@ def settings():
         db.session.commit()
     
     import json as _json
-    # Parse categories from AppSettings
+    # Parse product categories from AppSettings
     try:
         cats_list = _json.loads(app_settings.categories or '[]')
     except Exception:
         cats_list = []
     categories_text = '\n'.join(cats_list)
+    # Parse blog categories from AppSettings
+    try:
+        blog_cats_list = _json.loads(app_settings.blog_categories or '[]')
+    except Exception:
+        blog_cats_list = []
+    blog_categories_text = '\n'.join(blog_cats_list)
 
     if request.method == 'POST':
         app_settings.app_name = request.form.get('app_name', 'Magazilla').strip()
@@ -386,12 +392,18 @@ def settings():
         cats = [c.strip() for c in raw_cats.splitlines() if c.strip()]
         app_settings.categories = _json.dumps(cats)
 
+        raw_blog_cats = request.form.get('blog_categories', '')
+        blog_cats = [c.strip() for c in raw_blog_cats.splitlines() if c.strip()]
+        app_settings.blog_categories = _json.dumps(blog_cats)
+
         db.session.commit()
         log_admin_action('update_settings', 'App settings updated')
         flash('Settings updated!', 'success')
         return redirect(url_for('admin_bp.dashboard'))
 
-    return render_template('settings.html', settings=app_settings, categories_text=categories_text)
+    return render_template('settings.html', settings=app_settings,
+                           categories_text=categories_text,
+                           blog_categories_text=blog_categories_text)
     
 @admin_bp.route('/remove-logo', methods=['POST'])
 @admin_required
@@ -733,23 +745,38 @@ def blog_admin():
     return render_template('blog_admin.html', posts=posts)
 
 
+def _get_blog_categories():
+    import json as _j
+    app_s = AppSettings.query.first()
+    if app_s:
+        try:
+            cats = _j.loads(app_s.blog_categories or '[]')
+            return cats if cats else []
+        except Exception:
+            pass
+    return []
+
+
 @admin_bp.route('/blog/new', methods=['GET', 'POST'])
 @admin_required
 def blog_new():
+    blog_cats = _get_blog_categories()
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
         if not title:
             flash('Title is required', 'error')
-            return render_template('blog_edit.html', post=None)
+            return render_template('blog_edit.html', post=None, blog_categories=blog_cats)
 
         slug = _unique_slug(title)
         post = BlogPost(
             title=title,
             slug=slug,
+            subtitle=request.form.get('subtitle', '').strip(),
             excerpt=request.form.get('excerpt', '').strip(),
             content=request.form.get('content', '').strip(),
             tags=request.form.get('tags', '').strip(),
-            post_type=request.form.get('post_type', 'large'),
+            category=request.form.get('category', '').strip(),
+            post_type=request.form.get('post_type', 'banner_169'),
             is_published=request.form.get('is_published') == 'on',
         )
 
@@ -776,26 +803,29 @@ def blog_new():
         flash('Post created!', 'success')
         return redirect(url_for('admin_bp.blog_admin'))
 
-    return render_template('blog_edit.html', post=None)
+    return render_template('blog_edit.html', post=None, blog_categories=blog_cats)
 
 
 @admin_bp.route('/blog/<int:pid>/edit', methods=['GET', 'POST'])
 @admin_required
 def blog_edit(pid):
     post = BlogPost.query.get_or_404(pid)
+    blog_cats = _get_blog_categories()
 
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
         if not title:
             flash('Title is required', 'error')
-            return render_template('blog_edit.html', post=post)
+            return render_template('blog_edit.html', post=post, blog_categories=blog_cats)
 
         post.title = title
         post.slug = _unique_slug(title, exclude_id=post.id)
+        post.subtitle = request.form.get('subtitle', '').strip()
         post.excerpt = request.form.get('excerpt', '').strip()
         post.content = request.form.get('content', '').strip()
         post.tags = request.form.get('tags', '').strip()
-        post.post_type = request.form.get('post_type', 'large')
+        post.category = request.form.get('category', '').strip()
+        post.post_type = request.form.get('post_type', 'banner_169')
         post.is_published = request.form.get('is_published') == 'on'
         post.updated_at = datetime.utcnow()
 
@@ -826,7 +856,7 @@ def blog_edit(pid):
         flash('Post saved!', 'success')
         return redirect(url_for('admin_bp.blog_admin'))
 
-    return render_template('blog_edit.html', post=post)
+    return render_template('blog_edit.html', post=post, blog_categories=blog_cats)
 
 
 @admin_bp.route('/blog/<int:pid>/delete', methods=['POST'])

@@ -229,8 +229,18 @@ def health_check():
 
 @public_bp.route('/blog')
 def blog():
+    import json as _j
     posts = BlogPost.query.filter_by(is_published=True).order_by(BlogPost.created_at.desc()).all()
-    return render_template('blog.html', posts=posts, r2_url=get_r2_url)
+    app_settings = AppSettings.query.first()
+    blog_cats = []
+    if app_settings:
+        try:
+            blog_cats = _j.loads(app_settings.blog_categories or '[]') or []
+        except Exception:
+            blog_cats = []
+    settings = app_settings
+    return render_template('blog.html', posts=posts, r2_url=get_r2_url,
+                           blog_categories=blog_cats, settings=settings)
 
 
 @public_bp.route('/blog/<slug>')

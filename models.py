@@ -87,6 +87,9 @@ class AppSettings(db.Model):
     # Product categories (JSON list of strings)
     categories = db.Column(db.Text, default='[]')
 
+    # Blog post categories (JSON list of strings — separate from product categories)
+    blog_categories = db.Column(db.Text, default='[]')
+
 
 class AdminAuditLog(db.Model):
     """Track all admin actions for security"""
@@ -143,13 +146,15 @@ class Block(db.Model):
 class BlogPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(300), nullable=False)
+    subtitle = db.Column(db.String(500), default='')               # second title shown on banner
     slug = db.Column(db.String(300), unique=True)
     excerpt = db.Column(db.Text, default='')
     content = db.Column(db.Text, default='')
     cover_image = db.Column(db.String(500), default='')            # R2 key
     images = db.Column(db.Text, default='[]')                      # JSON array of R2 keys
     tags = db.Column(db.String(500), default='')                   # comma-separated
-    post_type = db.Column(db.String(20), default='large')          # 'large' or 'small'
+    category = db.Column(db.String(100), default='')               # blog post category
+    post_type = db.Column(db.String(20), default='banner_169')     # 'banner_169' or 'banner_245'
     is_published = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

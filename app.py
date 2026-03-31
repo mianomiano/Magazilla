@@ -191,6 +191,22 @@ def migrate_database():
                 print("  ➕ Adding app_settings.categories...")
                 with db.engine.begin() as conn:
                     conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN categories TEXT DEFAULT '[]'"))
+            if 'blog_categories' not in columns:
+                print("  ➕ Adding app_settings.blog_categories...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN blog_categories TEXT DEFAULT '[]'"))
+
+        # blog_post table migrations
+        if inspector.has_table('blog_post'):
+            bp_columns = {col['name'] for col in inspector.get_columns('blog_post')}
+            if 'subtitle' not in bp_columns:
+                print("  ➕ Adding blog_post.subtitle...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE blog_post ADD COLUMN subtitle VARCHAR(500) DEFAULT ''"))
+            if 'category' not in bp_columns:
+                print("  ➕ Adding blog_post.category...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE blog_post ADD COLUMN category VARCHAR(100) DEFAULT ''"))
 
         print("✅ Database schema up to date")
     
