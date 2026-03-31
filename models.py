@@ -100,6 +100,7 @@ class AppSettings(db.Model):
             "mode": "icons+text",
             "active_color": "",
             "menu_items": [
+                {"name": "Home", "href": "/", "icon": "home"},
                 {"name": "Shop", "href": "/products", "icon": "store"},
                 {"name": "Blog", "href": "/blog", "icon": "blog"},
                 {"name": "Contact", "href": "#", "icon": "chat"},

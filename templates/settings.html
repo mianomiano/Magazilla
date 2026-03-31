@@ -93,11 +93,12 @@
 
 <div style="margin-top:14px">
 <label style="font-size:0.8rem;color:var(--td);font-weight:600;margin-bottom:10px;display:block">Menu Items</label>
-{%set default_icons = ['store','blog','chat']%}
-{%set page_labels = ['→ /products (Shop page)','→ /blog (Blog listing)','→ # (no link yet)']%}
+{%set default_names = ['Home','Shop','Blog','Contact']%}
+{%set default_icons = ['home','store','blog','chat']%}
+{%set page_labels = ['→ / (Front page)','→ /products (Shop page)','→ /blog (Blog listing)','→ # (no link yet)']%}
 {%set nm_items = nm['menu_items']%}
-{%for i in range(3)%}
-{%set item = nm_items[i] if nm_items|length > i else {'name':['Shop','Blog','Contact'][i],'icon':default_icons[i]}%}
+{%for i in range(4)%}
+{%set item = nm_items[i] if nm_items|length > i else {'name':default_names[i],'icon':default_icons[i]}%}
 <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:center;margin-bottom:10px;padding:10px;border-radius:12px;background:var(--pl)">
   <div>
     <div style="font-size:0.62rem;color:var(--tm);margin-bottom:4px">{{page_labels[i]}}</div>

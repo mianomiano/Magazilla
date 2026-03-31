@@ -852,7 +852,7 @@
     {% if nav_menu and nav_menu['enabled'] %}
     <nav id="bottom-nav" class="bnav-mode-{{nav_menu['mode']}}">
       {% for item in nav_menu['menu_items'] %}
-      {% set is_active = (request.path == item['href']) or (item['href'] == '/products' and request.path == '/') %}
+      {% set is_active = (request.path == item['href']) %}
       <a href="{{item['href']}}" class="bnav-item{%if is_active%} bnav-active{%endif%}">
         <span class="bnav-icon">{{nav_icons.get(item['icon'], nav_icons.get('home',''))|safe}}</span>
         <span class="bnav-label">{{item['name']}}</span>
