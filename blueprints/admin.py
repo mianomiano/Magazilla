@@ -620,6 +620,7 @@ def builder_add():
 def builder_edit(bid):
     block = Block.query.get_or_404(bid)
     products = Product.query.filter_by(is_active=True).order_by(Product.name).all()
+    blog_posts = BlogPost.query.order_by(BlogPost.created_at.desc()).all()
 
     if request.method == 'POST':
         block.title = request.form.get('title', block.title).strip()
@@ -637,6 +638,8 @@ def builder_edit(bid):
                 cfg['product_id'] = int(pid)
 
         elif block.block_type == 'blog_posts':
+            post_ids = request.form.getlist('post_ids')
+            cfg['post_ids'] = [int(i) for i in post_ids if i]
             cfg['limit'] = int(request.form.get('limit', 3))
 
         elif block.block_type == 'donation':
@@ -675,6 +678,7 @@ def builder_edit(bid):
         'builder_edit.html',
         block=block,
         products=products,
+        blog_posts=blog_posts,
         block_type_labels=BLOCK_TYPE_LABELS,
         cfg=block.get_config(),
     )

@@ -48,7 +48,9 @@ def index():
 
     # Fetch page builder blocks (visible, ordered)
     blocks = Block.query.filter_by(is_visible=True).order_by(Block.position).all()
-    recent_posts = BlogPost.query.filter_by(is_published=True).order_by(BlogPost.created_at.desc()).limit(10).all()
+    all_published_posts = BlogPost.query.filter_by(is_published=True).order_by(BlogPost.created_at.desc()).all()
+    recent_posts = all_published_posts[:10]
+    all_posts_map = {p.id: p for p in all_published_posts}
 
     return render_template(
         'index.html',
@@ -60,6 +62,7 @@ def index():
         blocks=blocks,
         all_products=all_products_map,
         recent_posts=recent_posts,
+        all_posts_map=all_posts_map,
     )
 
 

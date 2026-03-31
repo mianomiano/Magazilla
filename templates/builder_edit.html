@@ -80,8 +80,34 @@
 
 {%elif block.block_type == 'blog_posts'%}
 <div class="neu-card" style="margin-bottom:16px">
-    <div class="neu-input-group">
-        <label>Number of posts to show</label>
+    <p style="font-size:0.8rem;color:var(--tm);margin-bottom:14px;line-height:1.5">
+        Choose which posts to feature. Leave all unchecked to show the most recent posts automatically.
+    </p>
+    {%if blog_posts%}
+    <div style="display:flex;flex-direction:column;gap:8px">
+    {%for p in blog_posts%}
+    <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--pl);border-radius:10px;cursor:pointer">
+        <input type="checkbox" name="post_ids" value="{{p.id}}"
+            {{'checked' if p.id in (cfg.get('post_ids') or []) else ''}}>
+        <div style="flex:1;min-width:0">
+            <div style="font-size:0.85rem;font-weight:600;color:var(--td);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                {{p.title}}
+                {%if not p.is_published%}<span style="font-size:0.65rem;color:#e53935;margin-left:6px">DRAFT</span>{%endif%}
+            </div>
+            <div style="font-size:0.7rem;color:var(--tm)">
+                {{p.category or 'No category'}} ·
+                {{'16:9 Banner' if p.post_type == 'banner_169' else '24:5 Banner'}} ·
+                {{p.created_at.strftime('%d %b %Y') if p.created_at else ''}}
+            </div>
+        </div>
+    </label>
+    {%endfor%}
+    </div>
+    {%else%}
+    <p style="color:var(--tm);font-size:0.85rem">No blog posts yet — create some first.</p>
+    {%endif%}
+    <div class="neu-input-group" style="margin-top:14px">
+        <label>Max posts shown when none selected above</label>
         <input type="number" name="limit" class="neu-input" value="{{cfg.get('limit', 3)}}" min="1" max="20">
     </div>
 </div>
