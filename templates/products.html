@@ -1,27 +1,6 @@
 {%extends 'base.html'%}
 {%block content%}
 
-{# ── Header ── #}
-{%if settings.logo_path or settings.app_name%}
-<header class="header">
-<div class="header-inner">
-<a href="{{url_for('public_bp.index')}}" style="text-decoration:none;display:flex;align-items:center;gap:6px;color:var(--td);font-size:0.8rem;font-weight:600">← Back</a>
-<div class="logo-area" style="flex:1;text-align:center">
-{%if settings.logo_path%}
-{%set logo_url=r2_url(settings.logo_path)%}
-{%if settings.logo_path.endswith('.webm')%}
-<video autoplay loop muted playsinline style="max-height:44px"><source src="{{logo_url}}" type="video/webm"></video>
-{%else%}
-<img src="{{logo_url}}" alt="{{settings.app_name}}" style="max-height:44px">
-{%endif%}
-{%elif settings.app_name%}
-<span class="logo-text">{{settings.app_name}}</span>
-{%endif%}
-</div>
-<div style="width:48px"></div>
-</div>
-</header>
-{%endif%}
 
 <div class="content">
 
@@ -73,7 +52,6 @@
 <div style="flex:1;padding:14px 14px 14px 0;display:flex;flex-direction:column;justify-content:space-between;min-width:0">
 <div>
 <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
-<span style="background:var(--a);color:#fff;font-size:0.6rem;font-weight:800;letter-spacing:0.06em;padding:2px 7px;border-radius:4px;text-transform:uppercase">NEW</span>
 {%if fp.category%}<span style="font-size:0.65rem;color:var(--a);border:1px solid var(--a);border-radius:10px;padding:1px 7px">{{fp.category}}</span>{%endif%}
 </div>
 <h3 style="font-size:0.95rem;font-weight:700;color:var(--a);margin:0 0 5px;line-height:1.2">{{fp.name}}</h3>
@@ -83,7 +61,7 @@
 </div>
 <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
 <span style="font-size:0.85rem;font-weight:700;color:var(--td)">{%if fp.is_free%}Free{%else%}⭐ {{fp.price}}{%endif%}</span>
-<span style="font-size:0.7rem;background:var(--a);color:#fff;padding:3px 10px;border-radius:8px">View →</span>
+<span style="font-size:0.7rem;background:var(--s);color:var(--text-on-secondary);padding:3px 10px;border-radius:8px">View →</span>
 </div>
 </div>
 </div>

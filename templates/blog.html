@@ -1,24 +1,6 @@
 {%extends 'base.html'%}
 {%block content%}
 
-{%if settings.logo_path or settings.app_name%}
-<header class="header">
-<div class="header-inner">
-<div class="logo-area">
-{%if settings.logo_path%}
-{%set logo_url=r2_url(settings.logo_path)%}
-{%if settings.logo_path.endswith('.webm')%}
-<video autoplay loop muted playsinline><source src="{{logo_url}}" type="video/webm"></video>
-{%else%}
-<img src="{{logo_url}}" alt="{{settings.app_name}}">
-{%endif%}
-{%elif settings.app_name%}
-<span class="logo-text">{{settings.app_name}}</span>
-{%endif%}
-</div>
-</div>
-</header>
-{%endif%}
 
 <div class="content">
 

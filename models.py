@@ -106,13 +106,25 @@ class AppSettings(db.Model):
                 {"name": "Contact", "href": "#", "icon": "chat"},
             ]
         }
+        FIXED_HREFS = ['/', '/products', '/blog', '#']
         if not self.nav_menu:
             return default
         try:
             data = json.loads(self.nav_menu)
             if "menu_items" not in data:
-                # backward compat: migrate old 'items' key
                 data["menu_items"] = data.pop("items", default["menu_items"])
+            # Ensure exactly 4 items with correct fixed hrefs
+            saved = data.get("menu_items", [])
+            normalized = []
+            for i, href in enumerate(FIXED_HREFS):
+                def_item = default["menu_items"][i]
+                saved_item = saved[i] if i < len(saved) else {}
+                normalized.append({
+                    "name": saved_item.get("name", def_item["name"]),
+                    "href": href,
+                    "icon": saved_item.get("icon", def_item["icon"]),
+                })
+            data["menu_items"] = normalized
             return data
         except Exception:
             return default
