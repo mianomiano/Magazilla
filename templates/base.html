@@ -469,19 +469,19 @@
         }
         
         /* ==================== LOCAL FONT FACES ==================== */
-        @font-face { font-family: 'Atlas'; src: url('/static/fonts/Atlas_sans.otf'); font-display: swap; }
-        @font-face { font-family: 'Desolator'; src: url('/static/fonts/Desolator.otf'); font-weight: 400; font-display: swap; }
-        @font-face { font-family: 'Desolator'; src: url('/static/fonts/Desolator-Bold.otf'); font-weight: 700; font-display: swap; }
-        @font-face { font-family: 'Desolator'; src: url('/static/fonts/Desolator-Light.otf'); font-weight: 300; font-display: swap; }
-        @font-face { font-family: 'DesolatorBold'; src: url('/static/fonts/Desolator-Ultrabold.otf'); font-weight: 900; font-display: swap; }
-        @font-face { font-family: 'DesolatorLight'; src: url('/static/fonts/Desolator-Ultralight.otf'); font-weight: 100; font-display: swap; }
-        @font-face { font-family: 'Effortless'; src: url('/static/fonts/EFFORTLESS.TTF'); font-display: swap; }
-        @font-face { font-family: 'Ragata'; src: url('/static/fonts/Ragata.ttf'); font-display: swap; }
-        @font-face { font-family: 'SFPro'; src: url('/static/fonts/SFPRODISPLAYREGULAR.OTF'); font-weight: 400; font-display: swap; }
-        @font-face { font-family: 'SFPro'; src: url('/static/fonts/SFPRODISPLAYBOLD.OTF'); font-weight: 700; font-display: swap; }
-        @font-face { font-family: 'SFPro'; src: url('/static/fonts/SFPRODISPLAYMEDIUM.OTF'); font-weight: 500; font-display: swap; }
-        @font-face { font-family: 'Crackajack'; src: url('/static/fonts/Crackajack_Free.ttf'); font-display: swap; }
-        @font-face { font-family: 'BradleyHand'; src: url('/static/fonts/BradBunR.ttf'); font-display: swap; }
+        @font-face { font-family: 'Atlas'; src: url('{{url_for("static",filename="fonts/Atlas_sans.otf")}}'); font-display: swap; }
+        @font-face { font-family: 'Desolator'; src: url('{{url_for("static",filename="fonts/Desolator.otf")}}'); font-weight: 400; font-display: swap; }
+        @font-face { font-family: 'Desolator'; src: url('{{url_for("static",filename="fonts/Desolator-Bold.otf")}}'); font-weight: 700; font-display: swap; }
+        @font-face { font-family: 'Desolator'; src: url('{{url_for("static",filename="fonts/Desolator-Light.otf")}}'); font-weight: 300; font-display: swap; }
+        @font-face { font-family: 'DesolatorBold'; src: url('{{url_for("static",filename="fonts/Desolator-Ultrabold.otf")}}'); font-weight: 900; font-display: swap; }
+        @font-face { font-family: 'DesolatorLight'; src: url('{{url_for("static",filename="fonts/Desolator-Ultralight.otf")}}'); font-weight: 100; font-display: swap; }
+        @font-face { font-family: 'Effortless'; src: url('{{url_for("static",filename="fonts/EFFORTLESS.TTF")}}'); font-display: swap; }
+        @font-face { font-family: 'Ragata'; src: url('{{url_for("static",filename="fonts/Ragata.ttf")}}'); font-display: swap; }
+        @font-face { font-family: 'SFPro'; src: url('{{url_for("static",filename="fonts/SFPRODISPLAYREGULAR.OTF")}}'); font-weight: 400; font-display: swap; }
+        @font-face { font-family: 'SFPro'; src: url('{{url_for("static",filename="fonts/SFPRODISPLAYBOLD.OTF")}}'); font-weight: 700; font-display: swap; }
+        @font-face { font-family: 'SFPro'; src: url('{{url_for("static",filename="fonts/SFPRODISPLAYMEDIUM.OTF")}}'); font-weight: 500; font-display: swap; }
+        @font-face { font-family: 'Crackajack'; src: url('{{url_for("static",filename="fonts/Crackajack_Free.ttf")}}'); font-display: swap; }
+        @font-face { font-family: 'BradleyHand'; src: url('{{url_for("static",filename="fonts/BradBunR.ttf")}}'); font-display: swap; }
 
         /* ==================== FONT FAMILY ==================== */
         
@@ -734,70 +734,72 @@
         
         #admin-fab {
             position: fixed;
-            bottom: 80px;
-            right: 20px;
+            top: 8px;
+            right: 8px;
             z-index: 9999;
             display: none;
         }
-        
+
         #admin-fab-btn {
-            width: 56px;
-            height: 56px;
-            border-radius: 50% !important;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            border: none !important;
-            color: white !important;
-            font-size: 22px;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px !important;
+            background: rgba(102,126,234,0.18) !important;
+            border: 1px solid rgba(102,126,234,0.35) !important;
+            color: #667eea !important;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 0;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: background 0.15s;
         }
-        
-        #admin-fab-btn:hover {
-            transform: scale(1.05);
+
+        #admin-fab-btn:active {
+            background: rgba(102,126,234,0.32) !important;
         }
-        
+
         #admin-menu {
             display: none;
             position: absolute;
-            bottom: 65px;
+            top: 36px;
             right: 0;
             background: var(--primary) !important;
             border-radius: 12px !important;
-            box-shadow: 0 4px 20px var(--shadow-color) !important;
+            box-shadow: 0 6px 24px var(--shadow-color) !important;
             overflow: hidden;
-            min-width: 200px;
+            min-width: 188px;
             border: 1px solid var(--card-border) !important;
         }
-        
+
         #admin-menu a {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 14px 18px;
+            padding: 11px 16px;
             color: var(--text-on-primary) !important;
             text-decoration: none;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             border-bottom: 1px solid var(--card-border) !important;
         }
-        
+
         #admin-menu a:last-child {
             border-bottom: none !important;
         }
-        
-        #admin-menu a:hover {
+
+        #admin-menu a:active {
             background: var(--hover-overlay) !important;
         }
-        
+
         #admin-menu-header {
-            padding: 12px 18px;
+            padding: 9px 16px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
             color: white !important;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -810,9 +812,6 @@
         }
         .app-container {
             padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
-        }
-        #admin-fab {
-            bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
         }
         {% endif %}
 
@@ -922,6 +921,14 @@
                 <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><path d="M200.77,53.89A103.27,103.27,0,0,0,128,24h-1.07A104,104,0,0,0,25,128.75c.46,54.62,45.62,98.25,100.25,98.25H192a16,16,0,0,0,16-16V128A104.11,104.11,0,0,0,200.77,53.89ZM128,144a16,16,0,1,1,16-16A16,16,0,0,1,128,144Z"/></svg>
                 Appearance
             </a>
+            <a href="/">
+                <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><path d="M213.38,109.62,133.38,36.88a8,8,0,0,0-10.76,0L42.62,109.62A8,8,0,0,0,40,115.54V208a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V115.54A8,8,0,0,0,213.38,109.62Z"/></svg>
+                Home Page
+            </a>
+            <a href="/admin/builder">
+                <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><rect x="32" y="32" width="80" height="80" rx="8"/><rect x="144" y="32" width="80" height="80" rx="8"/><rect x="32" y="144" width="80" height="80" rx="8"/><rect x="144" y="144" width="80" height="80" rx="8"/></svg>
+                Page Builder
+            </a>
             <a href="/admin/settings">
                 <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle cx="128" cy="128" r="40"/><path d="M130.05,16a8,8,0,0,0-4.1,0l-32,8a8,8,0,0,0-5.68,5.35L80,56.39,54.15,68.75a8,8,0,0,0-4.24,4.9L40,104a8,8,0,0,0,1.35,7.39L60,136l-1.56,27.71a8,8,0,0,0,2.79,6.54L88,192l8.22,30.35A8,8,0,0,0,102,228l26,6a8,8,0,0,0,3.95,0l26-6a8,8,0,0,0,5.78-5.65L172,192l26.79-21.76a8,8,0,0,0,2.79-6.54L200,136l18.65-24.61A8,8,0,0,0,220,104l-9.91-30.35a8,8,0,0,0-4.24-4.9L180,56.39l-8.27-27a8,8,0,0,0-5.68-5.35Z"/></svg>
                 Settings
@@ -1005,31 +1012,22 @@
         }
         
         // ==================== ADMIN MENU ====================
-        
-        let menuOpen = true;
-        
+
+        let menuOpen = false;
+
         window.toggleAdminMenu = function() {
             const menu = document.getElementById('admin-menu');
             menuOpen = !menuOpen;
             menu.style.display = menuOpen ? 'block' : 'none';
         };
-        
-        // Open admin menu on load if admin is logged in
-        document.addEventListener('DOMContentLoaded', function() {
-            const fab = document.getElementById('admin-fab');
-            if (fab && fab.style.display !== 'none') {
-                const menu = document.getElementById('admin-menu');
-                if (menu) menu.style.display = 'block';
-            }
-        });
-        
+
         document.addEventListener('click', function(e) {
             const fab = document.getElementById('admin-fab');
             if (fab && !fab.contains(e.target) && menuOpen) {
                 document.getElementById('admin-menu').style.display = 'none';
                 menuOpen = false;
             }
-        });
+        }, { capture: true });
         
         // ==================== ADMIN CHECK ====================
         

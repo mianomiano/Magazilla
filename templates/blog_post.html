@@ -114,18 +114,30 @@
     const track = document.getElementById('gallery-track');
     const dots = document.querySelectorAll('.gdot');
     if (!track || !dots.length) return;
-    track.addEventListener('scroll', function() {
-        const idx = Math.round(track.scrollLeft / track.clientWidth);
+
+    function getIdx() {
+        const item = track.children[0];
+        if (!item) return 0;
+        const gap = parseFloat(getComputedStyle(track).gap) || 10;
+        const itemW = item.offsetWidth + gap;
+        return Math.round(track.scrollLeft / itemW);
+    }
+
+    function updateDots() {
+        const idx = getIdx();
         dots.forEach((d,i) => {
             d.style.background = i === idx ? 'var(--secondary)' : 'var(--card-border)';
+            d.style.transform = i === idx ? 'scale(1.4)' : 'scale(1)';
         });
-    }, { passive: true });
+    }
+
+    track.addEventListener('scroll', updateDots, { passive: true });
+    updateDots();
+
     dots.forEach(d => {
         d.addEventListener('click', function() {
-            const items = track.children;
-            if (items[d.dataset.idx]) {
-                items[d.dataset.idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
-            }
+            const item = track.children[parseInt(d.dataset.idx)];
+            if (item) track.scrollTo({ left: item.offsetLeft, behavior: 'smooth' });
         });
     });
 })();

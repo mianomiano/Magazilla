@@ -73,7 +73,7 @@
             <!-- Font Section -->
             <div class="settings-section">
                 <h3>🔤 Font</h3>
-                <select name="font_family" class="neu-input" onchange="updatePreview()" style="width:100%;margin-top:6px">
+                <select id="font-select" name="font_family" class="neu-input" onchange="updateFontPreview();updatePreview();" style="width:100%;margin-top:6px">
                     <optgroup label="— Web Fonts —">
                         <option value="inter" {{ 'selected' if settings.font_family == 'inter' else '' }}>Inter (System)</option>
                         <option value="balsamiq" {{ 'selected' if settings.font_family == 'balsamiq' else '' }}>Balsamiq Sans</option>
@@ -94,6 +94,9 @@
                         <option value="bradleyhand" {{ 'selected' if settings.font_family == 'bradleyhand' else '' }}>Bradley Hand</option>
                     </optgroup>
                 </select>
+                <div id="font-preview-box" style="margin-top:10px;padding:12px 16px;border-radius:10px;background:var(--card-bg);border:1px solid var(--card-border);min-height:48px;display:flex;align-items:center;justify-content:center">
+                    <span id="font-preview-text" style="font-size:1.5rem;color:var(--t)">{{settings.app_name or 'Magazilla'}}</span>
+                </div>
             </div>
             
             <!-- Button Style Section -->
@@ -852,14 +855,36 @@
 </style>
 
 <script>
-// Font families map
+// Font families map — web + local
 const fontFamilies = {
-    'inter': "'Inter', sans-serif",
-    'balsamiq': "'Balsamiq Sans', cursive",
-    'grandstander': "'Grandstander', cursive",
-    'montserrat': "'Montserrat', sans-serif",
-    'russo': "'Russo One', sans-serif"
+    'inter':          "'Inter', sans-serif",
+    'balsamiq':       "'Balsamiq Sans', cursive",
+    'grandstander':   "'Grandstander', cursive",
+    'montserrat':     "'Montserrat', sans-serif",
+    'russo':          "'Russo One', sans-serif",
+    'atlas':          "'Atlas', sans-serif",
+    'desolator':      "'Desolator', sans-serif",
+    'desolator_bold': "'DesolatorBold', sans-serif",
+    'desolator_light':'DesolatorLight, sans-serif',
+    'effortless':     "'Effortless', sans-serif",
+    'ragata':         "'Ragata', sans-serif",
+    'sfpro':          "'SFPro', -apple-system, sans-serif",
+    'sfpro_bold':     "'SFPro', -apple-system, sans-serif",
+    'crackajack':     "'Crackajack', cursive",
+    'bradleyhand':    "'BradleyHand', cursive"
 };
+
+function updateFontPreview() {
+    const sel = document.getElementById('font-select');
+    const preview = document.getElementById('font-preview-text');
+    if (!sel || !preview) return;
+    const ff = fontFamilies[sel.value] || "'Inter', sans-serif";
+    const fw = sel.value === 'sfpro_bold' ? '700' : '400';
+    preview.style.fontFamily = ff;
+    preview.style.fontWeight = fw;
+}
+// Run on load to show current saved font
+document.addEventListener('DOMContentLoaded', updateFontPreview);
 
 // Sync color text input with color picker
 function syncColor(type) {

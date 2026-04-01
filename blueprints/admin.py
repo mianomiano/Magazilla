@@ -51,6 +51,7 @@ def logout():
 @admin_required
 def dashboard():
     """Admin dashboard"""
+    from datetime import datetime, timedelta
     products = Product.query.order_by(Product.created_at.desc()).all()
     total_stars = db.session.query(
         db.func.sum(Purchase.stars_paid)
@@ -58,14 +59,44 @@ def dashboard():
     
     total_downloads = sum(p.download_count for p in products)
     total_purchases = Purchase.query.filter_by(is_verified=True).count()
-    
+
+    # Per-product sales analytics
+    product_stats = []
+    for p in products:
+        sales = Purchase.query.filter_by(product_id=p.id, is_verified=True).count()
+        earned = db.session.query(db.func.sum(Purchase.stars_paid)).filter_by(
+            product_id=p.id, is_verified=True).scalar() or 0
+        product_stats.append({'name': p.name, 'sales': sales, 'earned': earned})
+    product_stats = sorted(product_stats, key=lambda x: x['sales'], reverse=True)[:8]
+
+    # Last 7 days daily purchases
+    daily = []
+    for i in range(6, -1, -1):
+        day = datetime.utcnow() - timedelta(days=i)
+        count = Purchase.query.filter(
+            Purchase.is_verified == True,
+            Purchase.created_at >= day.replace(hour=0, minute=0, second=0),
+            Purchase.created_at < day.replace(hour=23, minute=59, second=59)
+        ).count()
+        stars = db.session.query(db.func.sum(Purchase.stars_paid)).filter(
+            Purchase.is_verified == True,
+            Purchase.created_at >= day.replace(hour=0, minute=0, second=0),
+            Purchase.created_at < day.replace(hour=23, minute=59, second=59)
+        ).scalar() or 0
+        daily.append({'day': day.strftime('%a'), 'count': count, 'stars': stars})
+
+    max_daily = max((d['stars'] for d in daily), default=1) or 1
+
     return render_template(
         'admin.html',
         products=products,
         total_downloads=total_downloads,
         total_products=len(products),
         total_purchases=total_purchases,
-        total_stars=total_stars
+        total_stars=total_stars,
+        product_stats=product_stats,
+        daily=daily,
+        max_daily=max_daily
     )
 
 

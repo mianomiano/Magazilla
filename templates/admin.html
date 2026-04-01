@@ -2,7 +2,6 @@
 {%block content%}
 <div class="content">
 
-<!-- Flash Messages -->
 {%with messages = get_flashed_messages(with_categories=true)%}
 {%if messages%}
 <div class="flash-messages">
@@ -14,7 +13,7 @@
 {%endwith%}
 
 <div class="admin-header">
-    <h1 class="admin-title">📊 Admin Dashboard</h1>
+    <h1 class="admin-title">Dashboard</h1>
     <a href="{{url_for('admin_bp.new_product')}}" class="neu-btn neu-btn-primary">+ Add</a>
 </div>
 
@@ -24,25 +23,63 @@
         <div class="stat-label">Products</div>
     </div>
     <div class="stat-card">
-        <div class="stat-value">{{total_downloads}}</div>
-        <div class="stat-label">Downloads</div>
+        <div class="stat-value">{{total_purchases}}</div>
+        <div class="stat-label">Sales</div>
     </div>
     <div class="stat-card">
         <div class="stat-value">⭐{{total_stars}}</div>
         <div class="stat-label">Earned</div>
     </div>
+    <div class="stat-card">
+        <div class="stat-value">{{total_downloads}}</div>
+        <div class="stat-label">Downloads</div>
+    </div>
 </div>
+
+{# ── 7-day bar chart ── #}
+<div class="neu-card" style="margin-bottom:14px;padding:14px">
+    <div style="font-size:0.75rem;font-weight:700;color:var(--td);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.04em">Stars earned — last 7 days</div>
+    <div style="display:flex;align-items:flex-end;gap:6px;height:64px">
+    {%for d in daily%}
+    {%set pct = ((d.stars / max_daily) * 100)|int if max_daily > 0 else 0%}
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="font-size:0.55rem;color:var(--tm)">{{d.stars if d.stars else ''}}</div>
+        <div style="width:100%;background:var(--s);border-radius:4px 4px 0 0;height:{{[pct,4]|max}}%;min-height:4px;opacity:{{'1' if pct > 0 else '0.2'}}"></div>
+        <div style="font-size:0.58rem;color:var(--td)">{{d.day}}</div>
+    </div>
+    {%endfor%}
+    </div>
+</div>
+
+{# ── Per-product breakdown ── #}
+{%if product_stats%}
+<div class="neu-card" style="margin-bottom:14px;padding:14px">
+    <div style="font-size:0.75rem;font-weight:700;color:var(--td);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em">Sales by product</div>
+    {%set max_sales = product_stats[0].sales if product_stats else 1%}
+    {%for ps in product_stats%}
+    <div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+            <span style="font-size:0.72rem;font-weight:600;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70%">{{ps.name}}</span>
+            <span style="font-size:0.68rem;color:var(--td)">{{ps.sales}} sale{{'s' if ps.sales != 1}} · ⭐{{ps.earned}}</span>
+        </div>
+        <div style="background:var(--card-bg);border-radius:4px;height:5px;overflow:hidden">
+            <div style="height:100%;background:var(--a);border-radius:4px;width:{{((ps.sales / (max_sales or 1)) * 100)|int}}%"></div>
+        </div>
+    </div>
+    {%endfor%}
+</div>
+{%endif%}
 
 <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
     <a href="{{url_for('public_bp.index')}}" class="neu-btn">👁 Store</a>
     <a href="{{url_for('admin_bp.builder')}}" class="neu-btn">🧩 Builder</a>
     <a href="{{url_for('admin_bp.blog_admin')}}" class="neu-btn">📝 Blog</a>
+    <a href="{{url_for('admin_bp.purchases')}}" class="neu-btn">💰 Sales</a>
     <a href="{{url_for('admin_bp.appearance')}}" class="neu-btn">🎨 Look</a>
     <a href="{{url_for('admin_bp.settings')}}" class="neu-btn">⚙️ Settings</a>
-    <a href="{{url_for('admin_bp.logout')}}" class="neu-btn">🚪 Logout</a>
 </div>
 
-<h2 style="margin-bottom:10px;font-size:0.9rem;color:var(--td)">Products ({{total_purchases}} sales)</h2>
+<h2 style="margin-bottom:10px;font-size:0.9rem;color:var(--td)">Products</h2>
 
 {%if products%}
 <div class="admin-product-list">
@@ -62,7 +99,6 @@
         <div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:1rem">🎨</div>
     {%endif%}
     </div>
-    
     <div class="admin-product-info">
         <div class="admin-product-name">
             {{p.name}}
@@ -70,16 +106,15 @@
             {%if not p.file_path%}<span style="color:#ff4757">(No file!)</span>{%endif%}
         </div>
         <div class="admin-product-meta">
-            {{p.category}} • 
+            {{p.category}} ·
             {%if p.is_free%}
             <span style="color:var(--s)">Free</span>
             {%else%}
             <span style="color:var(--a)">⭐{{p.price}}</span>
             {%endif%}
-            • {{p.download_count}}↓
+            · {{p.download_count}}↓
         </div>
     </div>
-    
     <div class="admin-product-actions">
         <a href="{{url_for('admin_bp.edit_product',pid=p.id)}}" class="admin-btn-sm">Edit</a>
         <form method="POST" action="{{url_for('admin_bp.delete_product',pid=p.id)}}" style="display:inline;" onsubmit="return confirm('Delete {{p.name}}?');">
@@ -99,24 +134,9 @@
 </div>
 
 <style>
-.flash-messages {
-    margin-bottom: 16px;
-}
-.flash {
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    font-size: 0.85rem;
-}
-.flash-success {
-    background: rgba(175,232,31,0.15);
-    border-left: 3px solid var(--s);
-    color: var(--s);
-}
-.flash-error {
-    background: rgba(255,71,87,0.15);
-    border-left: 3px solid #ff4757;
-    color: #ff4757;
-}
+.flash-messages { margin-bottom:16px; }
+.flash { padding:12px 16px; border-radius:8px; margin-bottom:8px; font-size:0.85rem; }
+.flash-success { background:rgba(175,232,31,0.15); border-left:3px solid var(--s); color:var(--s); }
+.flash-error { background:rgba(255,71,87,0.15); border-left:3px solid #ff4757; color:#ff4757; }
 </style>
 {%endblock%}
