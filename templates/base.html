@@ -468,6 +468,21 @@
             background: var(--secondary);
         }
         
+        /* ==================== LOCAL FONT FACES ==================== */
+        @font-face { font-family: 'Atlas'; src: url('/static/fonts/Atlas_sans.otf'); font-display: swap; }
+        @font-face { font-family: 'Desolator'; src: url('/static/fonts/Desolator.otf'); font-weight: 400; font-display: swap; }
+        @font-face { font-family: 'Desolator'; src: url('/static/fonts/Desolator-Bold.otf'); font-weight: 700; font-display: swap; }
+        @font-face { font-family: 'Desolator'; src: url('/static/fonts/Desolator-Light.otf'); font-weight: 300; font-display: swap; }
+        @font-face { font-family: 'DesolatorBold'; src: url('/static/fonts/Desolator-Ultrabold.otf'); font-weight: 900; font-display: swap; }
+        @font-face { font-family: 'DesolatorLight'; src: url('/static/fonts/Desolator-Ultralight.otf'); font-weight: 100; font-display: swap; }
+        @font-face { font-family: 'Effortless'; src: url('/static/fonts/EFFORTLESS.TTF'); font-display: swap; }
+        @font-face { font-family: 'Ragata'; src: url('/static/fonts/Ragata.ttf'); font-display: swap; }
+        @font-face { font-family: 'SFPro'; src: url('/static/fonts/SFPRODISPLAYREGULAR.OTF'); font-weight: 400; font-display: swap; }
+        @font-face { font-family: 'SFPro'; src: url('/static/fonts/SFPRODISPLAYBOLD.OTF'); font-weight: 700; font-display: swap; }
+        @font-face { font-family: 'SFPro'; src: url('/static/fonts/SFPRODISPLAYMEDIUM.OTF'); font-weight: 500; font-display: swap; }
+        @font-face { font-family: 'Crackajack'; src: url('/static/fonts/Crackajack_Free.ttf'); font-display: swap; }
+        @font-face { font-family: 'BradleyHand'; src: url('/static/fonts/BradBunR.ttf'); font-display: swap; }
+
         /* ==================== FONT FAMILY ==================== */
         
         {% if settings.font_family == 'balsamiq' %}
@@ -478,6 +493,26 @@
         body, button, input, textarea, select { font-family: 'Montserrat', sans-serif !important; }
         {% elif settings.font_family == 'russo' %}
         body, button, input, textarea, select { font-family: 'Russo One', sans-serif !important; }
+        {% elif settings.font_family == 'atlas' %}
+        body, button, input, textarea, select { font-family: 'Atlas', sans-serif !important; }
+        {% elif settings.font_family == 'desolator' %}
+        body, button, input, textarea, select { font-family: 'Desolator', sans-serif !important; font-weight: 400; }
+        {% elif settings.font_family == 'desolator_bold' %}
+        body, button, input, textarea, select { font-family: 'DesolatorBold', sans-serif !important; }
+        {% elif settings.font_family == 'desolator_light' %}
+        body, button, input, textarea, select { font-family: 'DesolatorLight', sans-serif !important; }
+        {% elif settings.font_family == 'effortless' %}
+        body, button, input, textarea, select { font-family: 'Effortless', sans-serif !important; }
+        {% elif settings.font_family == 'ragata' %}
+        body, button, input, textarea, select { font-family: 'Ragata', sans-serif !important; }
+        {% elif settings.font_family == 'sfpro' %}
+        body, button, input, textarea, select { font-family: 'SFPro', -apple-system, sans-serif !important; font-weight: 400; }
+        {% elif settings.font_family == 'sfpro_bold' %}
+        body, button, input, textarea, select { font-family: 'SFPro', -apple-system, sans-serif !important; font-weight: 700; }
+        {% elif settings.font_family == 'crackajack' %}
+        body, button, input, textarea, select { font-family: 'Crackajack', cursive !important; }
+        {% elif settings.font_family == 'bradleyhand' %}
+        body, button, input, textarea, select { font-family: 'BradleyHand', cursive !important; }
         {% else %}
         body, button, input, textarea, select { font-family: 'Inter', -apple-system, sans-serif !important; }
         {% endif %}
@@ -790,133 +825,52 @@
             background: var(--primary-light);
             border-top: 1px solid var(--card-border);
             display: flex;
+            height: 58px;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        .bnav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 58px;
-            padding: 0 6px;
-            padding-bottom: env(safe-area-inset-bottom, 0px);
-            gap: 4px;
-        }
-
-        /* ── Pill item (both / default mode) ── */
-        .bnav-item {
-            display: inline-flex;
-            align-items: center;
-            justify-content: flex-start;
-            height: 40px;
-            width: 44px;
-            border-radius: 99em;
-            position: relative;
-            z-index: 1;
-            overflow: hidden;
-            flex-shrink: 0;
-            text-decoration: none !important;
-            -webkit-tap-highlight-color: transparent;
+            gap: 3px;
             color: var(--text-muted) !important;
-            font-size: 0.62rem !important;
-            font-weight: 700;
-            letter-spacing: 0.04em;
+            text-decoration: none !important;
+            font-size: 0.6rem !important;
+            font-weight: 600;
+            letter-spacing: 0.03em;
             text-transform: uppercase;
-            transition: width 0.22s ease-in-out, color 0.18s;
+            transition: color 0.15s, transform 0.12s;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Sliding pill background */
-        .bnav-item::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            z-index: -1;
-            border-radius: 99em;
-            background: var(--nav-active, var(--secondary));
-            opacity: 0.16;
-            transform: translateX(110%);
-            transition: transform 0.22s ease-in-out;
-        }
-
-        /* Active: expand pill + reveal background */
-        .bnav-item.bnav-active {
-            width: 118px;
-            color: var(--nav-active, var(--secondary)) !important;
-        }
-
-        .bnav-item.bnav-active::before {
-            transform: translateX(0);
-        }
-
-        /* Tap press feedback */
         .bnav-item:active {
-            opacity: 0.65;
-            transform: scale(0.93);
-            transition: opacity 0.06s, transform 0.06s;
+            transform: scale(0.88);
         }
 
-        /* Icon — absolutely pinned to left inside the pill */
+        .bnav-item.bnav-active {
+            color: var(--nav-active) !important;
+        }
+
         .bnav-icon {
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             display: block;
             flex-shrink: 0;
-            position: absolute;
-            left: 11px;
         }
 
         .bnav-icon svg {
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             display: block;
         }
 
-        /* Label — slides in from right when active */
-        .bnav-label {
-            white-space: nowrap;
-            padding-left: 38px;
-            padding-right: 12px;
-            transform: translateX(28%);
-            opacity: 0;
-            transition: transform 0.22s ease-in-out 0.06s, opacity 0.18s ease-in-out 0.06s;
-        }
-
-        .bnav-item.bnav-active .bnav-label {
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        /* ── Icons-only mode ── */
-        .bnav-mode-icons .bnav-item {
-            width: 44px;
-            justify-content: center;
-        }
-        .bnav-mode-icons .bnav-item.bnav-active {
-            width: 56px;
-        }
-        .bnav-mode-icons .bnav-icon {
-            position: static;
-        }
         .bnav-mode-icons .bnav-label { display: none; }
-        .bnav-mode-icons .bnav-icon { width: 24px; height: 24px; }
-        .bnav-mode-icons .bnav-icon svg { width: 24px; height: 24px; }
-
-        /* ── Text-only mode ── */
+        .bnav-mode-icons .bnav-icon { width: 26px; height: 26px; }
+        .bnav-mode-icons .bnav-icon svg { width: 26px; height: 26px; }
         .bnav-mode-text .bnav-icon { display: none; }
-        .bnav-mode-text .bnav-item {
-            width: auto;
-            flex: 1;
-            justify-content: center;
-            padding: 0 8px;
-        }
-        .bnav-mode-text .bnav-item.bnav-active {
-            width: auto;
-        }
-        .bnav-mode-text .bnav-label {
-            padding-left: 0;
-            padding-right: 0;
-            transform: none;
-            opacity: 1;
-            transition: none;
-        }
-        .bnav-mode-text .bnav-item.bnav-active .bnav-label {
-            transform: none;
-        }
         .bnav-mode-text .bnav-item { font-size: 0.72rem !important; }
     </style>
 {% if settings and settings.custom_head %}{{settings.custom_head|safe}}{% endif %}
@@ -944,14 +898,38 @@
 
     <!-- Admin FAB -->
     <div id="admin-fab" {% if session.get('is_admin') %}style="display:block"{% endif %}>
-        <button id="admin-fab-btn" onclick="toggleAdminMenu()">⚙️</button>
+        <button id="admin-fab-btn" onclick="toggleAdminMenu()" title="Admin Panel">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="128" cy="128" r="40"/>
+                <path d="M130.05,16a8,8,0,0,0-4.1,0l-32,8a8,8,0,0,0-5.68,5.35L80,56.39,54.15,68.75a8,8,0,0,0-4.24,4.9L40,104a8,8,0,0,0,1.35,7.39L60,136l-1.56,27.71a8,8,0,0,0,2.79,6.54L88,192l8.22,30.35A8,8,0,0,0,102,228l26,6a8,8,0,0,0,3.95,0l26-6a8,8,0,0,0,5.78-5.65L172,192l26.79-21.76a8,8,0,0,0,2.79-6.54L200,136l18.65-24.61A8,8,0,0,0,220,104l-9.91-30.35a8,8,0,0,0-4.24-4.9L180,56.39l-8.27-27a8,8,0,0,0-5.68-5.35Z"/>
+            </svg>
+        </button>
         <div id="admin-menu">
-            <div id="admin-menu-header">🔐 Admin Panel</div>
-            <a href="/admin"><span>📊</span> Dashboard</a>
-            <a href="/admin/purchases"><span>💰</span> Purchases</a>
-            <a href="/admin/product/new"><span>➕</span> Add Product</a>
-            <a href="/admin/appearance"><span>🎨</span> Appearance</a>
-            <a href="/admin/settings"><span>⚙️</span> Settings</a>
+            <div id="admin-menu-header">Admin Panel</div>
+            <a href="/admin">
+                <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><rect x="32" y="48" width="64" height="80" rx="8"/><rect x="32" y="168" width="64" height="40" rx="8"/><rect x="128" y="48" width="96" height="40" rx="8"/><rect x="128" y="128" width="96" height="80" rx="8"/></svg>
+                Dashboard
+            </a>
+            <a href="/admin/purchases">
+                <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle cx="80" cy="216" r="16"/><circle cx="184" cy="216" r="16"/><path d="M42.3,72H221.7l-26.4,92.4A8,8,0,0,1,187.6,171H78.4a8,8,0,0,1-7.7-5.8L32,32H16"/></svg>
+                Purchases
+            </a>
+            <a href="/admin/product/new">
+                <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><line x1="128" y1="40" x2="128" y2="216"/><line x1="40" y1="128" x2="216" y2="128"/></svg>
+                Add Product
+            </a>
+            <a href="/admin/appearance">
+                <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><path d="M200.77,53.89A103.27,103.27,0,0,0,128,24h-1.07A104,104,0,0,0,25,128.75c.46,54.62,45.62,98.25,100.25,98.25H192a16,16,0,0,0,16-16V128A104.11,104.11,0,0,0,200.77,53.89ZM128,144a16,16,0,1,1,16-16A16,16,0,0,1,128,144Z"/></svg>
+                Appearance
+            </a>
+            <a href="/admin/settings">
+                <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle cx="128" cy="128" r="40"/><path d="M130.05,16a8,8,0,0,0-4.1,0l-32,8a8,8,0,0,0-5.68,5.35L80,56.39,54.15,68.75a8,8,0,0,0-4.24,4.9L40,104a8,8,0,0,0,1.35,7.39L60,136l-1.56,27.71a8,8,0,0,0,2.79,6.54L88,192l8.22,30.35A8,8,0,0,0,102,228l26,6a8,8,0,0,0,3.95,0l26-6a8,8,0,0,0,5.78-5.65L172,192l26.79-21.76a8,8,0,0,0,2.79-6.54L200,136l18.65-24.61A8,8,0,0,0,220,104l-9.91-30.35a8,8,0,0,0-4.24-4.9L180,56.39l-8.27-27a8,8,0,0,0-5.68-5.35Z"/></svg>
+                Settings
+            </a>
+            <a href="/admin/logout" style="color:#ff6b6b !important;border-bottom:none">
+                <svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="#ff6b6b" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><path d="M112,216H64a8,8,0,0,1-8-8V48a8,8,0,0,1,8-8h48"/><polyline points="168 168 216 128 168 88"/><line x1="120" y1="128" x2="216" y2="128"/></svg>
+                Logout
+            </a>
         </div>
     </div>
     
@@ -1028,13 +1006,22 @@
         
         // ==================== ADMIN MENU ====================
         
-        let menuOpen = false;
+        let menuOpen = true;
         
         window.toggleAdminMenu = function() {
             const menu = document.getElementById('admin-menu');
             menuOpen = !menuOpen;
             menu.style.display = menuOpen ? 'block' : 'none';
         };
+        
+        // Open admin menu on load if admin is logged in
+        document.addEventListener('DOMContentLoaded', function() {
+            const fab = document.getElementById('admin-fab');
+            if (fab && fab.style.display !== 'none') {
+                const menu = document.getElementById('admin-menu');
+                if (menu) menu.style.display = 'block';
+            }
+        });
         
         document.addEventListener('click', function(e) {
             const fab = document.getElementById('admin-fab');

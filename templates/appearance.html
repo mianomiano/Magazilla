@@ -73,33 +73,27 @@
             <!-- Font Section -->
             <div class="settings-section">
                 <h3>🔤 Font</h3>
-                <div class="option-grid font-options">
-                    <label class="option-card">
-                        <input type="radio" name="font_family" value="inter" 
-                               {{ 'checked' if settings.font_family == 'inter' else '' }} onchange="updatePreview()">
-                        <span class="option-preview font-inter">Inter</span>
-                    </label>
-                    <label class="option-card">
-                        <input type="radio" name="font_family" value="balsamiq" 
-                               {{ 'checked' if settings.font_family == 'balsamiq' else '' }} onchange="updatePreview()">
-                        <span class="option-preview font-balsamiq">Balsamiq</span>
-                    </label>
-                    <label class="option-card">
-                        <input type="radio" name="font_family" value="grandstander" 
-                               {{ 'checked' if settings.font_family == 'grandstander' else '' }} onchange="updatePreview()">
-                        <span class="option-preview font-grandstander">Grandstander</span>
-                    </label>
-                    <label class="option-card">
-                        <input type="radio" name="font_family" value="montserrat" 
-                               {{ 'checked' if settings.font_family == 'montserrat' else '' }} onchange="updatePreview()">
-                        <span class="option-preview font-montserrat">Montserrat</span>
-                    </label>
-                    <label class="option-card">
-                        <input type="radio" name="font_family" value="russo" 
-                               {{ 'checked' if settings.font_family == 'russo' else '' }} onchange="updatePreview()">
-                        <span class="option-preview font-russo">Russo One</span>
-                    </label>
-                </div>
+                <select name="font_family" class="neu-input" onchange="updatePreview()" style="width:100%;margin-top:6px">
+                    <optgroup label="— Web Fonts —">
+                        <option value="inter" {{ 'selected' if settings.font_family == 'inter' else '' }}>Inter (System)</option>
+                        <option value="balsamiq" {{ 'selected' if settings.font_family == 'balsamiq' else '' }}>Balsamiq Sans</option>
+                        <option value="grandstander" {{ 'selected' if settings.font_family == 'grandstander' else '' }}>Grandstander</option>
+                        <option value="montserrat" {{ 'selected' if settings.font_family == 'montserrat' else '' }}>Montserrat</option>
+                        <option value="russo" {{ 'selected' if settings.font_family == 'russo' else '' }}>Russo One</option>
+                    </optgroup>
+                    <optgroup label="— Local Fonts —">
+                        <option value="atlas" {{ 'selected' if settings.font_family == 'atlas' else '' }}>Atlas Sans</option>
+                        <option value="desolator" {{ 'selected' if settings.font_family == 'desolator' else '' }}>Desolator</option>
+                        <option value="desolator_bold" {{ 'selected' if settings.font_family == 'desolator_bold' else '' }}>Desolator Bold</option>
+                        <option value="desolator_light" {{ 'selected' if settings.font_family == 'desolator_light' else '' }}>Desolator Light</option>
+                        <option value="effortless" {{ 'selected' if settings.font_family == 'effortless' else '' }}>Effortless</option>
+                        <option value="ragata" {{ 'selected' if settings.font_family == 'ragata' else '' }}>Ragata</option>
+                        <option value="sfpro" {{ 'selected' if settings.font_family == 'sfpro' else '' }}>SF Pro Display</option>
+                        <option value="sfpro_bold" {{ 'selected' if settings.font_family == 'sfpro_bold' else '' }}>SF Pro Display Bold</option>
+                        <option value="crackajack" {{ 'selected' if settings.font_family == 'crackajack' else '' }}>Crackajack</option>
+                        <option value="bradleyhand" {{ 'selected' if settings.font_family == 'bradleyhand' else '' }}>Bradley Hand</option>
+                    </optgroup>
+                </select>
             </div>
             
             <!-- Button Style Section -->
