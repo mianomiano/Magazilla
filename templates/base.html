@@ -790,53 +790,134 @@
             background: var(--primary-light);
             border-top: 1px solid var(--card-border);
             display: flex;
-            height: 58px;
-            padding-bottom: env(safe-area-inset-bottom, 0px);
-        }
-
-        .bnav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 3px;
-            color: var(--text-muted) !important;
+            height: 58px;
+            padding: 0 6px;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            gap: 4px;
+        }
+
+        /* ── Pill item (both / default mode) ── */
+        .bnav-item {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start;
+            height: 40px;
+            width: 44px;
+            border-radius: 99em;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            flex-shrink: 0;
             text-decoration: none !important;
-            font-size: 0.6rem !important;
-            font-weight: 600;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            transition: color 0.15s, transform 0.1s;
             -webkit-tap-highlight-color: transparent;
+            color: var(--text-muted) !important;
+            font-size: 0.62rem !important;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            transition: width 0.22s ease-in-out, color 0.18s;
         }
 
-        .bnav-item:active {
-            transform: scale(0.92);
+        /* Sliding pill background */
+        .bnav-item::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            border-radius: 99em;
+            background: var(--nav-active, var(--secondary));
+            opacity: 0.16;
+            transform: translateX(110%);
+            transition: transform 0.22s ease-in-out;
         }
 
+        /* Active: expand pill + reveal background */
         .bnav-item.bnav-active {
-            color: var(--nav-active) !important;
+            width: 118px;
+            color: var(--nav-active, var(--secondary)) !important;
         }
 
+        .bnav-item.bnav-active::before {
+            transform: translateX(0);
+        }
+
+        /* Tap press feedback */
+        .bnav-item:active {
+            opacity: 0.65;
+            transform: scale(0.93);
+            transition: opacity 0.06s, transform 0.06s;
+        }
+
+        /* Icon — absolutely pinned to left inside the pill */
         .bnav-icon {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             display: block;
             flex-shrink: 0;
+            position: absolute;
+            left: 11px;
         }
 
         .bnav-icon svg {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             display: block;
         }
 
+        /* Label — slides in from right when active */
+        .bnav-label {
+            white-space: nowrap;
+            padding-left: 38px;
+            padding-right: 12px;
+            transform: translateX(28%);
+            opacity: 0;
+            transition: transform 0.22s ease-in-out 0.06s, opacity 0.18s ease-in-out 0.06s;
+        }
+
+        .bnav-item.bnav-active .bnav-label {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        /* ── Icons-only mode ── */
+        .bnav-mode-icons .bnav-item {
+            width: 44px;
+            justify-content: center;
+        }
+        .bnav-mode-icons .bnav-item.bnav-active {
+            width: 56px;
+        }
+        .bnav-mode-icons .bnav-icon {
+            position: static;
+        }
         .bnav-mode-icons .bnav-label { display: none; }
-        .bnav-mode-icons .bnav-icon { width: 26px; height: 26px; }
-        .bnav-mode-icons .bnav-icon svg { width: 26px; height: 26px; }
+        .bnav-mode-icons .bnav-icon { width: 24px; height: 24px; }
+        .bnav-mode-icons .bnav-icon svg { width: 24px; height: 24px; }
+
+        /* ── Text-only mode ── */
         .bnav-mode-text .bnav-icon { display: none; }
-        .bnav-mode-text .bnav-item { font-size: 0.75rem !important; }
+        .bnav-mode-text .bnav-item {
+            width: auto;
+            flex: 1;
+            justify-content: center;
+            padding: 0 8px;
+        }
+        .bnav-mode-text .bnav-item.bnav-active {
+            width: auto;
+        }
+        .bnav-mode-text .bnav-label {
+            padding-left: 0;
+            padding-right: 0;
+            transform: none;
+            opacity: 1;
+            transition: none;
+        }
+        .bnav-mode-text .bnav-item.bnav-active .bnav-label {
+            transform: none;
+        }
+        .bnav-mode-text .bnav-item { font-size: 0.72rem !important; }
     </style>
 {% if settings and settings.custom_head %}{{settings.custom_head|safe}}{% endif %}
 </head>
