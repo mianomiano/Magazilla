@@ -78,10 +78,10 @@
 {%if gallery%}
 <div style="margin-top:24px">
 <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px">🖼️ Gallery</div>
-<div id="prod-gallery-track" style="display:flex;overflow-x:auto;gap:10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:6px;scrollbar-width:none">
+<div id="prod-gallery-track" style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none">
 {%for img_key in gallery%}
 {%set img_url=r2_url(img_key)%}
-<div style="flex:0 0 85%;max-width:340px;scroll-snap-align:start;border-radius:12px;overflow:hidden;background:var(--primary-light)">
+<div style="flex:0 0 100%;width:100%;scroll-snap-align:start;border-radius:12px;overflow:hidden;background:var(--primary-light);flex-shrink:0">
 {%if img_key.endswith('.webm') or img_key.endswith('.mp4')%}
 <video autoplay loop muted playsinline style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">
 <source src="{{img_url}}" type="{{'video/webm' if img_key.endswith('.webm') else 'video/mp4'}}">

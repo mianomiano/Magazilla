@@ -1,24 +1,6 @@
 {%extends 'base.html'%}
 {%block content%}
 
-{%if settings.logo_path or settings.app_name%}
-<header class="header header-compact">
-<div class="header-inner">
-<div class="logo-area">
-{%if settings.logo_path%}
-{%set logo_url=r2_url(settings.logo_path)%}
-{%if settings.logo_path.endswith('.webm')%}
-<video autoplay loop muted playsinline><source src="{{logo_url}}" type="video/webm"></video>
-{%else%}
-<img src="{{logo_url}}" alt="{{settings.app_name}}">
-{%endif%}
-{%elif settings.app_name%}
-<span class="logo-text">{{settings.app_name}}</span>
-{%endif%}
-</div>
-</div>
-</header>
-{%endif%}
 
 <div class="content">
 
@@ -64,10 +46,10 @@
 <div style="margin-top:28px;margin-bottom:24px">
 <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--td);margin-bottom:12px">🖼️ Gallery</div>
 <div id="blog-gallery" style="position:relative">
-<div id="gallery-track" style="display:flex;overflow-x:auto;gap:10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:8px;scrollbar-width:none">
+<div id="gallery-track" style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none">
 {%for img_key in gallery%}
 {%set img_url=r2_url(img_key)%}
-<div style="flex:0 0 80%;max-width:320px;scroll-snap-align:start;border-radius:12px;overflow:hidden;background:var(--pl)">
+<div style="flex:0 0 100%;width:100%;scroll-snap-align:start;border-radius:12px;overflow:hidden;background:var(--pl);flex-shrink:0">
 {%if img_key.endswith('.webm') or img_key.endswith('.mp4')%}
 <video autoplay loop muted playsinline style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">
 <source src="{{img_url}}" type="{{'video/webm' if img_key.endswith('.webm') else 'video/mp4'}}">

@@ -73,15 +73,17 @@ def dashboard():
     daily = []
     for i in range(6, -1, -1):
         day = datetime.utcnow() - timedelta(days=i)
+        day_start = day.replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end = day.replace(hour=23, minute=59, second=59, microsecond=999999)
         count = Purchase.query.filter(
             Purchase.is_verified == True,
-            Purchase.created_at >= day.replace(hour=0, minute=0, second=0),
-            Purchase.created_at < day.replace(hour=23, minute=59, second=59)
+            Purchase.purchased_at >= day_start,
+            Purchase.purchased_at <= day_end
         ).count()
         stars = db.session.query(db.func.sum(Purchase.stars_paid)).filter(
             Purchase.is_verified == True,
-            Purchase.created_at >= day.replace(hour=0, minute=0, second=0),
-            Purchase.created_at < day.replace(hour=23, minute=59, second=59)
+            Purchase.purchased_at >= day_start,
+            Purchase.purchased_at <= day_end
         ).scalar() or 0
         daily.append({'day': day.strftime('%a'), 'count': count, 'stars': stars})
 
@@ -514,7 +516,12 @@ def appearance():
         
         # Font
         font = request.form.get('font_family', 'inter')
-        if font in ['inter', 'balsamiq', 'grandstander', 'montserrat', 'russo']:
+        allowed_fonts = [
+            'inter', 'balsamiq', 'grandstander', 'montserrat', 'russo',
+            'atlas', 'desolator', 'desolator_bold', 'desolator_light',
+            'effortless', 'ragata', 'sfpro', 'sfpro_bold', 'crackajack', 'bradleyhand'
+        ]
+        if font in allowed_fonts:
             app_settings.font_family = font
         
         # Button style
