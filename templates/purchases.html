@@ -208,10 +208,10 @@
 }
 
 .table-container {
-    background: #1e2733;
+    background: var(--pl);
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.05);
+    border: 1px solid var(--card-border);
 }
 
 .data-table {
@@ -223,21 +223,21 @@
 .data-table td {
     padding: 14px 16px;
     text-align: left;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .data-table th {
-    background: rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.15);
     font-weight: 600;
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #9aa0a6;
+    color: var(--td);
     white-space: nowrap;
 }
 
 .data-table th a {
-    color: #9aa0a6;
+    color: var(--td);
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -246,12 +246,12 @@
 
 .data-table th a:hover,
 .data-table th a.active {
-    color: #e8eaed;
+    color: var(--t);
 }
 
 .data-table td {
     font-size: 14px;
-    color: #e8eaed;
+    color: var(--t);
 }
 
 .data-table tbody tr:hover {

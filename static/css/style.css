@@ -235,6 +235,11 @@ html, body {
     color: var(--badge-text) !important;
 }
 
+.badge-pwyw {
+    background: linear-gradient(135deg, #ff6700, #ff0080) !important;
+    color: #fff !important;
+}
+
 .product-info {
     padding: 8px;
     background: var(--primary-light) !important;

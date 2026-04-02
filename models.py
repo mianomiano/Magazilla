@@ -12,6 +12,7 @@ class Product(db.Model):
     is_free = db.Column(db.Boolean, default=True)
     category = db.Column(db.String(100), default='General')
     label_color = db.Column(db.String(20), default='accent')
+    is_pwyw = db.Column(db.Boolean, default=False)     # Pay What You Want (optional payment)
     thumbnail = db.Column(db.String(500))
     images = db.Column(db.Text, default='[]')          # JSON array of R2 keys
     file_path = db.Column(db.String(500))

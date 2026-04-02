@@ -137,6 +137,8 @@ def migrate_database():
          "product.images"),
         ("ALTER TABLE product ADD COLUMN IF NOT EXISTS label_color VARCHAR(20) DEFAULT 'accent'",
          "product.label_color"),
+        ("ALTER TABLE product ADD COLUMN IF NOT EXISTS is_pwyw BOOLEAN DEFAULT FALSE",
+         "product.is_pwyw"),
         ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS label_color VARCHAR(20) DEFAULT 'accent'",
          "blog_post.label_color"),
 

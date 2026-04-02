@@ -77,11 +77,11 @@
                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
                     {% set badge_opts = [
                         ('accent','Accent','var(--accent)','#fff'),
-                        ('red','Red','#e53935','#fff'),
-                        ('green','Green','#43a047','#fff'),
-                        ('purple','Purple','#8e24aa','#fff'),
-                        ('yellow','Yellow','#fdd835','#1a1a1a'),
-                        ('orange','Orange','#fb8c00','#fff'),
+                        ('red','Red','#ff0000','#fff'),
+                        ('green','Green','#32ff00','#1a1a1a'),
+                        ('purple','Purple','#8f00ff','#fff'),
+                        ('yellow','Yellow','#f3ff00','#1a1a1a'),
+                        ('orange','Orange','#ff6700','#fff'),
                         ('black','Black','#1a1a1a','#fff'),
                         ('white','White','#ffffff','#1a1a1a'),
                     ] %}
@@ -587,8 +587,8 @@
 }
 
 .option-card input:checked + .option-preview {
-    border-color: var(--s, #afe81f);
-    background: rgba(175, 232, 31, 0.1);
+    border-color: var(--accent);
+    background: rgba(255,255,255,0.07);
 }
 
 .option-card:hover .option-preview {
@@ -606,24 +606,25 @@
 }
 
 .style-soft {
-    background: #1e2733;
-    box-shadow: 3px 3px 6px rgba(0,0,0,0.4), -3px -3px 6px rgba(40,50,70,0.3);
+    background: var(--primary);
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.35), -2px -2px 5px rgba(255,255,255,0.05);
 }
 
 .style-flat {
-    background: #2a3441;
-    border: 1px solid rgba(255,255,255,0.1);
+    background: transparent;
+    border: 2px solid var(--secondary);
+    color: var(--secondary) !important;
 }
 
 .style-bubble {
-    background: linear-gradient(145deg, #252f3b, #1a232d);
-    border: 2px solid rgba(255,255,255,0.15);
-    box-shadow: 0 4px 0 #0d1117, inset 0 1px 0 rgba(255,255,255,0.1);
+    background: var(--primary);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 4px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 
 .style-glow {
-    background: #1e2733;
-    box-shadow: 0 0 15px rgba(175, 232, 31, 0.3);
+    background: var(--primary);
+    box-shadow: 0 0 14px var(--accent);
 }
 
 .round-sharp { border-radius: 4px !important; }
@@ -1026,11 +1027,12 @@ function updatePreview() {
     cards.forEach(card => card.style.borderRadius = roundness[btnRound]);
     filterBtns.forEach(fb => fb.style.borderRadius = roundness[btnRound]);
     
-    // Apply button style
+    // Apply button style to main preview button
     btn.style.boxShadow = 'none';
     btn.style.border = 'none';
     btn.style.background = secondaryColor;
-    
+    btn.style.color = primaryColor;
+
     if (btnStyle === 'soft') {
         btn.style.boxShadow = '3px 3px 6px rgba(0,0,0,0.4), -3px -3px 6px rgba(40,50,70,0.3)';
     } else if (btnStyle === 'flat') {
@@ -1041,6 +1043,25 @@ function updatePreview() {
         btn.style.boxShadow = '0 4px 0 ' + darkenColor(secondaryColor, 30) + ', inset 0 1px 0 rgba(255,255,255,0.2)';
     } else if (btnStyle === 'glow') {
         btn.style.boxShadow = '0 0 20px ' + secondaryColor + '66';
+    }
+
+    // Sync button style option preview buttons to chosen colors
+    document.querySelectorAll('.preview-btn.style-soft, .preview-btn.style-bubble').forEach(b => {
+        b.style.background = primaryColor;
+        b.style.color = accentColor;
+        b.style.boxShadow = '';
+    });
+    const flatBtn = document.querySelector('.preview-btn.style-flat');
+    if (flatBtn) {
+        flatBtn.style.background = 'transparent';
+        flatBtn.style.border = '2px solid ' + secondaryColor;
+        flatBtn.style.color = secondaryColor;
+    }
+    const glowBtn = document.querySelector('.preview-btn.style-glow');
+    if (glowBtn) {
+        glowBtn.style.background = primaryColor;
+        glowBtn.style.color = accentColor;
+        glowBtn.style.boxShadow = '0 0 14px ' + accentColor;
     }
 }
 

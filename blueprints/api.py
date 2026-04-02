@@ -114,6 +114,49 @@ def create_donation_invoice():
         return jsonify({'error': 'Internal server error'}), 500
 
 
+@api_bp.route('/create-pwyw-invoice', methods=['POST'])
+@limiter.limit("10 per minute")
+@telegram_auth_required
+def create_pwyw_invoice():
+    """Create Telegram Stars invoice for Pay What You Want product"""
+    try:
+        data = request.json
+        product_id = data.get('product_id')
+        amount = data.get('amount')
+        if not product_id or not amount or int(amount) < 1:
+            return jsonify({'error': 'product_id and amount (min 1 Star) required'}), 400
+
+        amount = int(amount)
+        product = Product.query.get(product_id)
+        if not product or not product.is_pwyw:
+            return jsonify({'error': 'Product not found or not PWYW'}), 404
+
+        user_id = get_telegram_user_id()
+        bot_token = Config.BOT_TOKEN
+        url = f"https://api.telegram.org/bot{bot_token}/createInvoiceLink"
+
+        payload = {
+            'title': product.name[:32],
+            'description': (f'Support: {product.name} — pay {amount} Stars')[:255],
+            'payload': json.dumps({'type': 'pwyw', 'product_id': product_id, 'user_id': user_id}),
+            'provider_token': '',
+            'currency': 'XTR',
+            'prices': json.dumps([{'label': product.name[:32], 'amount': amount}])
+        }
+
+        response = requests.post(url, data=payload, timeout=10)
+        result = response.json()
+
+        if result.get('ok'):
+            return jsonify({'invoice_link': result['result']})
+        else:
+            return jsonify({'error': result.get('description', 'Failed to create invoice')}), 400
+
+    except Exception as e:
+        print(f"PWYW invoice error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
 @api_bp.route('/webhook/telegram', methods=['POST'])
 def telegram_webhook():
     """Telegram webhook - verified by Telegram's servers"""
@@ -143,6 +186,27 @@ def telegram_webhook():
             if payload_type == 'donation' or (not product_id and 'donation' in payload_str):
                 amount = payment.get('total_amount', 0)
                 print(f"💜 Donation received: user={user_id}, stars={amount}")
+                return jsonify({'ok': True})
+
+            # Handle PWYW payments — record a Purchase so it shows in sales
+            if payload_type == 'pwyw':
+                if product_id:
+                    product = Product.query.get(product_id)
+                    if product:
+                        existing = Purchase.query.filter_by(
+                            user_id=user_id, product_id=product_id
+                        ).filter(Purchase.stars_paid > 0).first()
+                        if not existing:
+                            purchase = Purchase(
+                                user_id=user_id,
+                                product_id=product_id,
+                                telegram_payment_id=payment.get('telegram_payment_charge_id', ''),
+                                stars_paid=payment.get('total_amount', 0),
+                                is_verified=True
+                            )
+                            db.session.add(purchase)
+                            db.session.commit()
+                            print(f"💝 PWYW support: user={user_id}, product={product_id}, stars={payment.get('total_amount',0)}")
                 return jsonify({'ok': True})
 
             if not product_id:

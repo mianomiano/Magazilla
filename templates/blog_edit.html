@@ -60,7 +60,7 @@
     <div class="neu-input-group">
     <label>Category Label Color <span style="font-size:0.73rem;font-weight:normal;opacity:0.6">(color of the category tag on this post)</span></label>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px" id="blc_swatches">
-    {%for lname,lhex in [('accent','var(--a)'),('red','#e53935'),('green','#43a047'),('purple','#8e24aa'),('yellow','#fdd835'),('orange','#fb8c00'),('black','#1a1a1a'),('white','#f5f5f5')]%}
+    {%for lname,lhex in [('accent','var(--a)'),('red','#ff0000'),('green','#32ff00'),('purple','#8f00ff'),('yellow','#f3ff00'),('orange','#ff6700'),('black','#1a1a1a'),('white','#f5f5f5')]%}
     <label title="{{lname}}" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
     <input type="radio" name="label_color" value="{{lname}}" {{'checked' if (post.label_color if post else 'accent')==lname else ''}} style="display:none" onchange="updateBlcUI()">
     <span style="display:block;width:28px;height:28px;border-radius:50%;background:{{lhex}};border:2px solid rgba(0,0,0,0.08);transition:box-shadow 0.15s" class="blc-dot"></span>

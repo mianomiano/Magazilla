@@ -207,13 +207,15 @@ def new_product():
             return render_template('edit_product.html', product=None, categories=categories)
         
         description = request.form.get('description', '').strip()
-        is_free = request.form.get('is_free') == 'on'
+        product_type = request.form.get('product_type', 'free')
+        is_free = product_type in ('free', 'pwyw')
+        is_pwyw = product_type == 'pwyw'
         
         price = 0
-        if not is_free:
+        if product_type == 'paid':
             try:
                 price = int(request.form.get('price', 1))
-                valid, error = validate_price(price, is_free)
+                valid, error = validate_price(price, False)
                 if not valid:
                     flash(error, 'error')
                     return render_template('edit_product.html', product=None, categories=categories)
@@ -238,6 +240,7 @@ def new_product():
             description=description,
             price=price,
             is_free=is_free,
+            is_pwyw=is_pwyw,
             category=category,
             label_color=label_color
         )
@@ -299,12 +302,14 @@ def edit_product(pid):
         
         product.name = name
         product.description = request.form.get('description', '').strip()
-        product.is_free = request.form.get('is_free') == 'on'
+        _ptype = request.form.get('product_type', 'free')
+        product.is_free = _ptype in ('free', 'pwyw')
+        product.is_pwyw = _ptype == 'pwyw'
         
-        if not product.is_free:
+        if _ptype == 'paid':
             try:
                 price = int(request.form.get('price', 1))
-                valid, error = validate_price(price, product.is_free)
+                valid, error = validate_price(price, False)
                 if not valid:
                     flash(error, 'error')
                     return render_template('edit_product.html', product=product, categories=categories)

@@ -47,7 +47,21 @@
 
 
 <div class="product-detail-actions" id="actions-container">
-{%if product.is_free%}
+{%if product.is_pwyw%}
+    <p style="font-size:0.84rem;color:var(--td);margin-bottom:12px;text-align:center">Support with any amount you choose, or get it free:</p>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <input type="number" id="pwyw-amount" class="neu-input" min="1" max="9999" value="50" placeholder="Stars amount..." style="flex:1;text-align:center">
+        <span style="font-size:1.3rem">⭐</span>
+    </div>
+    <button class="neu-btn neu-btn-accent neu-btn-full" onclick="handlePwyw({{product.id}})" style="margin-bottom:8px">
+        💝 Support & Download
+    </button>
+    {%if product.file_path%}
+    <button id="download-btn" class="neu-btn neu-btn-full" onclick="handleDownload({{product.id}}, true)">
+        ⬇️ Get for Free
+    </button>
+    {%endif%}
+{%elif product.is_free%}
     {%if product.file_path%}
     <button id="download-btn" class="neu-btn neu-btn-primary neu-btn-full" onclick="handleDownload({{product.id}}, true)">
         ⬇️ Download Free
@@ -289,6 +303,41 @@ function showStartBotButton() {
         }
     };
     container.appendChild(btn);
+}
+
+async function handlePwyw(productId) {
+    const amountInput = document.getElementById('pwyw-amount');
+    const amount = parseInt(amountInput ? amountInput.value : 50) || 50;
+    if (amount < 1) {
+        showStatus('⚠️ Enter at least 1 Star.', 'error');
+        return;
+    }
+    if (!isTelegramWebApp) {
+        showStatus('⚠️ Please open in Telegram to pay.', 'error');
+        return;
+    }
+    try {
+        const response = await fetch('/api/create-pwyw-invoice', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': tg.initData },
+            body: JSON.stringify({ product_id: productId, amount: amount })
+        });
+        const data = await response.json();
+        if (data.invoice_link) {
+            tg.openInvoice(data.invoice_link, function(status) {
+                if (status === 'paid') {
+                    showStatus('💝 Thank you for your support!', 'success');
+                    setTimeout(() => {
+                        handleDownload(productId, true);
+                    }, 1200);
+                }
+            });
+        } else {
+            throw new Error(data.error || 'Could not create invoice');
+        }
+    } catch (error) {
+        showStatus('❌ ' + (error.message || 'Error'), 'error');
+    }
 }
 
 async function handleBuy(productId, price) {

@@ -82,14 +82,14 @@
 {%else%}
 <span class="placeholder-icon">🎨</span>
 {%endif%}
-<span class="product-badge {%if p.is_free%}badge-free{%else%}badge-paid{%endif%}">
-{%if p.is_free%}FREE{%else%}⭐{{p.price}}{%endif%}
+<span class="product-badge {%if p.is_pwyw%}badge-pwyw{%elif p.is_free%}badge-free{%else%}badge-paid{%endif%}">
+{%if p.is_pwyw%}💝{%elif p.is_free%}FREE{%else%}⭐{{p.price}}{%endif%}
 </span>
 </div>
 <div class="product-info">
 <h3 class="product-name">{{p.name}}</h3>
 <p class="product-category">{{p.category}}</p>
-<div class="product-price {%if p.is_free%}free{%else%}paid{%endif%}">{%if p.is_free%}Free{%else%}⭐{{p.price}}{%endif%}</div>
+<div class="product-price {%if p.is_free%}free{%else%}paid{%endif%}">{%if p.is_pwyw%}💝 Optional Pay{%elif p.is_free%}Free{%else%}⭐{{p.price}}{%endif%}</div>
 </div>
 </div>
 {%endfor%}
