@@ -63,167 +63,110 @@ def create_app():
     return app
 
 
-def migrate_database():
-    """Add missing columns to existing database"""
+def _run_migration(conn, sql, label=""):
+    """Run a single ALTER TABLE IF NOT EXISTS, log result."""
     import sqlalchemy as sa
-    
     try:
-        print("🔄 Checking database schema...")
-        
-        # Get database inspector
-        inspector = sa.inspect(db.engine)
-        
-        # ===== PURCHASE TABLE =====
-        if inspector.has_table('purchase'):
-            columns = {col['name'] for col in inspector.get_columns('purchase')}
-            
-            # Add is_verified if missing
-            if 'is_verified' not in columns:
-                print("  ➕ Adding is_verified column...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text(
-                        'ALTER TABLE purchase ADD COLUMN is_verified BOOLEAN DEFAULT TRUE'
-                    ))
-                    conn.execute(sa.text(
-                        'UPDATE purchase SET is_verified = TRUE WHERE is_verified IS NULL'
-                    ))
-                print("  ✅ is_verified column added")
-            
-            # Add is_test if missing
-            if 'is_test' not in columns:
-                print("  ➕ Adding is_test column...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text(
-                        'ALTER TABLE purchase ADD COLUMN is_test BOOLEAN DEFAULT FALSE'
-                    ))
-                print("  ✅ is_test column added")
-        
-        # ===== APP_SETTINGS TABLE =====
-        if inspector.has_table('app_settings'):
-            columns = {col['name'] for col in inspector.get_columns('app_settings')}
-            
-            # Appearance settings columns to add
-            appearance_columns = {
-                'font_family': "VARCHAR(50) DEFAULT 'inter'",
-                'button_style': "VARCHAR(20) DEFAULT 'soft'",
-                'button_roundness': "VARCHAR(20) DEFAULT 'rounded'",
-                'card_size': "VARCHAR(20) DEFAULT 'medium'",
-                'card_shape': "VARCHAR(20) DEFAULT 'square'",
-                'card_info': "VARCHAR(20) DEFAULT 'full'",
-                'header_size': "VARCHAR(20) DEFAULT 'normal'",
-                'show_filters': "BOOLEAN DEFAULT TRUE"
-            }
-            
-            for col_name, col_type in appearance_columns.items():
-                if col_name not in columns:
-                    print(f"  ➕ Adding {col_name} column...")
-                    with db.engine.begin() as conn:
-                        conn.execute(sa.text(
-                            f'ALTER TABLE app_settings ADD COLUMN {col_name} {col_type}'
-                        ))
-                    print(f"  ✅ {col_name} column added")
-        
-        # ===== ADMIN_AUDIT_LOG TABLE =====
-        if not inspector.has_table('admin_audit_log'):
-            print("  ➕ Creating admin_audit_log table...")
-
-        # ===== BLOG_POST TABLE =====
-        if inspector.has_table('blog_post'):
-            columns = {col['name'] for col in inspector.get_columns('blog_post')}
-            for col_name, col_type in {
-                'slug': 'VARCHAR(300)',
-                'excerpt': 'TEXT DEFAULT \'\'',
-                'cover_image': 'VARCHAR(500) DEFAULT \'\'',
-                'images': "TEXT DEFAULT '[]'",
-                'tags': 'VARCHAR(500) DEFAULT \'\'',
-                'post_type': "VARCHAR(20) DEFAULT 'large'",
-                'is_published': 'BOOLEAN DEFAULT FALSE',
-                'updated_at': 'TIMESTAMP',
-            }.items():
-                if col_name not in columns:
-                    print(f"  ➕ Adding blog_post.{col_name}...")
-                    with db.engine.begin() as conn:
-                        conn.execute(sa.text(
-                            f'ALTER TABLE blog_post ADD COLUMN {col_name} {col_type}'
-                        ))
-
-        # ===== PRODUCT TABLE =====
-        if inspector.has_table('product'):
-            columns = {col['name'] for col in inspector.get_columns('product')}
-            if 'images' not in columns:
-                print("  ➕ Adding product.images...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE product ADD COLUMN images TEXT DEFAULT '[]'"))
-
-        # ===== APP_SETTINGS — background_svg, text_color, card_color =====
-        if inspector.has_table('app_settings'):
-            columns = {col['name'] for col in inspector.get_columns('app_settings')}
-            if 'background_svg' not in columns:
-                print("  ➕ Adding app_settings.background_svg...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN background_svg TEXT DEFAULT ''"))
-            if 'text_color' not in columns:
-                print("  ➕ Adding app_settings.text_color...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN text_color VARCHAR(20) DEFAULT ''"))
-            if 'card_color' not in columns:
-                print("  ➕ Adding app_settings.card_color...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN card_color VARCHAR(20) DEFAULT ''"))
-            if 'svg_opacity' not in columns:
-                print("  ➕ Adding app_settings.svg_opacity...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN svg_opacity INTEGER DEFAULT 15"))
-            if 'custom_head' not in columns:
-                print("  ➕ Adding app_settings.custom_head...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN custom_head TEXT DEFAULT ''"))
-            if 'custom_css' not in columns:
-                print("  ➕ Adding app_settings.custom_css...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN custom_css TEXT DEFAULT ''"))
-            if 'custom_js' not in columns:
-                print("  ➕ Adding app_settings.custom_js...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN custom_js TEXT DEFAULT ''"))
-            if 'custom_html' not in columns:
-                print("  ➕ Adding app_settings.custom_html...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN custom_html TEXT DEFAULT ''"))
-            if 'categories' not in columns:
-                print("  ➕ Adding app_settings.categories...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN categories TEXT DEFAULT '[]'"))
-            if 'blog_categories' not in columns:
-                print("  ➕ Adding app_settings.blog_categories...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN blog_categories TEXT DEFAULT '[]'"))
-            if 'nav_menu' not in columns:
-                print("  ➕ Adding app_settings.nav_menu...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN nav_menu TEXT DEFAULT ''"))
-            if 'badge_color' not in columns:
-                print("  ➕ Adding app_settings.badge_color...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN badge_color VARCHAR(20) DEFAULT 'accent'"))
-
-        # blog_post table migrations
-        if inspector.has_table('blog_post'):
-            bp_columns = {col['name'] for col in inspector.get_columns('blog_post')}
-            if 'subtitle' not in bp_columns:
-                print("  ➕ Adding blog_post.subtitle...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE blog_post ADD COLUMN subtitle VARCHAR(500) DEFAULT ''"))
-            if 'category' not in bp_columns:
-                print("  ➕ Adding blog_post.category...")
-                with db.engine.begin() as conn:
-                    conn.execute(sa.text("ALTER TABLE blog_post ADD COLUMN category VARCHAR(100) DEFAULT ''"))
-
-        print("✅ Database schema up to date")
-    
+        conn.execute(sa.text(sql))
+        if label:
+            print(f"  ✅ {label}")
     except Exception as e:
-        print(f"⚠️ Migration warning: {e}")
-        # Don't crash if migration fails
+        # Column may already exist or other harmless race — log and continue
+        print(f"  ⚠️  migration skipped ({label}): {e}")
+
+
+def migrate_database():
+    """Add missing columns to existing database — each step is independent."""
+    import sqlalchemy as sa
+
+    print("🔄 Checking database schema...")
+
+    migrations = [
+        # purchase table
+        ("ALTER TABLE purchase ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT TRUE",
+         "purchase.is_verified"),
+        ("UPDATE purchase SET is_verified = TRUE WHERE is_verified IS NULL",
+         "purchase.is_verified backfill"),
+        ("ALTER TABLE purchase ADD COLUMN IF NOT EXISTS is_test BOOLEAN DEFAULT FALSE",
+         "purchase.is_test"),
+
+        # app_settings — appearance columns
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS font_family VARCHAR(50) DEFAULT 'inter'",
+         "app_settings.font_family"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS button_style VARCHAR(20) DEFAULT 'soft'",
+         "app_settings.button_style"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS button_roundness VARCHAR(20) DEFAULT 'rounded'",
+         "app_settings.button_roundness"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS card_size VARCHAR(20) DEFAULT 'medium'",
+         "app_settings.card_size"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS card_shape VARCHAR(20) DEFAULT 'square'",
+         "app_settings.card_shape"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS card_info VARCHAR(20) DEFAULT 'full'",
+         "app_settings.card_info"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS header_size VARCHAR(20) DEFAULT 'normal'",
+         "app_settings.header_size"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS show_filters BOOLEAN DEFAULT TRUE",
+         "app_settings.show_filters"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS background_svg TEXT DEFAULT ''",
+         "app_settings.background_svg"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS text_color VARCHAR(20) DEFAULT ''",
+         "app_settings.text_color"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS card_color VARCHAR(20) DEFAULT ''",
+         "app_settings.card_color"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS svg_opacity INTEGER DEFAULT 15",
+         "app_settings.svg_opacity"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS custom_head TEXT DEFAULT ''",
+         "app_settings.custom_head"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS custom_css TEXT DEFAULT ''",
+         "app_settings.custom_css"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS custom_js TEXT DEFAULT ''",
+         "app_settings.custom_js"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS custom_html TEXT DEFAULT ''",
+         "app_settings.custom_html"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS categories TEXT DEFAULT '[]'",
+         "app_settings.categories"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS blog_categories TEXT DEFAULT '[]'",
+         "app_settings.blog_categories"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS nav_menu TEXT DEFAULT ''",
+         "app_settings.nav_menu"),
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS badge_color VARCHAR(20) DEFAULT 'accent'",
+         "app_settings.badge_color"),
+
+        # product table
+        ("ALTER TABLE product ADD COLUMN IF NOT EXISTS images TEXT DEFAULT '[]'",
+         "product.images"),
+
+        # blog_post table
+        ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS slug VARCHAR(300)",
+         "blog_post.slug"),
+        ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS excerpt TEXT DEFAULT ''",
+         "blog_post.excerpt"),
+        ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS cover_image VARCHAR(500) DEFAULT ''",
+         "blog_post.cover_image"),
+        ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS images TEXT DEFAULT '[]'",
+         "blog_post.images"),
+        ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS tags VARCHAR(500) DEFAULT ''",
+         "blog_post.tags"),
+        ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS post_type VARCHAR(20) DEFAULT 'large'",
+         "blog_post.post_type"),
+        ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT FALSE",
+         "blog_post.is_published"),
+        ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP",
+         "blog_post.updated_at"),
+        ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS subtitle VARCHAR(500) DEFAULT ''",
+         "blog_post.subtitle"),
+        ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS category VARCHAR(100) DEFAULT ''",
+         "blog_post.category"),
+    ]
+
+    try:
+        with db.engine.begin() as conn:
+            for sql, label in migrations:
+                _run_migration(conn, sql, label)
+        print("✅ Database schema up to date")
+    except Exception as e:
+        print(f"⚠️ Migration error: {e}")
+
 
 
 # Create the app instance
