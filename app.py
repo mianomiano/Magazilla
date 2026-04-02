@@ -202,6 +202,10 @@ def migrate_database():
                 print("  ➕ Adding app_settings.nav_menu...")
                 with db.engine.begin() as conn:
                     conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN nav_menu TEXT DEFAULT ''"))
+            if 'badge_color' not in columns:
+                print("  ➕ Adding app_settings.badge_color...")
+                with db.engine.begin() as conn:
+                    conn.execute(sa.text("ALTER TABLE app_settings ADD COLUMN badge_color VARCHAR(20) DEFAULT 'accent'"))
 
         # blog_post table migrations
         if inspector.has_table('blog_post'):

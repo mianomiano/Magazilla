@@ -98,14 +98,14 @@
   <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,rgba(0,0,0,0.55) 40%,rgba(0,0,0,0) 100%)"></div>
   <div style="position:absolute;bottom:0;left:0;right:0;padding:clamp(12px,3vw,28px) clamp(14px,3vw,30px)">
     {%if fp.category%}
-    <span style="display:inline-block;font-size:clamp(0.52rem,1.1vw,0.68rem);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;background:var(--a);color:#fff;border-radius:20px;padding:2px 10px;margin-bottom:clamp(5px,1vw,10px)">{{fp.category}}</span>
+    <span style="display:inline-block;font-size:clamp(0.52rem,1.1vw,0.68rem);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;background:var(--badge);color:var(--badge-text);border-radius:20px;padding:2px 10px;margin-bottom:clamp(5px,1vw,10px)">{{fp.category}}</span>
     {%endif%}
     <h2 style="font-weight:900;font-size:clamp(1rem,3.5vw,2.2rem);color:#fff;margin:0 0 clamp(6px,1.5vw,14px);line-height:1.15;text-shadow:0 2px 8px rgba(0,0,0,0.5)">{{fp.name}}</h2>
     <div style="display:flex;align-items:center;gap:clamp(8px,1.5vw,14px);flex-wrap:wrap">
       {%if not fp.is_free%}
       <span style="font-size:clamp(1rem,2.8vw,1.8rem);font-weight:900;color:#fff;line-height:1;text-shadow:0 1px 4px rgba(0,0,0,0.4)">{{fp.price}}<span style="font-size:0.7em">⭐</span></span>
       {%endif%}
-      <span style="background:{{'var(--s)' if fp.is_free else 'var(--a)'}};color:#fff;font-size:clamp(0.68rem,1.5vw,0.9rem);font-weight:700;padding:clamp(5px,1vw,8px) clamp(12px,2vw,20px);border-radius:20px">{%if fp.is_free%}GET FREE{%else%}VIEW PRODUCT{%endif%}</span>
+      <span style="background:var(--badge);color:var(--badge-text);font-size:clamp(0.68rem,1.5vw,0.9rem);font-weight:700;padding:clamp(5px,1vw,8px) clamp(12px,2vw,20px);border-radius:20px">{%if fp.is_free%}GET FREE{%else%}VIEW PRODUCT{%endif%}</span>
     </div>
   </div>
 </div>
@@ -150,7 +150,7 @@
   <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.6) 40%,rgba(0,0,0,0) 100%)"></div>
   <div style="position:absolute;bottom:0;left:0;right:0;padding:clamp(8px,1.5vw,16px) clamp(14px,2.5vw,24px);display:flex;align-items:flex-end;gap:10px">
     {%if post.category%}
-    <span style="flex-shrink:0;font-size:clamp(0.5rem,1vw,0.65rem);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;background:var(--a);color:#fff;border-radius:20px;padding:2px 8px;margin-bottom:2px">{{post.category}}</span>
+    <span style="flex-shrink:0;font-size:clamp(0.5rem,1vw,0.65rem);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;background:var(--badge);color:var(--badge-text);border-radius:20px;padding:2px 8px;margin-bottom:2px">{{post.category}}</span>
     {%endif%}
     <div style="font-weight:900;font-size:clamp(0.85rem,2.5vw,1.6rem);color:#fff;line-height:1.2;text-transform:uppercase;letter-spacing:0.01em;text-shadow:0 1px 4px rgba(0,0,0,0.5)">{{post.title}}</div>
   </div>
@@ -170,7 +170,7 @@
   <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.6) 40%,rgba(0,0,0,0) 100%)"></div>
   <div style="position:absolute;bottom:0;left:0;right:0;padding:clamp(12px,2.5vw,26px) clamp(14px,2.5vw,28px)">
     {%if post.category%}
-    <span style="display:inline-block;font-size:clamp(0.52rem,1.1vw,0.68rem);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;background:var(--a);color:#fff;border-radius:20px;padding:2px 10px;margin-bottom:clamp(5px,1vw,10px)">{{post.category}}</span>
+    <span style="display:inline-block;font-size:clamp(0.52rem,1.1vw,0.68rem);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;background:var(--badge);color:var(--badge-text);border-radius:20px;padding:2px 10px;margin-bottom:clamp(5px,1vw,10px)">{{post.category}}</span>
     {%endif%}
     <div style="font-weight:900;font-size:clamp(0.95rem,3vw,1.9rem);color:#fff;line-height:1.15;text-transform:uppercase;letter-spacing:0.01em;text-shadow:0 2px 8px rgba(0,0,0,0.4);margin-bottom:{{'clamp(4px,0.8vw,8px)' if post.subtitle else '0'}}">{{post.title}}</div>
     {%if post.subtitle%}

@@ -84,6 +84,9 @@ class AppSettings(db.Model):
     custom_head = db.Column(db.Text, default='')  # injected inside <head>
     custom_html = db.Column(db.Text, default='')  # HTML banner (with inline style/script) injected at top of page
 
+    # Badge / label color (accent | red | green | purple | yellow | orange | black | white)
+    badge_color = db.Column(db.String(20), default='accent')
+
     # Product categories (JSON list of strings)
     categories = db.Column(db.Text, default='[]')
 

@@ -226,13 +226,13 @@ html, body {
 }
 
 .badge-free {
-    background: var(--secondary) !important;
-    color: var(--primary) !important;
+    background: var(--badge) !important;
+    color: var(--badge-text) !important;
 }
 
 .badge-paid {
-    background: linear-gradient(135deg, var(--accent), var(--m)) !important;
-    color: #fff !important;
+    background: var(--badge) !important;
+    color: var(--badge-text) !important;
 }
 
 .product-info {

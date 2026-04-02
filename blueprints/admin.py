@@ -514,6 +514,11 @@ def appearance():
         app_settings.text_color = text_color
         app_settings.card_color = card_color
         
+        # Badge / label color
+        badge_color = request.form.get('badge_color', 'accent')
+        if badge_color in ['accent', 'red', 'green', 'purple', 'yellow', 'orange', 'black', 'white']:
+            app_settings.badge_color = badge_color
+
         # Font
         font = request.form.get('font_family', 'inter')
         allowed_fonts = [

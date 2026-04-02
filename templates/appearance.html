@@ -70,6 +70,36 @@
                 </div>
             </div>
             
+            <!-- Badge / Label Color Section -->
+            <div class="settings-section">
+                <h3>🏷️ Label &amp; Badge Color</h3>
+                <p style="font-size:0.75rem;color:var(--td);margin-bottom:10px">Applied to: category tags, FREE/price badges, View Product button</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                    {% set badge_opts = [
+                        ('accent','Accent','var(--accent)','#fff'),
+                        ('red','Red','#e53935','#fff'),
+                        ('green','Green','#43a047','#fff'),
+                        ('purple','Purple','#8e24aa','#fff'),
+                        ('yellow','Yellow','#fdd835','#1a1a1a'),
+                        ('orange','Orange','#fb8c00','#fff'),
+                        ('black','Black','#1a1a1a','#fff'),
+                        ('white','White','#ffffff','#1a1a1a'),
+                    ] %}
+                    {% for val, label, bg, fg in badge_opts %}
+                    <label style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px">
+                        <input type="radio" name="badge_color" value="{{val}}"
+                               {{'checked' if (settings.badge_color or 'accent') == val else ''}}
+                               style="display:none" onchange="updatePreview()">
+                        <span class="badge-swatch {{'badge-swatch-active' if (settings.badge_color or 'accent') == val else ''}}"
+                              style="display:block;width:32px;height:32px;border-radius:50%;background:{{bg}};color:{{fg}};font-size:0.55rem;font-weight:800;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;border:2px solid {{'var(--accent)' if (settings.badge_color or 'accent') == val else 'transparent'}};box-shadow:{{'0 0 0 2px var(--t)' if (settings.badge_color or 'accent') == val else 'none'}};transition:box-shadow 0.15s,border 0.15s">
+                            {{label[:3].upper()}}
+                        </span>
+                        <span style="font-size:0.6rem;color:var(--td)">{{label}}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
             <!-- Font Section -->
             <div class="settings-section">
                 <h3>🔤 Font</h3>
@@ -885,6 +915,22 @@ function updateFontPreview() {
 }
 // Run on load to show current saved font
 document.addEventListener('DOMContentLoaded', updateFontPreview);
+
+// Badge swatch selection
+document.querySelectorAll('input[name="badge_color"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        document.querySelectorAll('input[name="badge_color"]').forEach(r => {
+            const swatch = r.nextElementSibling;
+            if (r.checked) {
+                swatch.style.border = '2px solid var(--accent)';
+                swatch.style.boxShadow = '0 0 0 2px var(--t)';
+            } else {
+                swatch.style.border = '2px solid transparent';
+                swatch.style.boxShadow = 'none';
+            }
+        });
+    });
+});
 
 // Sync color text input with color picker
 function syncColor(type) {

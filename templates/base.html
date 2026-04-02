@@ -54,7 +54,25 @@
             --primary-light: {{primary_light}};
             --secondary: {{secondary}};
             --accent: {{accent}};
-            
+
+            /* Badge / label color */
+            {% set _bp = {
+                'red':    ('#e53935','#fff'),
+                'green':  ('#43a047','#fff'),
+                'purple': ('#8e24aa','#fff'),
+                'yellow': ('#fdd835','#1a1a1a'),
+                'orange': ('#fb8c00','#fff'),
+                'black':  ('#1a1a1a','#fff'),
+                'white':  ('#ffffff','#1a1a1a')
+            } %}
+            {% if settings.badge_color and settings.badge_color in _bp %}
+            --badge: {{_bp[settings.badge_color][0]}};
+            --badge-text: {{_bp[settings.badge_color][1]}};
+            {% else %}
+            --badge: {{accent}};
+            --badge-text: #ffffff;
+            {% endif %}
+
             /* Text Colors — use manual override if set, otherwise auto from background brightness */
             {% set auto_text = '#ffffff' if is_dark else '#1a1a1a' %}
             {% set use_text = settings.text_color if settings.text_color else auto_text %}
