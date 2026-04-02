@@ -11,6 +11,7 @@ class Product(db.Model):
     price = db.Column(db.Integer, default=0)
     is_free = db.Column(db.Boolean, default=True)
     category = db.Column(db.String(100), default='General')
+    label_color = db.Column(db.String(20), default='accent')
     thumbnail = db.Column(db.String(500))
     images = db.Column(db.Text, default='[]')          # JSON array of R2 keys
     file_path = db.Column(db.String(500))
@@ -196,6 +197,7 @@ class BlogPost(db.Model):
     images = db.Column(db.Text, default='[]')                      # JSON array of R2 keys
     tags = db.Column(db.String(500), default='')                   # comma-separated
     category = db.Column(db.String(100), default='')               # blog post category
+    label_color = db.Column(db.String(20), default='accent')       # per-post category label color
     post_type = db.Column(db.String(20), default='banner_169')     # 'banner_169' or 'banner_245'
     is_published = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

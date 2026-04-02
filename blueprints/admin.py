@@ -230,12 +230,16 @@ def new_product():
             flash(error, 'error')
             return render_template('edit_product.html', product=None, categories=categories)
         
+        label_color = request.form.get('label_color', 'accent')
+        if label_color not in ('accent','red','green','purple','yellow','orange','black','white'):
+            label_color = 'accent'
         product = Product(
             name=name,
             description=description,
             price=price,
             is_free=is_free,
-            category=category
+            category=category,
+            label_color=label_color
         )
         
         if 'thumbnail' in request.files:
@@ -321,6 +325,8 @@ def edit_product(pid):
             return render_template('edit_product.html', product=product, categories=categories)
         
         product.category = category
+        lc = request.form.get('label_color', 'accent')
+        product.label_color = lc if lc in ('accent','red','green','purple','yellow','orange','black','white') else 'accent'
         product.is_active = request.form.get('is_active') == 'on'
         
         if 'thumbnail' in request.files:
@@ -836,6 +842,7 @@ def blog_new():
             return render_template('blog_edit.html', post=None, blog_categories=blog_cats)
 
         slug = _unique_slug(title)
+        _blc = request.form.get('label_color', 'accent')
         post = BlogPost(
             title=title,
             slug=slug,
@@ -844,6 +851,7 @@ def blog_new():
             content=request.form.get('content', '').strip(),
             tags=request.form.get('tags', '').strip(),
             category=request.form.get('category', '').strip(),
+            label_color=_blc if _blc in ('accent','red','green','purple','yellow','orange','black','white') else 'accent',
             post_type=request.form.get('post_type', 'banner_169'),
             is_published=request.form.get('is_published') == 'on',
         )
@@ -893,6 +901,8 @@ def blog_edit(pid):
         post.content = request.form.get('content', '').strip()
         post.tags = request.form.get('tags', '').strip()
         post.category = request.form.get('category', '').strip()
+        _blc2 = request.form.get('label_color', 'accent')
+        post.label_color = _blc2 if _blc2 in ('accent','red','green','purple','yellow','orange','black','white') else 'accent'
         post.post_type = request.form.get('post_type', 'banner_169')
         post.is_published = request.form.get('is_published') == 'on'
         post.updated_at = datetime.utcnow()

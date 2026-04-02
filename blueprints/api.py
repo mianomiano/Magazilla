@@ -130,13 +130,21 @@ def telegram_webhook():
             try:
                 payload = json.loads(payload_str)
                 product_id = payload.get('product_id')
+                payload_type = payload.get('type', '')
             except json.JSONDecodeError:
                 # Fallback for old format
+                payload_type = ''
                 if payload_str.startswith('product_'):
                     product_id = int(payload_str.split('_')[1])
                 else:
-                    return jsonify({'ok': True})
-            
+                    product_id = None
+
+            # Handle donation payments
+            if payload_type == 'donation' or (not product_id and 'donation' in payload_str):
+                amount = payment.get('total_amount', 0)
+                print(f"💜 Donation received: user={user_id}, stars={amount}")
+                return jsonify({'ok': True})
+
             if not product_id:
                 return jsonify({'ok': True})
             

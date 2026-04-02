@@ -135,6 +135,10 @@ def migrate_database():
         # product table
         ("ALTER TABLE product ADD COLUMN IF NOT EXISTS images TEXT DEFAULT '[]'",
          "product.images"),
+        ("ALTER TABLE product ADD COLUMN IF NOT EXISTS label_color VARCHAR(20) DEFAULT 'accent'",
+         "product.label_color"),
+        ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS label_color VARCHAR(20) DEFAULT 'accent'",
+         "blog_post.label_color"),
 
         # blog_post table
         ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS slug VARCHAR(300)",
