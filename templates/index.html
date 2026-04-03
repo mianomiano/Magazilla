@@ -1,6 +1,7 @@
 {%extends 'base.html'%}
 {%block content%}
 {%set _lc={'red':('#ff0000','#fff'),'green':('#32ff00','#1a1a1a'),'purple':('#8f00ff','#fff'),'yellow':('#f3ff00','#1a1a1a'),'orange':('#ff6700','#fff'),'black':('#1a1a1a','#fff'),'white':('#ffffff','#1a1a1a')}%}
+{%macro render_bubble(p)%}{%if p.bubble_text%}{%set _bbg=_lc[p.bubble_color][0] if p.bubble_color and p.bubble_color in _lc else 'var(--a)'%}{%set _btx=_lc[p.bubble_color][1] if p.bubble_color and p.bubble_color in _lc else '#fff'%}{%set _bpos={'tl':'top:8px;left:8px','tr':'top:8px;right:8px','bl':'bottom:8px;left:8px','br':'bottom:8px;right:8px'}.get(p.bubble_pos or 'tr','top:8px;right:8px')%}{%set _brad='2px' if p.bubble_shape=='rect' else '8px'%}<span style="position:absolute;{{_bpos}};z-index:3;background:{{_bbg}};color:{{_btx}};font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;padding:3px 7px;border-radius:{{_brad}};line-height:1.3;white-space:nowrap;max-width:70%;overflow:hidden;text-overflow:ellipsis">{{p.bubble_text}}</span>{%endif%}{%endmacro%}
 {%if settings.logo_path or settings.app_name%}
 <header class="header">
 <div class="header-inner">
@@ -60,19 +61,17 @@
 {%else%}
 <span class="placeholder-icon">🎨</span>
 {%endif%}
-<span class="product-badge {%if p.is_free%}badge-free{%else%}badge-paid{%endif%}">
-{%if p.is_free%}FREE{%else%}⭐{{p.price}}{%endif%}
-</span>
+<span class="product-badge {%if p.is_pwyw%}badge-pwyw{%elif p.is_free%}badge-free{%else%}badge-paid{%endif%}">{%if p.is_pwyw%}💝{%elif p.is_free%}FREE{%else%}⭐{{p.price}}{%endif%}</span>
+{{render_bubble(p)}}
 </div>
 <div class="product-info">
 <h3 class="product-name">{{p.name}}</h3>
 <p class="product-category">{{p.category}}</p>
-<div class="product-price {%if p.is_free%}free{%else%}paid{%endif%}">{%if p.is_free%}Free{%else%}⭐{{p.price}}{%endif%}</div>
+<div class="product-price {%if p.is_free%}free{%else%}paid{%endif%}">{%if p.is_pwyw%}💝 Optional Pay{%elif p.is_free%}Free{%else%}⭐{{p.price}}{%endif%}</div>
 </div>
 </div>
 {%endfor%}
 </div>
-<a href="{{url_for('public_bp.products_page')}}" class="neu-btn" style="width:100%;text-align:center;margin-top:14px;display:block">🛍 Browse All Products →</a>
 {%else%}
 <div class="empty-state"><div class="empty-state-icon">📦</div><p class="empty-state-text">No products available</p></div>
 {%endif%}
@@ -95,7 +94,7 @@
   {%else%}
   <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:4rem">🎨</div>
   {%endif%}
-  <span style="position:absolute;top:clamp(8px,1.5vw,14px);right:clamp(8px,1.5vw,14px);background:#e53935;color:#fff;font-size:clamp(0.5rem,1.1vw,0.7rem);font-weight:800;text-transform:uppercase;letter-spacing:0.12em;padding:4px 10px;border-radius:20px;z-index:2">FEATURED</span>
+  {{render_bubble(fp)}}
   <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.72) 0%,rgba(0,0,0,0.4) 50%,rgba(0,0,0,0) 100%);z-index:1"></div>
   <div style="position:absolute;bottom:0;left:0;right:0;padding:clamp(12px,3vw,28px) clamp(14px,3vw,30px);z-index:2">
     {%if fp.category%}
@@ -107,7 +106,6 @@
       {%if not fp.is_free%}
       <span style="font-size:clamp(1rem,2.8vw,1.8rem);font-weight:900;color:#fff;line-height:1;text-shadow:0 1px 4px rgba(0,0,0,0.4)">{{fp.price}}<span style="font-size:0.7em">⭐</span></span>
       {%endif%}
-      <span style="background:var(--badge);color:var(--badge-text);font-size:clamp(0.68rem,1.5vw,0.9rem);font-weight:700;padding:clamp(5px,1vw,8px) clamp(12px,2vw,20px);border-radius:20px">{%if fp.is_free%}GET FREE{%else%}VIEW PRODUCT{%endif%}</span>
     </div>
   </div>
 </div>
@@ -130,7 +128,6 @@
 {%endif%}
 {%if shown_posts%}
 <div class="content" style="margin-bottom:0">
-<div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--td);margin-bottom:12px">📝 Latest Posts</div>
 <div style="display:flex;flex-direction:column;gap:12px">
 {%for post in shown_posts%}
 {%set pt = post.post_type or 'banner_169'%}
@@ -254,6 +251,15 @@
 </div>
 </div>
 
+{# ─── button_block ─────────────────────────────────────────── #}
+{%elif block.block_type == 'button_block'%}
+{%set cfg = block.get_config()%}
+{%if cfg.get('text')%}
+<div class="content" style="margin-bottom:0">
+<a href="{{cfg.get('link','#')}}" {{'target="_blank" rel="noopener"' if cfg.get('link_type')=='external' else ''}} style="display:block;width:100%;padding:14px 20px;border-radius:12px;background:{{cfg.get('bg_color','#000')}};color:{{cfg.get('text_color','#fff')}};font-size:0.95rem;font-weight:700;text-align:center;text-decoration:none;box-sizing:border-box">{{cfg.get('text')}}</a>
+</div>
+{%endif%}
+
 {%endif%}
 {%endfor%}
 
@@ -288,16 +294,13 @@
 {%else%}
 <span class="placeholder-icon">🎨</span>
 {%endif%}
-<span class="product-badge {%if p.is_free%}badge-free{%else%}badge-paid{%endif%}">
-{%if p.is_free%}FREE{%else%}⭐{{p.price}}{%endif%}
-</span>
+<span class="product-badge {%if p.is_pwyw%}badge-pwyw{%elif p.is_free%}badge-free{%else%}badge-paid{%endif%}">{%if p.is_pwyw%}💝{%elif p.is_free%}FREE{%else%}⭐{{p.price}}{%endif%}</span>
+{{render_bubble(p)}}
 </div>
 <div class="product-info">
 <h3 class="product-name">{{p.name}}</h3>
 <p class="product-category">{{p.category}}</p>
-<div class="product-price {%if p.is_free%}free{%else%}paid{%endif%}">
-{%if p.is_free%}Free{%else%}⭐{{p.price}}{%endif%}
-</div>
+<div class="product-price {%if p.is_free%}free{%else%}paid{%endif%}">{%if p.is_pwyw%}💝 Optional Pay{%elif p.is_free%}Free{%else%}⭐{{p.price}}{%endif%}</div>
 </div>
 </div>
 {%endfor%}

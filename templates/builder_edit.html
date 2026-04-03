@@ -40,7 +40,7 @@
 {%if block.block_type == 'product_grid'%}
 <div class="neu-card" style="margin-bottom:16px">
     <p style="font-size:0.8rem;color:var(--tm);margin-bottom:14px;line-height:1.5">
-        Choose which products to feature in this grid (minimum 3 recommended). A "Browse All" link is always added automatically below the grid.
+        Choose which products to feature in this grid (minimum 3 recommended).
     </p>
     {%if products%}
     <div style="display:flex;flex-direction:column;gap:8px">
@@ -181,6 +181,64 @@
         </select>
     </div>
 </div>
+
+{%elif block.block_type == 'button_block'%}
+{%set _cur_link = cfg.get('link', '')%}
+{%set _known_pages = ['/', '/products', '/blog']%}
+{%set _is_preset = _cur_link in _known_pages%}
+<div class="neu-card" style="margin-bottom:16px">
+    <div class="neu-input-group">
+        <label>Button Text</label>
+        <input type="text" name="btn_text" class="neu-input" value="{{cfg.get('text', 'Click Here')}}" placeholder="Click Here" maxlength="60">
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:12px">
+        <div style="flex:1">
+            <label style="font-size:0.8rem;font-weight:600;color:var(--td);display:block;margin-bottom:6px">Background Color</label>
+            <div style="display:flex;align-items:center;gap:8px">
+                <input type="color" name="btn_bg_color" value="{{cfg.get('bg_color','#000000')}}" style="width:40px;height:36px;border:none;border-radius:8px;cursor:pointer;background:none">
+                <span style="font-size:0.8rem;color:var(--td)">{{cfg.get('bg_color','#000000')}}</span>
+            </div>
+        </div>
+        <div style="flex:1">
+            <label style="font-size:0.8rem;font-weight:600;color:var(--td);display:block;margin-bottom:6px">Text Color</label>
+            <div style="display:flex;align-items:center;gap:8px">
+                <input type="color" name="btn_text_color" value="{{cfg.get('text_color','#ffffff')}}" style="width:40px;height:36px;border:none;border-radius:8px;cursor:pointer;background:none">
+                <span style="font-size:0.8rem;color:var(--td)">{{cfg.get('text_color','#ffffff')}}</span>
+            </div>
+        </div>
+    </div>
+    <div class="neu-input-group">
+        <label>Link — choose a page</label>
+        <select name="btn_link_preset" class="neu-input" onchange="toggleCustomLink(this)">
+            <option value="/">🏠 Home</option>
+            <option value="/products" {{'selected' if _cur_link=='/products' else ''}}>🛒 Products</option>
+            <option value="/blog" {{'selected' if _cur_link=='/blog' else ''}}>📝 Blog</option>
+            <option value="_custom" {{'selected' if not _is_preset else ''}}>🔗 Custom URL…</option>
+        </select>
+    </div>
+    <div class="neu-input-group" id="custom_link_field" style="{{'display:none' if _is_preset else ''}}">
+        <label>Custom URL</label>
+        <input type="url" name="btn_custom_link" class="neu-input" value="{{'#' if _is_preset else _cur_link}}" placeholder="https://...">
+    </div>
+    <div class="neu-input-group">
+        <label>Open in</label>
+        <select name="btn_link_type" class="neu-input">
+            <option value="internal" {{'selected' if cfg.get('link_type','internal')=='internal' else ''}}>Same window</option>
+            <option value="external" {{'selected' if cfg.get('link_type')=='external' else ''}}>New window / tab</option>
+        </select>
+    </div>
+    {%if cfg.get('text')%}
+    <div style="margin-top:12px;padding:10px;background:var(--pl);border-radius:10px;text-align:center;font-size:0.78rem;color:var(--td)">
+        Preview: <span style="display:inline-block;padding:8px 20px;background:{{cfg.get('bg_color','#000')}};color:{{cfg.get('text_color','#fff')}};border-radius:8px;font-size:0.85rem;font-weight:700;margin-left:8px">{{cfg.get('text')}}</span>
+    </div>
+    {%endif%}
+</div>
+<script>
+function toggleCustomLink(sel) {
+    var f = document.getElementById('custom_link_field');
+    if (f) f.style.display = sel.value === '_custom' ? '' : 'none';
+}
+</script>
 {%endif%}
 
 <button type="submit" class="neu-btn neu-btn-primary neu-btn-full">💾 Save Block</button>

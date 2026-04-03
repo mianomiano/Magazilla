@@ -13,6 +13,10 @@ class Product(db.Model):
     category = db.Column(db.String(100), default='General')
     label_color = db.Column(db.String(20), default='accent')
     is_pwyw = db.Column(db.Boolean, default=False)     # Pay What You Want (optional payment)
+    bubble_text = db.Column(db.String(15), default='')  # custom overlay badge text (max 15 chars)
+    bubble_shape = db.Column(db.String(10), default='rounded')  # 'rect' or 'rounded'
+    bubble_pos = db.Column(db.String(4), default='tr')  # 'tl','tr','bl','br'
+    bubble_color = db.Column(db.String(20), default='accent')
     thumbnail = db.Column(db.String(500))
     images = db.Column(db.Text, default='[]')          # JSON array of R2 keys
     file_path = db.Column(db.String(500))
@@ -161,6 +165,7 @@ BLOCK_TYPES = [
     'ad_banner',         # Image + link ad banner
     'divider',           # Visual separator
     'text_section',      # Rich text / HTML section
+    'button_block',      # Custom button with text, color, link
 ]
 
 class Block(db.Model):

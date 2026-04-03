@@ -43,6 +43,36 @@
 </div>
 
 <div class="neu-input-group">
+<label>Bubble / Badge <span style="font-size:0.73rem;font-weight:normal;opacity:0.6">(optional overlay on thumbnail — max 15 chars)</span></label>
+<input type="text" name="bubble_text" class="neu-input" maxlength="15" value="{{product.bubble_text if product else ''}}" placeholder="e.g. NEW, HOT, -50%…" style="margin-bottom:10px">
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+<span style="font-size:0.75rem;font-weight:600;color:var(--td);align-self:center;min-width:52px">Shape:</span>
+{%for sv,sl in [('rounded','Rounded'),('rect','Rectangle')]%}
+<label style="cursor:pointer;display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;background:var(--pl);font-size:0.8rem" class="bubble-shape-lbl">
+<input type="radio" name="bubble_shape" value="{{sv}}" {{'checked' if (product.bubble_shape if product else 'rounded')==sv else ''}} style="margin:0">{{sl}}
+</label>
+{%endfor%}
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+<span style="font-size:0.75rem;font-weight:600;color:var(--td);align-self:center;min-width:52px">Position:</span>
+{%for pv,pl in [('tl','↖ Top Left'),('tr','↗ Top Right'),('bl','↙ Bot Left'),('br','↘ Bot Right')]%}
+<label style="cursor:pointer;display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;background:var(--pl);font-size:0.8rem" class="bubble-pos-lbl">
+<input type="radio" name="bubble_pos" value="{{pv}}" {{'checked' if (product.bubble_pos if product else 'tr')==pv else ''}} style="margin:0">{{pl}}
+</label>
+{%endfor%}
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+<span style="font-size:0.75rem;font-weight:600;color:var(--td);min-width:52px">Color:</span>
+{%for lname,lhex in [('accent','var(--a)'),('red','#ff0000'),('green','#32ff00'),('purple','#8f00ff'),('yellow','#f3ff00'),('orange','#ff6700'),('black','#1a1a1a'),('white','#f5f5f5')]%}
+<label title="{{lname}}" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px" class="bubble-color-lbl">
+<input type="radio" name="bubble_color" value="{{lname}}" {{'checked' if (product.bubble_color if product else 'accent')==lname else ''}} style="display:none" onchange="updateBubbleColorUI()">
+<span style="display:block;width:24px;height:24px;border-radius:50%;background:{{lhex}};border:2px solid rgba(0,0,0,0.1);transition:box-shadow 0.15s" class="bubble-cdot"></span>
+</label>
+{%endfor%}
+</div>
+</div>
+
+<div class="neu-input-group">
 <label>Category Label Color <span style="font-size:0.73rem;font-weight:normal;opacity:0.6">(color of the category tag on this product)</span></label>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px" id="lc_swatches">
 {%for lname,lhex in [('accent','var(--a)'),('red','#ff0000'),('green','#32ff00'),('purple','#8f00ff'),('yellow','#f3ff00'),('orange','#ff6700'),('black','#1a1a1a'),('white','#f5f5f5')]%}
@@ -150,6 +180,13 @@
 </div>
 
 <script>
+function updateBubbleColorUI() {
+    document.querySelectorAll('.bubble-color-lbl').forEach(function(lbl) {
+        var r = lbl.querySelector('input[type=radio]');
+        var dot = lbl.querySelector('.bubble-cdot');
+        dot.style.boxShadow = r.checked ? '0 0 0 3px var(--a)' : '';
+    });
+}
 function togglePriceField() {
     var ptype = document.querySelector('input[name=product_type]:checked');
     var pf = document.getElementById('price_field');
@@ -163,6 +200,7 @@ function togglePriceField() {
 document.addEventListener('DOMContentLoaded', function() {
     togglePriceField();
     updateLcUI();
+    updateBubbleColorUI();
 });
 function updateLcUI() {
     document.querySelectorAll('#lc_swatches label').forEach(function(lbl) {
