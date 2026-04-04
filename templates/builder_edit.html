@@ -237,6 +237,55 @@
     if(tcEl) tcEl.addEventListener('input', updatePreview);
 })();
 </script>
+{%elif block.block_type == 'image_card'%}
+<div class="neu-card" style="margin-bottom:16px">
+    {%if cfg.get('image')%}
+    <div style="margin-bottom:14px">
+        <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:6px">Current image:</p>
+        <img src="{{r2_url(cfg['image'])}}" style="max-width:100%;max-height:200px;border-radius:12px;object-fit:cover;box-shadow:4px 4px 12px var(--shadow-dark),-4px -4px 12px var(--shadow-light)">
+    </div>
+    {%endif%}
+    <div class="neu-input-group">
+        <label>Image</label>
+        <input type="file" name="ic_image" class="neu-input" accept="image/*,video/webm">
+    </div>
+    <div class="neu-input-group">
+        <label>Aspect Ratio</label>
+        <select name="ic_ratio" class="neu-input">
+            {%for ratio, label in [('1/1','Square (1:1)'),('4/5','Portrait (4:5)'),('16/9','Landscape (16:9)'),('21/9','Cinematic (21:9)'),('24/5','Banner (24:5)')]%}
+            <option value="{{ratio}}" {{'selected' if cfg.get('ratio','16/9')==ratio else ''}}>{{label}}</option>
+            {%endfor%}
+        </select>
+    </div>
+    <div class="neu-input-group">
+        <label>Title (optional overlay text)</label>
+        <input type="text" name="ic_title" class="neu-input" value="{{cfg.get('title','')}}" placeholder="Card heading">
+    </div>
+    <div class="neu-input-group">
+        <label>Subtitle</label>
+        <input type="text" name="ic_subtitle" class="neu-input" value="{{cfg.get('subtitle','')}}" placeholder="Short description">
+    </div>
+    <div class="neu-input-group">
+        <label>Label (badge tag, optional)</label>
+        <input type="text" name="ic_label" class="neu-input" value="{{cfg.get('label','')}}" placeholder="e.g. NEW or SALE">
+    </div>
+    <label style="display:flex;align-items:center;gap:10px;padding:10px 0;cursor:pointer">
+        <input type="checkbox" name="ic_show_overlay" {{'checked' if cfg.get('show_overlay', True) else ''}}>
+        <span style="font-size:0.85rem">Show dark gradient overlay (for text readability)</span>
+    </label>
+    <div class="neu-input-group">
+        <label>Link URL (optional — whole card becomes clickable)</label>
+        <input type="text" name="ic_link" class="neu-input" value="{{cfg.get('link','')}}" placeholder="/products or https://...">
+    </div>
+    <div class="neu-input-group">
+        <label>Open in</label>
+        <select name="ic_link_type" class="neu-input">
+            <option value="internal" {{'selected' if cfg.get('link_type','internal')=='internal' else ''}}>Same window</option>
+            <option value="external" {{'selected' if cfg.get('link_type')=='external' else ''}}>New window</option>
+        </select>
+    </div>
+</div>
+
 {%endif%}
 
 <button type="submit" class="neu-btn neu-btn-primary neu-btn-full">💾 Save Block</button>

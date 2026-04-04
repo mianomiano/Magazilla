@@ -1,0 +1,305 @@
+/* ================================================================
+   theme.css — Magazilla neumorphic color system
+   Pure CSS using custom properties (--vars) injected by base.html.
+   No hardcoded colors here. All values come from :root in base.html.
+   ================================================================ */
+
+* { box-sizing: border-box; }
+
+/* ── Background & base ── */
+html, body, .app-container {
+    background: var(--bg) !important;
+    background-color: var(--bg) !important;
+    color: var(--text) !important;
+    min-height: 100vh;
+}
+
+/* ── Text: targeted, not global div/span blasts ── */
+body, p, label,
+.product-name, .product-description, .category-name {
+    color: var(--text);
+}
+
+.logo-text {
+    color: var(--accent) !important;
+    -webkit-text-fill-color: var(--accent) !important;
+    background: none !important;
+}
+
+.text-muted, .product-category, .meta-info, .subtitle, small {
+    color: var(--text-dim) !important;
+}
+
+.product-price, .price, .stars-amount, .highlight, .accent-text {
+    color: var(--accent) !important;
+}
+
+/* ── Buttons: base styles ── */
+button, .btn, .neu-btn, a.neu-btn {
+    border: none !important;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.neu-btn, a.neu-btn {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+}
+
+.neu-btn-primary, .btn-primary,
+.download-btn, .buy-btn, .save-btn,
+a.neu-btn-primary, input[type="submit"] {
+    background: var(--accent) !important;
+    color: var(--accent-text) !important;
+    border: none !important;
+    cursor: pointer;
+}
+
+button:hover, .btn:hover, .neu-btn:hover, a.neu-btn:hover,
+.filter-btn:hover, .category-btn:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+button:active, .btn:active, .neu-btn:active {
+    filter: brightness(0.93);
+    transform: translateY(0);
+}
+
+.btn-ghost, .btn-outline {
+    background: transparent !important;
+    color: var(--accent) !important;
+    border: 2px solid var(--accent) !important;
+}
+.btn-ghost:hover, .btn-outline:hover {
+    background: var(--accent) !important;
+    color: var(--bg) !important;
+}
+
+/* ── Filter / category buttons ── */
+.filter-btn, .category-btn {
+    background: var(--surface) !important;
+    color: var(--text-dim) !important;
+    border: none !important;
+}
+.filter-btn.active, .filter-btn:hover,
+.category-btn.active, .category-btn:hover {
+    background: var(--accent) !important;
+    color: var(--bg) !important;
+    filter: none;
+    transform: none;
+}
+
+/* ── Cards ── */
+.product-card, .category-card, .settings-card,
+.stat-card, .card, .neu-card {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+}
+.neu-card-inset, .product-stats-box {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+}
+
+/* ── Badges ── */
+.product-badge, .badge,
+.product-badge.free, .badge-free,
+.product-badge.paid, .product-badge.premium,
+.badge-paid, .badge-premium {
+    background: var(--badge, var(--accent)) !important;
+    color: var(--badge-text, #fff) !important;
+    font-weight: 600;
+}
+
+/* ── Inputs & selects ── */
+input:not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+textarea, select, .neu-input, .neu-select {
+    background: var(--bg) !important;
+    border: none !important;
+    color: var(--text) !important;
+}
+input[type="range"] {
+    background: transparent !important;
+    border: none !important;
+}
+input::placeholder, textarea::placeholder, .neu-input::placeholder {
+    color: var(--text-dim) !important;
+    opacity: 0.7;
+}
+input:focus, textarea:focus, select:focus,
+.neu-input:focus, .neu-select:focus {
+    outline: none !important;
+}
+
+/* ── Header ── */
+.logo-area, .header-area, header, .header {
+    background: var(--bg) !important;
+    border-bottom: 1px solid var(--card-border) !important;
+}
+
+/* ── Product detail ── */
+.product-detail { background: var(--bg) !important; }
+.product-detail-image,
+.product-detail-image img,
+.product-detail-image video { background: var(--surface) !important; }
+.product-detail-title { color: var(--text) !important; }
+.product-detail-category,
+.product-detail-description { color: var(--text-dim) !important; }
+.product-detail-price.free,
+.product-detail-price.paid { color: var(--accent) !important; }
+.stats-number.accent, .stats-number.secondary { color: var(--accent) !important; }
+.stats-label { color: var(--text-dim) !important; }
+
+/* ── Back button ── */
+.back-btn {
+    background: var(--surface) !important;
+    color: var(--text-dim) !important;
+}
+
+/* ── Admin elements ── */
+.admin-title { color: var(--text) !important; }
+.admin-product-item { background: var(--surface) !important; }
+.admin-product-name { color: var(--text) !important; }
+.admin-product-meta { color: var(--text-dim) !important; }
+.admin-product-thumb { background: var(--bg) !important; }
+.admin-btn-sm {
+    background: var(--bg) !important;
+    color: var(--text-dim) !important;
+}
+.admin-btn-sm.delete { color: #ff4757 !important; }
+.admin-btn-sm.delete:hover {
+    background: #ff4757 !important;
+    color: #fff !important;
+}
+
+/* ── Modals & dropdowns ── */
+.modal-content, .popup-content, .dropdown-menu {
+    background: var(--bg) !important;
+    border: 1px solid var(--card-border) !important;
+    box-shadow: 0 10px 40px var(--shadow-color) !important;
+}
+
+/* ── Toast notifications ── */
+.toast {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+}
+.toast.success { border-left: 3px solid var(--accent) !important; }
+.toast.error   { border-left: 3px solid #ff4757 !important; }
+
+/* ── Links ── */
+a { color: var(--accent) !important; text-decoration: none; }
+a:hover { filter: brightness(1.15); }
+
+/* ── Bnav links: no accent override ── */
+.bnav-item { color: var(--text-dim) !important; }
+.bnav-item.bnav-active { color: var(--nav-active, var(--accent)) !important; }
+
+/* ── Dividers ── */
+hr, .divider {
+    border-color: var(--card-border) !important;
+    background: var(--card-border) !important;
+}
+
+/* ── Thumbnails / product info ── */
+.product-thumbnail { background: var(--bg) !important; }
+.product-info { background: var(--surface) !important; }
+
+/* ── Settings & appearance sections ── */
+.settings-section, .appearance-section {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+}
+.settings-section h3, .appearance-section h3,
+.section-title, section h3 {
+    color: var(--text) !important;
+}
+.settings-section label, .appearance-section label, section label {
+    color: var(--text-dim) !important;
+}
+.settings-section p, .appearance-section p, section p {
+    color: var(--text-dim) !important;
+}
+
+/* ── Sections / neu-card resets ── */
+section, .neu-card, div.neu-card {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+}
+
+/* ── Flash messages ── */
+.flash { padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; }
+.flash-success { background: rgba(46,213,115,0.15); color: #2ed573; border-left: 3px solid #2ed573; }
+.flash-error   { background: rgba(255,71,87,0.15);  color: #ff4757; border-left: 3px solid #ff4757; }
+.flash-info    { background: rgba(100,100,255,0.1); color: var(--accent); border-left: 3px solid var(--accent); }
+
+/* ── Image card (page builder block) ── */
+.pb-image-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--card-radius, 14px);
+    background: var(--surface);
+    box-shadow: 6px 6px 16px var(--shadow-dark), -6px -6px 16px var(--shadow-light);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.pb-image-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 8px 8px 22px var(--shadow-dark), -8px -8px 22px var(--shadow-light),
+                0 0 0 2px var(--accent);
+}
+.pb-image-card:active {
+    transform: scale(0.98);
+    box-shadow: inset 4px 4px 10px var(--shadow-dark), inset -4px -4px 10px var(--shadow-light);
+}
+.pb-image-card img, .pb-image-card video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.pb-image-card .pb-card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 45%, transparent 100%);
+    z-index: 1;
+}
+.pb-image-card .pb-card-text {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px;
+    z-index: 2;
+}
+.pb-image-card .pb-card-title {
+    font-weight: 800;
+    font-size: clamp(1rem, 4vw, 1.5rem);
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.7);
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+.pb-image-card .pb-card-subtitle {
+    font-size: clamp(0.75rem, 2.5vw, 0.95rem);
+    color: rgba(255,255,255,0.85);
+    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+}
+.pb-image-card .pb-card-label {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: var(--accent);
+    color: var(--accent-text);
+    border-radius: 20px;
+    padding: 2px 10px;
+    margin-bottom: 8px;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }

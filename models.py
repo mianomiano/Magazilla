@@ -168,6 +168,7 @@ BLOCK_TYPES = [
     'divider',           # Visual separator
     'text_section',      # Rich text / HTML section
     'button_block',      # Custom button with text, color, link
+    'image_card',        # Neumorphic image card with optional text overlay
 ]
 
 class Block(db.Model):

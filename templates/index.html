@@ -262,6 +262,39 @@
 </div>
 {%endif%}
 
+{# ─── image_card ────────────────────────────────────────────── #}
+{%elif block.block_type == 'image_card'%}
+{%set cfg = block.get_config()%}
+{%if cfg.get('image')%}
+{%set ic_url = r2_url(cfg['image'])%}
+{%set ic_ratio = cfg.get('ratio','16/9')%}
+{%set ic_link = cfg.get('link','')%}
+{%set ic_target = 'target="_blank" rel="noopener"' if cfg.get('link_type')=='external' else ''%}
+<div class="content" style="margin-bottom:0">
+{%if ic_link%}
+<a href="{{ic_link}}" {{ic_target|safe}} style="display:block;text-decoration:none">
+{%endif%}
+<div class="pb-image-card" style="aspect-ratio:{{ic_ratio}}">
+  {%if cfg['image'].endswith('.webm')%}
+  <video autoplay loop muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><source src="{{ic_url}}" type="video/webm"></video>
+  {%else%}
+  <img src="{{ic_url}}" alt="{{cfg.get('title','')}}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+  {%endif%}
+  {%if cfg.get('show_overlay', True)%}
+  <div class="pb-card-overlay"></div>
+  {%endif%}
+  {%if cfg.get('title') or cfg.get('subtitle') or cfg.get('label')%}
+  <div class="pb-card-text">
+    {%if cfg.get('label')%}<span class="pb-card-label">{{cfg['label']}}</span>{%endif%}
+    {%if cfg.get('title')%}<div class="pb-card-title">{{cfg['title']}}</div>{%endif%}
+    {%if cfg.get('subtitle')%}<div class="pb-card-subtitle">{{cfg['subtitle']}}</div>{%endif%}
+  </div>
+  {%endif%}
+</div>
+{%if ic_link%}</a>{%endif%}
+</div>
+{%endif%}
+
 {%endif%}
 {%endfor%}
 

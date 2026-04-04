@@ -706,6 +706,7 @@ BLOCK_TYPE_LABELS = {
     'divider':          '─ Divider',
     'text_section':     '📄 Text Section',
     'button_block':     '🔘 Button',
+    'image_card':       '🖼️ Image Card',
 }
 
 
@@ -805,6 +806,23 @@ def builder_edit(bid):
             cfg['text_color'] = request.form.get('btn_text_color', '#ffffff').strip() or '#ffffff'
             cfg['link'] = request.form.get('btn_custom_link', '').strip() or '#'
             cfg['link_type'] = request.form.get('btn_link_type', 'internal')
+
+        elif block.block_type == 'image_card':
+            cfg['title'] = request.form.get('ic_title', '').strip()
+            cfg['subtitle'] = request.form.get('ic_subtitle', '').strip()
+            cfg['label'] = request.form.get('ic_label', '').strip()
+            cfg['link'] = request.form.get('ic_link', '').strip()
+            cfg['link_type'] = request.form.get('ic_link_type', 'internal')
+            cfg['ratio'] = request.form.get('ic_ratio', '16/9')
+            cfg['show_overlay'] = 'ic_show_overlay' in request.form
+            if 'ic_image' in request.files:
+                f = request.files['ic_image']
+                if f and f.filename:
+                    key = upload_to_r2(f, 'blocks')
+                    if key:
+                        if cfg.get('image'):
+                            delete_from_r2(cfg['image'])
+                        cfg['image'] = key
 
         block.set_config(cfg)
         db.session.commit()
