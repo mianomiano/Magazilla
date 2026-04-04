@@ -16,7 +16,7 @@
             <div class="settings-section">
                 <h3>🎨 Colors</h3>
                 <div class="color-row">
-                    <label>Primary</label>
+                    <label>Background</label>
                     <div class="color-input-wrap">
                         <input type="color" name="primary_color" id="primaryColor" 
                                value="{{ settings.primary_color }}" onchange="updatePreview()">
@@ -24,22 +24,28 @@
                                class="color-text" id="primaryColorText" onchange="syncColor('primary')">
                     </div>
                 </div>
-                <div class="color-row">
-                    <label>Secondary</label>
-                    <div class="color-input-wrap">
-                        <input type="color" name="secondary_color" id="secondaryColor" 
-                               value="{{ settings.secondary_color }}" onchange="updatePreview()">
-                        <input type="text" value="{{ settings.secondary_color }}" 
-                               class="color-text" id="secondaryColorText" onchange="syncColor('secondary')">
+                <div class="color-row" style="margin-left:16px">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                        <input type="checkbox" id="gradientToggle" onchange="toggleGradient()"
+                               {{ 'checked' if settings.primary_color_2 else '' }}>
+                        Gradient 2nd Color
+                    </label>
+                    <div class="color-input-wrap" id="gradientWrap"
+                         style="display:{{ 'flex' if settings.primary_color_2 else 'none' }};margin-top:6px">
+                        <input type="color" id="gradientColor"
+                               value="{{ settings.primary_color_2 or settings.primary_color }}"
+                               onchange="document.getElementById('primary_color_2_input').value=this.value;updatePreview()">
+                        <input type="hidden" name="primary_color_2" id="primary_color_2_input"
+                               value="{{ settings.primary_color_2 or '' }}">
                     </div>
                 </div>
                 <div class="color-row">
                     <label>Accent</label>
                     <div class="color-input-wrap">
-                        <input type="color" name="accent_color" id="accentColor" 
-                               value="{{ settings.accent_color }}" onchange="updatePreview()">
-                        <input type="text" value="{{ settings.accent_color }}" 
-                               class="color-text" id="accentColorText" onchange="syncColor('accent')">
+                        <input type="color" name="secondary_color" id="secondaryColor" 
+                               value="{{ settings.secondary_color }}" onchange="updatePreview()">
+                        <input type="text" value="{{ settings.secondary_color }}" 
+                               class="color-text" id="secondaryColorText" onchange="syncColor('secondary')">
                     </div>
                 </div>
                 <div class="color-row">
@@ -73,7 +79,7 @@
             <!-- Badge / Label Color Section -->
             <div class="settings-section">
                 <h3>🏷️ Label &amp; Badge Color</h3>
-                <p style="font-size:0.75rem;color:var(--td);margin-bottom:10px">Applied to: category tags, FREE/price badges, View Product button</p>
+                <p style="font-size:0.75rem;color:var(--text-dim);margin-bottom:10px">Applied to: category tags, FREE/price badges, View Product button</p>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
                     {% set badge_opts = [
                         ('accent','Accent','var(--accent)','#fff'),
@@ -91,10 +97,10 @@
                                {{'checked' if (settings.badge_color or 'accent') == val else ''}}
                                style="display:none" onchange="updatePreview()">
                         <span class="badge-swatch {{'badge-swatch-active' if (settings.badge_color or 'accent') == val else ''}}"
-                              style="display:block;width:32px;height:32px;border-radius:50%;background:{{bg}};color:{{fg}};font-size:0.55rem;font-weight:800;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;border:2px solid {{'var(--accent)' if (settings.badge_color or 'accent') == val else 'transparent'}};box-shadow:{{'0 0 0 2px var(--t)' if (settings.badge_color or 'accent') == val else 'none'}};transition:box-shadow 0.15s,border 0.15s">
+                              style="display:block;width:32px;height:32px;border-radius:50%;background:{{bg}};color:{{fg}};font-size:0.55rem;font-weight:800;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;border:2px solid {{'var(--accent)' if (settings.badge_color or 'accent') == val else 'transparent'}};box-shadow:{{'0 0 0 2px var(--text)' if (settings.badge_color or 'accent') == val else 'none'}};transition:box-shadow 0.15s,border 0.15s">
                             {{label[:3].upper()}}
                         </span>
-                        <span style="font-size:0.6rem;color:var(--td)">{{label}}</span>
+                        <span style="font-size:0.6rem;color:var(--text-dim)">{{label}}</span>
                     </label>
                     {% endfor %}
                 </div>
@@ -124,8 +130,8 @@
                         <option value="bradleyhand" {{ 'selected' if settings.font_family == 'bradleyhand' else '' }}>Bradley Hand</option>
                     </optgroup>
                 </select>
-                <div id="font-preview-box" style="margin-top:10px;padding:12px 16px;border-radius:10px;background:var(--card-bg);border:1px solid var(--card-border);min-height:48px;display:flex;align-items:center;justify-content:center">
-                    <span id="font-preview-text" style="font-size:1.5rem;color:var(--t)">{{settings.app_name or 'Magazilla'}}</span>
+                <div id="font-preview-box" style="margin-top:10px;padding:12px 16px;border-radius:10px;background:var(--surface);border:1px solid var(--card-border);min-height:48px;display:flex;align-items:center;justify-content:center">
+                    <span id="font-preview-text" style="font-size:1.5rem;color:var(--text)">{{settings.app_name or 'Magazilla'}}</span>
                 </div>
             </div>
             
@@ -606,24 +612,24 @@
 }
 
 .style-soft {
-    background: var(--primary);
+    background: var(--bg);
     box-shadow: 3px 3px 6px rgba(0,0,0,0.35), -2px -2px 5px rgba(255,255,255,0.05);
 }
 
 .style-flat {
     background: transparent;
-    border: 2px solid var(--secondary);
-    color: var(--secondary) !important;
+    border: 2px solid var(--accent);
+    color: var(--accent) !important;
 }
 
 .style-bubble {
-    background: var(--primary);
+    background: var(--bg);
     border: 1px solid rgba(255,255,255,0.12);
     box-shadow: 0 4px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 
 .style-glow {
-    background: var(--primary);
+    background: var(--bg);
     box-shadow: 0 0 14px var(--accent);
 }
 
@@ -924,7 +930,7 @@ document.querySelectorAll('input[name="badge_color"]').forEach(radio => {
             const swatch = r.nextElementSibling;
             if (r.checked) {
                 swatch.style.border = '2px solid var(--accent)';
-                swatch.style.boxShadow = '0 0 0 2px var(--t)';
+                swatch.style.boxShadow = '0 0 0 2px var(--text)';
             } else {
                 swatch.style.border = '2px solid transparent';
                 swatch.style.boxShadow = 'none';
@@ -938,6 +944,20 @@ function syncColor(type) {
     const textInput = document.getElementById(type + 'ColorText');
     const colorInput = document.getElementById(type + 'Color');
     if (textInput.value) colorInput.value = textInput.value;
+    updatePreview();
+}
+
+// Toggle gradient second color
+function toggleGradient() {
+    const enabled = document.getElementById('gradientToggle').checked;
+    const wrap = document.getElementById('gradientWrap');
+    const hidden = document.getElementById('primary_color_2_input');
+    wrap.style.display = enabled ? 'flex' : 'none';
+    if (!enabled) {
+        hidden.value = '';
+    } else {
+        hidden.value = document.getElementById('gradientColor').value;
+    }
     updatePreview();
 }
 
@@ -962,16 +982,20 @@ function updatePreview() {
     // Get values
     const primaryColor = document.getElementById('primaryColor').value;
     const secondaryColor = document.getElementById('secondaryColor').value;
-    const accentColor = document.getElementById('accentColor').value;
+    const gradientEnabled = document.getElementById('gradientToggle').checked;
+    const gradientColor = gradientEnabled ? document.getElementById('gradientColor').value : '';
     
     // Update color text inputs
     document.getElementById('primaryColorText').value = primaryColor;
     document.getElementById('secondaryColorText').value = secondaryColor;
-    document.getElementById('accentColorText').value = accentColor;
     const textColorEl = document.getElementById('textColorText');
     if (textColorEl && textColorEl.value) document.getElementById('textColor').value = textColorEl.value;
     const cardColorEl = document.getElementById('cardColorText');
     if (cardColorEl && cardColorEl.value) document.getElementById('cardColor').value = cardColorEl.value;
+    
+    // Sync gradient hidden input
+    const gradientHidden = document.getElementById('primary_color_2_input');
+    if (gradientHidden) gradientHidden.value = gradientColor;
     
     const font = document.querySelector('input[name="font_family"]:checked')?.value || 'inter';
     const btnStyle = document.querySelector('input[name="button_style"]:checked')?.value || 'soft';
@@ -985,8 +1009,9 @@ function updatePreview() {
     // Apply colors
     frame.style.setProperty('--preview-primary', primaryColor);
     frame.style.setProperty('--preview-secondary', secondaryColor);
-    frame.style.setProperty('--preview-accent', accentColor);
-    frame.style.background = primaryColor;
+    frame.style.background = gradientColor
+        ? `linear-gradient(135deg, ${primaryColor}, ${gradientColor})`
+        : primaryColor;
     
     // Apply font
     frame.style.fontFamily = fontFamilies[font];
@@ -1048,7 +1073,7 @@ function updatePreview() {
     // Sync button style option preview buttons to chosen colors
     document.querySelectorAll('.preview-btn.style-soft, .preview-btn.style-bubble').forEach(b => {
         b.style.background = primaryColor;
-        b.style.color = accentColor;
+        b.style.color = secondaryColor;
         b.style.boxShadow = '';
     });
     const flatBtn = document.querySelector('.preview-btn.style-flat');
@@ -1060,8 +1085,8 @@ function updatePreview() {
     const glowBtn = document.querySelector('.preview-btn.style-glow');
     if (glowBtn) {
         glowBtn.style.background = primaryColor;
-        glowBtn.style.color = accentColor;
-        glowBtn.style.boxShadow = '0 0 14px ' + accentColor;
+        glowBtn.style.color = secondaryColor;
+        glowBtn.style.boxShadow = '0 0 14px ' + secondaryColor;
     }
 }
 

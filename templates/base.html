@@ -14,45 +14,57 @@
     
     <link rel="stylesheet" href="{{url_for('static',filename='css/style.css')}}">
     
-    {% set primary = settings.primary_color %}
-    {% set secondary = settings.secondary_color %}
-    {% set accent = settings.accent_color %}
-    
-    {# Calculate primary-light (slightly lighter/different from primary) #}
-    {% set pr = primary[1:3]|int(base=16) %}
-    {% set pg = primary[3:5]|int(base=16) %}
-    {% set pb = primary[5:7]|int(base=16) %}
-    {% set brightness = (pr * 299 + pg * 587 + pb * 114) / 1000 %}
-    {% set is_dark = brightness < 128 %}
-    
-    {# Create primary-light color — use card_color if set, otherwise auto-derive #}
+    {# bg = background/base color; accent = interactive color; surface = card surface #}
+    {% set bg = settings.primary_color %}
+    {% set accent = settings.secondary_color %}
+
+    {# Derive surface — use card_color if set, else same as bg #}
     {% if settings.card_color %}
-        {% set primary_light = settings.card_color %}
-    {% elif is_dark %}
-        {% set pl_r = [pr + 20, 255]|min %}
-        {% set pl_g = [pg + 20, 255]|min %}
-        {% set pl_b = [pb + 20, 255]|min %}
-        {% set primary_light = '#%02x%02x%02x' % (pl_r, pl_g, pl_b) %}
+        {% set surface = settings.card_color %}
     {% else %}
-        {% set pl_r = [pr - 20, 0]|max %}
-        {% set pl_g = [pg - 20, 0]|max %}
-        {% set pl_b = [pb - 20, 0]|max %}
-        {% set primary_light = '#%02x%02x%02x' % (pl_r, pl_g, pl_b) %}
+        {% set surface = bg %}
     {% endif %}
-    
-    {# Calculate if secondary is dark or light #}
-    {% set sr = secondary[1:3]|int(base=16) %}
-    {% set sg = secondary[3:5]|int(base=16) %}
-    {% set sb = secondary[5:7]|int(base=16) %}
-    {% set sec_brightness = (sr * 299 + sg * 587 + sb * 114) / 1000 %}
-    {% set sec_is_dark = sec_brightness < 128 %}
+
+    {# Bg brightness for light/dark detection #}
+    {% set bg_r = bg[1:3]|int(base=16) %}
+    {% set bg_g = bg[3:5]|int(base=16) %}
+    {% set bg_b = bg[5:7]|int(base=16) %}
+    {% set brightness = (bg_r * 299 + bg_g * 587 + bg_b * 114) / 1000 %}
+    {% set is_dark = brightness < 128 %}
+
+    {# Neumorphic shadow-dark: darken bg by 30 points #}
+    {% set sd_r = [bg_r - 30, 0]|max %}
+    {% set sd_g = [bg_g - 30, 0]|max %}
+    {% set sd_b = [bg_b - 30, 0]|max %}
+    {% set shadow_dark = '#%02x%02x%02x' % (sd_r, sd_g, sd_b) %}
+
+    {# Neumorphic shadow-light: lighten bg for dark themes, #fff for light #}
+    {% if is_dark %}
+        {% set sl_r = [bg_r + 25, 255]|min %}
+        {% set sl_g = [bg_g + 25, 255]|min %}
+        {% set sl_b = [bg_b + 25, 255]|min %}
+        {% set shadow_light = '#%02x%02x%02x' % (sl_r, sl_g, sl_b) %}
+    {% else %}
+        {% set shadow_light = '#ffffff' %}
+    {% endif %}
+
+    {# Check if accent is dark for button text contrast #}
+    {% set ac_r = accent[1:3]|int(base=16) %}
+    {% set ac_g = accent[3:5]|int(base=16) %}
+    {% set ac_b = accent[5:7]|int(base=16) %}
+    {% set acc_brightness = (ac_r * 299 + ac_g * 587 + ac_b * 114) / 1000 %}
+    {% set acc_is_dark = acc_brightness < 128 %}
+
+    {# Keep legacy aliases for any remaining references #}
+    {% set primary = bg %}
+    {% set primary_light = surface %}
+    {% set secondary = accent %}
     
     <style>
         :root {
-            /* Main Colors */
-            --primary: {{primary}};
-            --primary-light: {{primary_light}};
-            --secondary: {{secondary}};
+            /* ── Core design tokens ── */
+            --bg: {{bg}};
+            --surface: {{surface}};
             --accent: {{accent}};
 
             /* Badge / label color */
@@ -70,34 +82,31 @@
             --badge-text: {{_bp[settings.badge_color][1]}};
             {% else %}
             --badge: {{accent}};
-            --badge-text: #ffffff;
+            --badge-text: {% if acc_is_dark %}#ffffff{% else %}#1a1a1a{% endif %};
             {% endif %}
 
-            /* Text Colors — use manual override if set, otherwise auto from background brightness */
-            {% set auto_text = '#ffffff' if is_dark else '#1a1a1a' %}
+            /* Text colors — manual override or auto from bg brightness */
+            {% set auto_text = '#ffffff' if is_dark else '#3c3c3c' %}
             {% set use_text = settings.text_color if settings.text_color else auto_text %}
             --text: {{use_text}};
-            --text-on-primary: {{use_text}};
-            --text-dim: {% if is_dark %}#b0b0b0{% else %}#555555{% endif %};
-            --text-muted: {% if is_dark %}#808080{% else %}#888888{% endif %};
-            --text-on-secondary: {% if sec_is_dark %}#ffffff{% else %}#1a1a1a{% endif %};
-            
-            /* Derived Colors */
-            --card-bg: {% if is_dark %}rgba(255,255,255,0.06){% else %}rgba(0,0,0,0.04){% endif %};
+            --text-dim: {% if is_dark %}#b0b0b0{% else %}#888888{% endif %};
+
+            /* Neumorphic shadows — derived from bg in Jinja above */
+            --shadow-dark: {{shadow_dark}};
+            --shadow-light: {{shadow_light}};
+
+            /* Utility derived vars */
             --card-border: {% if is_dark %}rgba(255,255,255,0.1){% else %}rgba(0,0,0,0.1){% endif %};
-            --input-bg: {% if is_dark %}rgba(0,0,0,0.3){% else %}rgba(0,0,0,0.05){% endif %};
             --hover-overlay: {% if is_dark %}rgba(255,255,255,0.05){% else %}rgba(0,0,0,0.05){% endif %};
-            --shadow-color: {% if is_dark %}rgba(0,0,0,0.5){% else %}rgba(0,0,0,0.15){% endif %};
-            --shadow-dark: {% if is_dark %}rgba(0,0,0,0.5){% else %}rgba(0,0,0,0.15){% endif %};
-            --shadow-light: {% if is_dark %}rgba(255,255,255,0.05){% else %}rgba(255,255,255,0.5){% endif %};
-            
-            /* Override Telegram's variables immediately */
-            --tg-theme-bg-color: {{primary}} !important;
-            --tg-theme-secondary-bg-color: {{primary_light}} !important;
+            --shadow-color: {% if is_dark %}rgba(0,0,0,0.4){% else %}rgba(0,0,0,0.12){% endif %};
+
+            /* Telegram theme overrides */
+            --tg-theme-bg-color: {{bg}} !important;
+            --tg-theme-secondary-bg-color: {{surface}} !important;
             --tg-theme-text-color: {{use_text}} !important;
             --tg-theme-hint-color: {% if is_dark %}#808080{% else %}#888888{% endif %} !important;
-            --tg-theme-button-color: {{secondary}} !important;
-            --tg-theme-button-text-color: {% if sec_is_dark %}#ffffff{% else %}#1a1a1a{% endif %} !important;
+            --tg-theme-button-color: {{accent}} !important;
+            --tg-theme-button-text-color: {% if acc_is_dark %}#ffffff{% else %}#1a1a1a{% endif %} !important;
             --tg-theme-link-color: {{accent}} !important;
         }
         
@@ -112,9 +121,14 @@
         html,
         body, 
         .app-container {
-            background: var(--primary) !important;
-            background-color: var(--primary) !important;
-            color: var(--text-on-primary) !important;
+            {% if settings.primary_color_2 %}
+            background: linear-gradient(135deg, {{bg}}, {{settings.primary_color_2}}) !important;
+            background-color: {{bg}} !important;
+            {% else %}
+            background: var(--bg) !important;
+            background-color: var(--bg) !important;
+            {% endif %}
+            color: var(--text) !important;
         }
         
         /* ==================== TEXT - Uses ACCENT ==================== */
@@ -128,15 +142,14 @@
         .product-name,
         .product-description,
         .category-name {
-            color: var(--text-on-primary) !important;
+            color: var(--text) !important;
         }
         
-        /* Preserve logo-text gradient - must override span color rule above */
+        /* Preserve logo-text — override span color rule above */
         .logo-text {
-            -webkit-text-fill-color: transparent !important;
-            background: linear-gradient(135deg, var(--secondary), var(--accent)) !important;
-            -webkit-background-clip: text !important;
-            background-clip: text !important;
+            color: var(--accent) !important;
+            -webkit-text-fill-color: var(--accent) !important;
+            background: none !important;
         }
         
         /* Muted/secondary text */
@@ -145,10 +158,10 @@
         .meta-info,
         .subtitle,
         small {
-            color: var(--text-muted) !important;
+            color: var(--text-dim) !important;
         }
         
-        /* Highlighted text, prices, important numbers - ACCENT */
+        /* Highlighted text, prices, important numbers */
         .product-price,
         .price,
         .stars-amount,
@@ -159,24 +172,30 @@
             color: var(--accent) !important;
         }
         
-        /* ==================== BUTTONS - ALL use SECONDARY ==================== */
+        /* ==================== BUTTONS ==================== */
         
-        /* All buttons base */
-        button,
-        .btn,
-        .neu-btn,
+        /* Base reset for all buttons */
+        button, .btn, .neu-btn {
+            border: none !important;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        /* Regular / secondary buttons — surface bg, neumorphic style */
+        .neu-btn {
+            background: var(--surface) !important;
+            color: var(--text) !important;
+        }
+
+        /* Primary action buttons — accent bg */
         .neu-btn-primary,
         .btn-primary,
-        .btn-secondary,
         .download-btn,
         .buy-btn,
         .save-btn,
-        .filter-btn,
-        .category-btn,
-        input[type="submit"],
-        input[type="button"] {
-            background: var(--secondary) !important;
-            color: var(--text-on-secondary) !important;
+        input[type="submit"] {
+            background: var(--accent) !important;
+            color: {% if acc_is_dark %}#ffffff{% else %}#1a1a1a{% endif %} !important;
             border: none !important;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -204,7 +223,7 @@
             transform: translateY(1px);
         }
         
-        /* Ghost/outline buttons - transparent with accent border */
+        /* Ghost/outline buttons */
         .btn-ghost,
         .btn-outline {
             background: transparent !important;
@@ -215,24 +234,23 @@
         .btn-ghost:hover,
         .btn-outline:hover {
             background: var(--accent) !important;
-            color: var(--primary) !important;
+            color: var(--bg) !important;
         }
         
-        /* Filter buttons - special case, shows active state */
+        /* Filter buttons — special case */
         .filter-btn,
         .category-btn {
-            background: var(--card-bg) !important;
-            color: var(--text-on-primary) !important;
-            border: 1px solid var(--card-border) !important;
+            background: var(--surface) !important;
+            color: var(--text) !important;
+            border: none !important;
         }
         
         .filter-btn.active,
         .filter-btn:hover,
         .category-btn.active,
         .category-btn:hover {
-            background: var(--secondary) !important;
-            color: var(--text-on-secondary) !important;
-            border-color: var(--secondary) !important;
+            background: var(--accent) !important;
+            color: var(--bg) !important;
         }
         
         /* ==================== CARDS ==================== */
@@ -243,39 +261,38 @@
         .stat-card,
         .card,
         .neu-card {
-            background: var(--primary-light) !important;
+            background: var(--surface) !important;
             border: 1px solid var(--card-border) !important;
-            color: var(--text-on-primary) !important;
+            color: var(--text) !important;
         }
         
         .neu-card-inset,
         .product-stats-box {
-            background: var(--primary-light) !important;
-            color: var(--text-on-primary) !important;
+            background: var(--surface) !important;
+            color: var(--text) !important;
         }
         
-        /* ==================== BADGES - Use ACCENT ==================== */
+        /* ==================== BADGES ==================== */
         
         .product-badge,
         .badge {
-            background: var(--accent) !important;
-            color: var(--primary) !important;
+            background: var(--badge, var(--accent)) !important;
+            color: var(--badge-text, #fff) !important;
             font-weight: 600;
         }
         
         .product-badge.free,
         .badge-free {
-            background: transparent !important;
-            color: var(--accent) !important;
-            border: 1px solid var(--accent) !important;
+            background: var(--badge, var(--accent)) !important;
+            color: var(--badge-text, #fff) !important;
         }
         
         .product-badge.paid,
         .product-badge.premium,
         .badge-paid,
         .badge-premium {
-            background: var(--accent) !important;
-            color: {% if is_dark %}var(--primary){% else %}#ffffff{% endif %} !important;
+            background: var(--badge, var(--accent)) !important;
+            color: var(--badge-text, #fff) !important;
         }
         
         /* ==================== INPUTS ==================== */
@@ -285,15 +302,15 @@
         select,
         .neu-input,
         .neu-select {
-            background: var(--primary) !important;
+            background: var(--bg) !important;
             border: 1px solid var(--card-border) !important;
-            color: var(--text-on-primary) !important;
+            color: var(--text) !important;
         }
         
         input::placeholder,
         textarea::placeholder,
         .neu-input::placeholder {
-            color: var(--text-muted) !important;
+            color: var(--text-dim) !important;
         }
         
         input:focus,
@@ -303,7 +320,7 @@
         .neu-select:focus {
             border-color: var(--accent) !important;
             outline: none !important;
-            box-shadow: 0 0 0 3px {% if is_dark %}rgba(255,255,255,0.1){% else %}rgba(0,0,0,0.1){% endif %} !important;
+            box-shadow: 0 0 0 2px var(--accent) !important;
         }
         
         /* ==================== HEADER/LOGO ==================== */
@@ -312,31 +329,31 @@
         .header-area,
         header,
         .header {
-            background: var(--primary) !important;
+            background: var(--bg) !important;
             border-bottom: 1px solid var(--card-border) !important;
         }
         
         /* ==================== PRODUCT DETAIL ==================== */
         
         .product-detail {
-            background: var(--primary) !important;
+            background: var(--bg) !important;
         }
         
         .product-detail-image {
-            background: var(--primary-light) !important;
+            background: var(--surface) !important;
         }
         
         .product-detail-image img,
         .product-detail-image video {
-            background: var(--primary-light) !important;
+            background: var(--surface) !important;
         }
         
         .product-detail-title {
-            color: var(--text-on-primary) !important;
+            color: var(--text) !important;
         }
         
         .product-detail-category {
-            color: var(--text-muted) !important;
+            color: var(--text-dim) !important;
         }
         
         .product-detail-description {
@@ -344,7 +361,7 @@
         }
         
         .product-detail-price.free {
-            color: var(--secondary) !important;
+            color: var(--accent) !important;
         }
         
         .product-detail-price.paid {
@@ -357,12 +374,9 @@
             font-weight: 700;
         }
         
-        .stats-number.accent {
-            color: var(--accent) !important;
-        }
-        
+        .stats-number.accent,
         .stats-number.secondary {
-            color: var(--secondary) !important;
+            color: var(--accent) !important;
         }
         
         .stats-label {
@@ -373,34 +387,34 @@
         /* ==================== BACK BUTTON ==================== */
         
         .back-btn {
-            background: var(--primary-light) !important;
+            background: var(--surface) !important;
             color: var(--text-dim) !important;
         }
         
         /* ==================== ADMIN ELEMENTS ==================== */
         
         .admin-title {
-            color: var(--text-on-primary) !important;
+            color: var(--text) !important;
         }
         
         .admin-product-item {
-            background: var(--primary-light) !important;
+            background: var(--surface) !important;
         }
         
         .admin-product-name {
-            color: var(--text-on-primary) !important;
+            color: var(--text) !important;
         }
         
         .admin-product-meta {
-            color: var(--text-muted) !important;
+            color: var(--text-dim) !important;
         }
         
         .admin-product-thumb {
-            background: var(--primary) !important;
+            background: var(--bg) !important;
         }
         
         .admin-btn-sm {
-            background: var(--primary) !important;
+            background: var(--bg) !important;
             color: var(--text-dim) !important;
         }
         
@@ -418,7 +432,7 @@
         .modal-content,
         .popup-content,
         .dropdown-menu {
-            background: var(--primary) !important;
+            background: var(--bg) !important;
             border: 1px solid var(--card-border) !important;
             box-shadow: 0 10px 40px var(--shadow-color) !important;
         }
@@ -426,12 +440,12 @@
         /* ==================== TOAST ==================== */
         
         .toast {
-            background: var(--primary-light) !important;
-            color: var(--text-on-primary) !important;
+            background: var(--surface) !important;
+            color: var(--text) !important;
         }
         
         .toast.success {
-            border-left: 3px solid var(--secondary) !important;
+            border-left: 3px solid var(--accent) !important;
         }
         
         .toast.error {
@@ -460,11 +474,11 @@
         /* ==================== THUMBNAILS ==================== */
         
         .product-thumbnail {
-            background: var(--primary) !important;
+            background: var(--bg) !important;
         }
         
         .product-info {
-            background: var(--primary-light) !important;
+            background: var(--surface) !important;
         }
         
         /* ==================== SCROLLBAR ==================== */
@@ -474,7 +488,7 @@
         }
         
         ::-webkit-scrollbar-track {
-            background: var(--primary);
+            background: var(--bg);
         }
         
         ::-webkit-scrollbar-thumb {
@@ -483,7 +497,7 @@
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: var(--secondary);
+            background: var(--accent);
         }
         
         /* ==================== LOCAL FONT FACES ==================== */
@@ -558,22 +572,28 @@
 
         {% elif settings.button_style == 'glow' %}
         button, .btn, .neu-btn, .neu-btn-primary, .download-btn, .buy-btn {
-            box-shadow: 0 0 20px {{secondary}}66 !important;
+            box-shadow: 0 0 20px {{accent}}66 !important;
         }
         button:hover, .btn:hover, .neu-btn:hover {
-            box-shadow: 0 0 30px {{secondary}}99 !important;
+            box-shadow: 0 0 30px {{accent}}99 !important;
         }
         .neu-card, .product-card, .card {
-            box-shadow: 0 0 16px {{secondary}}44 !important;
+            box-shadow: 0 0 16px {{accent}}44 !important;
         }
 
         {% else %}
-        /* Soft (default) */
+        /* Soft / Neumorphic (default) — dual-tone outset shadows */
         button, .btn, .neu-btn, .neu-btn-primary {
-            box-shadow: 0 2px 8px var(--shadow-color) !important;
+            box-shadow: 3px 3px 7px var(--shadow-dark), -3px -3px 7px var(--shadow-light) !important;
+        }
+        button:active, .btn:active, .neu-btn:active {
+            box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light) !important;
         }
         .neu-card, .product-card, .card {
-            box-shadow: 0 2px 12px var(--shadow-color) !important;
+            box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light) !important;
+        }
+        .neu-input, input:not([type="color"]):not([type="checkbox"]):not([type="radio"]), textarea, select {
+            box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light) !important;
         }
         {% endif %}
 
@@ -718,11 +738,11 @@
         /* ==================== CONTENT AREA ==================== */
         
         .content {
-            background: var(--primary) !important;
+            background: transparent !important;
         }
         
         .category-filter {
-            background: var(--primary) !important;
+            background: transparent !important;
         }
         
         /* ==================== SETTINGS/APPEARANCE SECTIONS ==================== */
@@ -730,15 +750,15 @@
         .settings-section,
         .appearance-section,
         section {
-            background: var(--primary-light) !important;
-            color: var(--text-on-primary) !important;
+            background: var(--surface) !important;
+            color: var(--text) !important;
         }
         
         .settings-section h3,
         .appearance-section h3,
         .section-title,
         section h3 {
-            color: var(--text-on-primary) !important;
+            color: var(--text) !important;
         }
         
         .settings-section label,
@@ -783,7 +803,7 @@
             position: absolute;
             top: 36px;
             right: 0;
-            background: var(--primary) !important;
+            background: var(--surface) !important;
             border-radius: 12px !important;
             box-shadow: 0 6px 24px var(--shadow-color) !important;
             overflow: hidden;
@@ -796,7 +816,7 @@
             align-items: center;
             gap: 10px;
             padding: 11px 16px;
-            color: var(--text-on-primary) !important;
+            color: var(--text) !important;
             text-decoration: none;
             font-size: 13px;
             font-weight: 500;
@@ -838,7 +858,7 @@
             left: 0;
             right: 0;
             z-index: 1000;
-            background: var(--primary-light);
+            background: var(--surface);
             border-top: 1px solid var(--card-border);
             display: flex;
             height: 58px;
@@ -852,7 +872,7 @@
             align-items: center;
             justify-content: center;
             gap: 3px;
-            color: var(--text-muted) !important;
+            color: var(--text-dim) !important;
             text-decoration: none !important;
             font-size: 0.6rem !important;
             font-weight: 600;
@@ -966,14 +986,12 @@
         
         // Theme colors from server (Jinja)
         const themeColors = {
-            primary: '{{primary}}',
-            primaryLight: '{{primary_light}}',
-            secondary: '{{secondary}}',
+            bg: '{{bg}}',
+            surface: '{{surface}}',
             accent: '{{accent}}',
             text: '{% if is_dark %}#ffffff{% else %}#1a1a1a{% endif %}',
-            textDim: '{% if is_dark %}#b0b0b0{% else %}#555555{% endif %}',
-            textMuted: '{% if is_dark %}#808080{% else %}#888888{% endif %}',
-            textOnSecondary: '{% if sec_is_dark %}#ffffff{% else %}#1a1a1a{% endif %}'
+            textDim: '{% if is_dark %}#b0b0b0{% else %}#666666{% endif %}',
+            accentTextOn: '{% if acc_is_dark %}#ffffff{% else %}#1a1a1a{% endif %}'
         };
         
         // Apply theme to Telegram native components
@@ -981,34 +999,28 @@
             if (!tg) return;
             
             try {
-                // Set Telegram's background color (body area)
                 if (tg.setBackgroundColor) {
-                    tg.setBackgroundColor(themeColors.primary);
+                    tg.setBackgroundColor(themeColors.bg);
                 }
-                
-                // Set Telegram's header color
                 if (tg.setHeaderColor) {
-                    tg.setHeaderColor(themeColors.primary);
+                    tg.setHeaderColor(themeColors.bg);
                 }
-                
-                // Set bottom bar color (Telegram v7.10+)
                 if (tg.setBottomBarColor) {
-                    tg.setBottomBarColor(themeColors.primaryLight);
+                    tg.setBottomBarColor(themeColors.surface);
                 }
-                
-                console.log('✅ Telegram theme applied:', themeColors.primary);
+                console.log('✅ Telegram theme applied:', themeColors.bg);
             } catch(e) {
                 console.log('Telegram theme error:', e);
             }
             
             // Override Telegram's CSS variables
             const root = document.documentElement;
-            root.style.setProperty('--tg-theme-bg-color', themeColors.primary);
-            root.style.setProperty('--tg-theme-secondary-bg-color', themeColors.primaryLight);
+            root.style.setProperty('--tg-theme-bg-color', themeColors.bg);
+            root.style.setProperty('--tg-theme-secondary-bg-color', themeColors.surface);
             root.style.setProperty('--tg-theme-text-color', themeColors.text);
-            root.style.setProperty('--tg-theme-hint-color', themeColors.textMuted);
-            root.style.setProperty('--tg-theme-button-color', themeColors.secondary);
-            root.style.setProperty('--tg-theme-button-text-color', themeColors.textOnSecondary);
+            root.style.setProperty('--tg-theme-hint-color', themeColors.textDim);
+            root.style.setProperty('--tg-theme-button-color', themeColors.accent);
+            root.style.setProperty('--tg-theme-button-text-color', themeColors.accentTextOn);
             root.style.setProperty('--tg-theme-link-color', themeColors.accent);
         }
         

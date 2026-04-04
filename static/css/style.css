@@ -1,57 +1,39 @@
 :root {
-    /* Default colors */
-    --primary: #090c11;
-    --primary-light: #0f1419;
-    --secondary: #afe81f;
-    --accent: #1534fe;
-    --m: #bb2ab2;
-    --text: #e8eaed;
-    --text-dim: #9aa0a6;
-    --text-muted: #5f6368;
-    --shadow-dark: rgba(0,0,0,0.5);
-    --shadow-light: rgba(30,40,55,0.3);
-    
-    /* Short aliases for backward compatibility */
-    --p: var(--primary);
-    --pl: var(--primary-light);
-    --s: var(--secondary);
-    --a: var(--accent);
-    --t: var(--text);
-    --td: var(--text-dim);
-    --tm: var(--text-muted);
-    --sd: var(--shadow-dark);
-    --sl: var(--shadow-light);
+    --bg: #e2e2e2;
+    --surface: #e2e2e2;
+    --accent: #5a6270;
+    --text: #3c3c3c;
+    --text-dim: #888888;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0 }
 
 html, body {
     font-family: 'Inter', -apple-system, sans-serif;
-    background: var(--primary) !important;
-    background-color: var(--primary) !important;
+    background: var(--bg) !important;
+    background-color: var(--bg) !important;
     color: var(--text) !important;
     min-height: 100vh;
     font-size: 14px;
     line-height: 1.5;
 }
 
-/* Override Telegram's secondary background everywhere */
 .tgme_page,
 [style*="background-color: var(--tg-theme-secondary-bg-color)"],
 [style*="background: var(--tg-theme-secondary-bg-color)"] {
-    background-color: var(--primary-light) !important;
+    background-color: var(--surface) !important;
 }
 
 .app-container {
     max-width: 1100px;
     margin: 0 auto;
     width: 100%;
-    background: var(--primary) !important;
+    background: var(--bg) !important;
 }
 
 .header {
-    background: var(--primary) !important;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    background: var(--bg) !important;
+    border-bottom: 1px solid var(--card-border, rgba(0,0,0,0.1));
     position: sticky;
     top: 0;
     z-index: 100;
@@ -74,7 +56,7 @@ html, body {
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
     text-decoration: none;
     font-size: 1.1rem;
     box-shadow: 2px 2px 6px var(--shadow-dark), -2px -2px 6px var(--shadow-light);
@@ -100,17 +82,14 @@ html, body {
 .logo-text {
     font-size: 1.4rem;
     font-weight: 700;
-    background: linear-gradient(135deg, var(--secondary), var(--accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--accent);
     text-align: center;
     padding: 16px 10px;
 }
 
 .content {
     padding: 16px;
-    background: var(--primary) !important;
+    background: var(--bg) !important;
 }
 
 .category-filter {
@@ -119,7 +98,7 @@ html, body {
     padding: 10px 16px;
     overflow-x: auto;
     scrollbar-width: none;
-    background: var(--primary) !important;
+    background: var(--bg) !important;
 }
 
 .category-filter::-webkit-scrollbar { display: none }
@@ -132,7 +111,7 @@ html, body {
     padding: 6px 12px;
     border: none;
     border-radius: 16px;
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
     color: var(--text-dim) !important;
     font-size: 0.75rem;
     font-weight: 500;
@@ -144,18 +123,18 @@ html, body {
 
 .filter-btn:hover {
     color: var(--text) !important;
-    box-shadow: 0 0 0 2px var(--secondary), 3px 3px 8px var(--shadow-dark), -3px -3px 8px var(--shadow-light);
+    box-shadow: 0 0 0 2px var(--accent), 3px 3px 8px var(--shadow-dark), -3px -3px 8px var(--shadow-light);
 }
 
 .filter-btn:active {
     transform: scale(0.95);
-    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.6), inset -2px -2px 4px rgba(40,50,70,0.25), 0 0 0 2px var(--secondary);
+    box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light), 0 0 0 2px var(--accent);
 }
 
 .filter-btn.active {
-    background: var(--secondary) !important;
-    color: var(--primary) !important;
-    box-shadow: 0 0 0 2px var(--secondary), inset 2px 2px 4px rgba(0,0,0,0.3);
+    background: var(--accent) !important;
+    color: var(--bg) !important;
+    box-shadow: 0 0 0 2px var(--accent), inset 2px 2px 4px rgba(0,0,0,0.2);
 }
 
 .filter-btn.active:hover {
@@ -174,7 +153,7 @@ html, body {
    =============================== */
 
 .product-card {
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
     border-radius: 12px;
     overflow: hidden;
     cursor: pointer;
@@ -184,18 +163,18 @@ html, body {
 
 .product-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 0 0 2px var(--secondary), 6px 6px 18px rgba(0,0,0,0.6), -6px -6px 18px rgba(40,50,70,0.35);
+    box-shadow: 0 0 0 2px var(--accent), 6px 6px 18px var(--shadow-dark), -6px -6px 18px var(--shadow-light);
 }
 
 .product-card:active {
     transform: scale(0.97);
-    box-shadow: inset 3px 3px 6px rgba(0,0,0,0.6), inset -3px -3px 6px rgba(40,50,70,0.25), 0 0 0 2px var(--secondary);
+    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light), 0 0 0 2px var(--accent);
 }
 
 .product-thumbnail {
     width: 100%;
     aspect-ratio: 1;
-    background: var(--primary) !important;
+    background: var(--bg) !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -212,7 +191,7 @@ html, body {
 
 .placeholder-icon {
     font-size: 2rem;
-    color: var(--text-muted) !important;
+    color: var(--text-dim) !important;
 }
 
 .product-badge {
@@ -226,13 +205,13 @@ html, body {
 }
 
 .badge-free {
-    background: var(--badge) !important;
-    color: var(--badge-text) !important;
+    background: var(--badge, var(--accent)) !important;
+    color: var(--badge-text, #fff) !important;
 }
 
 .badge-paid {
-    background: var(--badge) !important;
-    color: var(--badge-text) !important;
+    background: var(--badge, var(--accent)) !important;
+    color: var(--badge-text, #fff) !important;
 }
 
 .badge-pwyw {
@@ -242,7 +221,7 @@ html, body {
 
 .product-info {
     padding: 8px;
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
 }
 
 .product-name {
@@ -257,7 +236,7 @@ html, body {
 
 .product-category {
     font-size: 0.65rem;
-    color: var(--text-muted) !important;
+    color: var(--text-dim) !important;
     margin-bottom: 4px;
 }
 
@@ -270,7 +249,7 @@ html, body {
 }
 
 .product-price.free {
-    color: var(--secondary) !important;
+    color: var(--accent) !important;
 }
 
 .product-price.paid {
@@ -292,7 +271,7 @@ html, body {
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
     color: var(--text) !important;
     box-shadow: 3px 3px 8px var(--shadow-dark), -3px -3px 8px var(--shadow-light);
     text-decoration: none;
@@ -303,8 +282,8 @@ html, body {
 }
 
 .neu-btn-primary {
-    background: var(--secondary) !important;
-    color: var(--primary) !important;
+    background: var(--accent) !important;
+    color: var(--bg) !important;
 }
 
 .neu-btn-primary:hover {
@@ -312,7 +291,7 @@ html, body {
 }
 
 .neu-btn-accent {
-    background: linear-gradient(135deg, var(--accent), var(--m)) !important;
+    background: var(--accent) !important;
     color: #fff !important;
 }
 
@@ -336,19 +315,19 @@ html, body {
     padding: 10px 12px;
     border: none;
     border-radius: 10px;
-    background: var(--primary) !important;
+    background: var(--bg) !important;
     color: var(--text) !important;
     font-size: 0.85rem;
-    box-shadow: inset 2px 2px 6px rgba(0,0,0,0.4), inset -2px -2px 6px rgba(40,50,70,0.2);
+    box-shadow: inset 2px 2px 6px var(--shadow-dark), inset -2px -2px 6px var(--shadow-light);
 }
 
 .neu-input:focus {
     outline: none;
-    box-shadow: inset 2px 2px 6px rgba(0,0,0,0.4), inset -2px -2px 6px rgba(40,50,70,0.2), 0 0 0 2px var(--secondary);
+    box-shadow: inset 2px 2px 6px var(--shadow-dark), inset -2px -2px 6px var(--shadow-light), 0 0 0 2px var(--accent);
 }
 
 .neu-input::placeholder {
-    color: var(--text-muted) !important;
+    color: var(--text-dim) !important;
 }
 
 textarea.neu-input {
@@ -361,20 +340,20 @@ textarea.neu-input {
     padding: 10px 12px;
     border: none;
     border-radius: 10px;
-    background: var(--primary) !important;
+    background: var(--bg) !important;
     color: var(--text) !important;
     font-size: 0.85rem;
     appearance: none;
     cursor: pointer;
-    box-shadow: inset 2px 2px 6px rgba(0,0,0,0.4), inset -2px -2px 6px rgba(40,50,70,0.2);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239aa0a6' stroke-width='2'%3E%3Cpolyline points='6,9 12,15 18,9'%3E%3C/polyline%3E%3C/svg%3E");
+    box-shadow: inset 2px 2px 6px var(--shadow-dark), inset -2px -2px 6px var(--shadow-light);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2'%3E%3Cpolyline points='6,9 12,15 18,9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
     padding-right: 36px;
 }
 
 .neu-select option {
-    background: var(--primary) !important;
+    background: var(--bg) !important;
     color: var(--text) !important;
 }
 
@@ -392,22 +371,22 @@ textarea.neu-input {
     width: 20px;
     height: 20px;
     border-radius: 5px;
-    background: var(--primary) !important;
-    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(40,50,70,0.2), 2px 2px 4px var(--shadow-dark), -2px -2px 4px var(--shadow-light);
+    background: var(--bg) !important;
+    box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light), 2px 2px 4px var(--shadow-dark), -2px -2px 4px var(--shadow-light);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .neu-checkbox input:checked + .neu-checkmark {
-    background: var(--secondary) !important;
+    background: var(--accent) !important;
 }
 
 .neu-checkmark::after {
     content: '';
     width: 5px;
     height: 9px;
-    border: solid var(--primary);
+    border: solid var(--bg);
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
     opacity: 0;
@@ -422,8 +401,8 @@ textarea.neu-input {
     align-items: center;
     padding: 20px;
     border-radius: 10px;
-    background: var(--primary) !important;
-    box-shadow: inset 2px 2px 6px rgba(0,0,0,0.4), inset -2px -2px 6px rgba(40,50,70,0.2);
+    background: var(--bg) !important;
+    box-shadow: inset 2px 2px 6px var(--shadow-dark), inset -2px -2px 6px var(--shadow-light);
     cursor: pointer;
 }
 
@@ -447,7 +426,7 @@ textarea.neu-input {
 }
 
 .file-upload-hint {
-    color: var(--text-muted) !important;
+    color: var(--text-dim) !important;
     font-size: 0.7rem;
     margin-top: 3px;
 }
@@ -457,17 +436,17 @@ textarea.neu-input {
    =============================== */
 
 .neu-card {
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
     border-radius: 14px;
     padding: 14px;
     box-shadow: 4px 4px 12px var(--shadow-dark), -4px -4px 12px var(--shadow-light);
 }
 
 .neu-card-inset {
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
     border-radius: 10px;
     padding: 10px;
-    box-shadow: inset 2px 2px 6px rgba(0,0,0,0.3), inset -2px -2px 6px rgba(40,50,70,0.15);
+    box-shadow: inset 2px 2px 6px var(--shadow-dark), inset -2px -2px 6px var(--shadow-light);
     color: var(--text) !important;
 }
 
@@ -477,14 +456,14 @@ textarea.neu-input {
 
 .product-detail {
     padding: 16px;
-    background: var(--primary) !important;
+    background: var(--bg) !important;
 }
 
 .product-detail-image {
     width: 100%;
     max-width: 420px;
     aspect-ratio: 1 / 1;
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
     border-radius: 14px;
     overflow: hidden;
     margin: 0 auto 16px;
@@ -496,7 +475,7 @@ textarea.neu-input {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
 }
 
 .product-detail-title {
@@ -507,7 +486,7 @@ textarea.neu-input {
 }
 
 .product-detail-category {
-    color: var(--text-muted) !important;
+    color: var(--text-dim) !important;
     font-size: 0.8rem;
     margin-bottom: 10px;
 }
@@ -528,7 +507,7 @@ textarea.neu-input {
 }
 
 .product-detail-price.free {
-    color: var(--secondary) !important;
+    color: var(--accent) !important;
 }
 
 .product-detail-price.paid {
@@ -546,7 +525,7 @@ textarea.neu-input {
    =============================== */
 
 .product-stats-box {
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
     color: var(--text) !important;
 }
 
@@ -560,7 +539,7 @@ textarea.neu-input {
 }
 
 .stats-number.secondary {
-    color: var(--secondary) !important;
+    color: var(--accent) !important;
 }
 
 .stats-label {
@@ -580,7 +559,7 @@ textarea.neu-input {
     margin-bottom: 14px;
     border: none;
     border-radius: 8px;
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
     color: var(--text-dim) !important;
     font-size: 0.8rem;
     text-decoration: none;
@@ -615,7 +594,7 @@ textarea.neu-input {
 }
 
 .stat-card {
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
     border-radius: 10px;
     padding: 12px;
     text-align: center;
@@ -625,12 +604,12 @@ textarea.neu-input {
 .stat-value {
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--secondary) !important;
+    color: var(--accent) !important;
 }
 
 .stat-label {
     font-size: 0.65rem;
-    color: var(--text-muted) !important;
+    color: var(--text-dim) !important;
     text-transform: uppercase;
 }
 
@@ -645,7 +624,7 @@ textarea.neu-input {
     align-items: center;
     gap: 10px;
     padding: 8px;
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
     border-radius: 10px;
     box-shadow: 3px 3px 8px var(--shadow-dark), -3px -3px 8px var(--shadow-light);
 }
@@ -654,7 +633,7 @@ textarea.neu-input {
     width: 44px;
     height: 44px;
     border-radius: 8px;
-    background: var(--primary) !important;
+    background: var(--bg) !important;
     overflow: hidden;
     flex-shrink: 0;
 }
@@ -682,7 +661,7 @@ textarea.neu-input {
 
 .admin-product-meta {
     font-size: 0.7rem;
-    color: var(--text-muted) !important;
+    color: var(--text-dim) !important;
 }
 
 .admin-product-actions {
@@ -696,7 +675,7 @@ textarea.neu-input {
     border-radius: 6px;
     font-size: 0.7rem;
     cursor: pointer;
-    background: var(--primary) !important;
+    background: var(--bg) !important;
     color: var(--text-dim) !important;
     box-shadow: 2px 2px 4px var(--shadow-dark), -2px -2px 4px var(--shadow-light);
 }
@@ -740,7 +719,7 @@ textarea.neu-input {
     transform: translateX(-50%);
     padding: 10px 16px;
     border-radius: 8px;
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
     color: var(--text) !important;
     font-size: 0.8rem;
     box-shadow: 4px 4px 12px var(--shadow-dark), -4px -4px 12px var(--shadow-light);
@@ -749,7 +728,7 @@ textarea.neu-input {
 }
 
 .toast.success {
-    border-left: 3px solid var(--secondary);
+    border-left: 3px solid var(--accent);
 }
 
 .toast.error {
@@ -768,7 +747,7 @@ textarea.neu-input {
 .empty-state {
     text-align: center;
     padding: 40px 16px;
-    color: var(--text-muted) !important;
+    color: var(--text-dim) !important;
 }
 
 .empty-state-icon {
@@ -811,7 +790,7 @@ video::-webkit-media-controls { display: none !important }
 section,
 .neu-card,
 div.neu-card {
-    background: var(--primary-light) !important;
+    background: var(--surface) !important;
     color: var(--text) !important;
 }
 

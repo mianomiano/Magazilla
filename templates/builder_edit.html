@@ -22,7 +22,7 @@
 
 <!-- Common fields -->
 <div class="neu-card" style="margin-bottom:16px">
-    <div style="font-size:0.75rem;font-weight:600;color:var(--td);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">
+    <div style="font-size:0.75rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">
         {{block_type_labels.get(block.block_type, block.block_type)}}
     </div>
 
@@ -39,27 +39,27 @@
 
 {%if block.block_type == 'product_grid'%}
 <div class="neu-card" style="margin-bottom:16px">
-    <p style="font-size:0.8rem;color:var(--tm);margin-bottom:14px;line-height:1.5">
+    <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:14px;line-height:1.5">
         Choose which products to feature in this grid (minimum 3 recommended).
     </p>
     {%if products%}
     <div style="display:flex;flex-direction:column;gap:8px">
     {%for p in products%}
-    <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--pl);border-radius:10px;cursor:pointer">
+    <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface);border-radius:10px;cursor:pointer">
         <input type="checkbox" name="product_ids" value="{{p.id}}"
             {{'checked' if p.id in (cfg.get('product_ids') or []) else ''}}>
-        <div style="min-width:36px;height:36px;border-radius:8px;overflow:hidden;background:var(--p);display:flex;align-items:center;justify-content:center;font-size:1.2rem">
+        <div style="min-width:36px;height:36px;border-radius:8px;overflow:hidden;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:1.2rem">
             {%if p.thumbnail%}<img src="{{r2_url(p.thumbnail)}}" style="width:100%;height:100%;object-fit:cover">{%else%}🎨{%endif%}
         </div>
         <div style="flex:1;min-width:0">
-            <div style="font-size:0.85rem;font-weight:600;color:var(--td);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{p.name}}</div>
-            <div style="font-size:0.7rem;color:var(--tm)">{{p.category}} · {{'Free' if p.is_free else '⭐'+p.price|string}}</div>
+            <div style="font-size:0.85rem;font-weight:600;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{p.name}}</div>
+            <div style="font-size:0.7rem;color:var(--text-dim)">{{p.category}} · {{'Free' if p.is_free else '⭐'+p.price|string}}</div>
         </div>
     </label>
     {%endfor%}
     </div>
     {%else%}
-    <p style="color:var(--tm);font-size:0.85rem">No products yet — add some first.</p>
+    <p style="color:var(--text-dim);font-size:0.85rem">No products yet — add some first.</p>
     {%endif%}
 </div>
 
@@ -80,21 +80,21 @@
 
 {%elif block.block_type == 'blog_posts'%}
 <div class="neu-card" style="margin-bottom:16px">
-    <p style="font-size:0.8rem;color:var(--tm);margin-bottom:14px;line-height:1.5">
+    <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:14px;line-height:1.5">
         Choose which posts to feature. Leave all unchecked to show the most recent posts automatically.
     </p>
     {%if blog_posts%}
     <div style="display:flex;flex-direction:column;gap:8px">
     {%for p in blog_posts%}
-    <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--pl);border-radius:10px;cursor:pointer">
+    <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface);border-radius:10px;cursor:pointer">
         <input type="checkbox" name="post_ids" value="{{p.id}}"
             {{'checked' if p.id in (cfg.get('post_ids') or []) else ''}}>
         <div style="flex:1;min-width:0">
-            <div style="font-size:0.85rem;font-weight:600;color:var(--td);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            <div style="font-size:0.85rem;font-weight:600;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                 {{p.title}}
                 {%if not p.is_published%}<span style="font-size:0.65rem;color:#e53935;margin-left:6px">DRAFT</span>{%endif%}
             </div>
-            <div style="font-size:0.7rem;color:var(--tm)">
+            <div style="font-size:0.7rem;color:var(--text-dim)">
                 {{p.category or 'No category'}} ·
                 {{'16:9 Banner' if p.post_type == 'banner_169' else '24:5 Banner'}} ·
                 {{p.created_at.strftime('%d %b %Y') if p.created_at else ''}}
@@ -104,7 +104,7 @@
     {%endfor%}
     </div>
     {%else%}
-    <p style="color:var(--tm);font-size:0.85rem">No blog posts yet — create some first.</p>
+    <p style="color:var(--text-dim);font-size:0.85rem">No blog posts yet — create some first.</p>
     {%endif%}
     <div class="neu-input-group" style="margin-top:14px">
         <label>Max posts shown when none selected above</label>
@@ -136,7 +136,7 @@
 <div class="neu-card" style="margin-bottom:16px">
     {%if cfg.get('image')%}
     <div style="margin-bottom:12px">
-        <p style="font-size:0.8rem;color:var(--td);margin-bottom:6px">Current image:</p>
+        <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:6px">Current image:</p>
         <img src="{{r2_url(cfg['image'])}}" style="max-width:100%;max-height:160px;border-radius:10px;object-fit:contain">
     </div>
     {%endif%}
@@ -190,11 +190,11 @@
     </div>
     <div style="display:flex;gap:10px;margin-bottom:14px">
         <div style="flex:1">
-            <label style="font-size:0.8rem;font-weight:600;color:var(--td);display:block;margin-bottom:6px">Background</label>
+            <label style="font-size:0.8rem;font-weight:600;color:var(--text-dim);display:block;margin-bottom:6px">Background</label>
             <input type="color" name="btn_bg_color" id="btn_bg_color" value="{{cfg.get('bg_color','#000000')}}" style="width:100%;height:38px;border:none;border-radius:8px;cursor:pointer">
         </div>
         <div style="flex:1">
-            <label style="font-size:0.8rem;font-weight:600;color:var(--td);display:block;margin-bottom:6px">Text Color</label>
+            <label style="font-size:0.8rem;font-weight:600;color:var(--text-dim);display:block;margin-bottom:6px">Text Color</label>
             <input type="color" name="btn_text_color" id="btn_text_color" value="{{cfg.get('text_color','#ffffff')}}" style="width:100%;height:38px;border:none;border-radius:8px;cursor:pointer">
         </div>
     </div>
@@ -202,9 +202,9 @@
         <label>Link URL</label>
         <input type="text" name="btn_custom_link" id="btn_link_input" class="neu-input" value="{{cfg.get('link','')}}" placeholder="e.g. /products or https://...">
         <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
-            <span style="font-size:0.72rem;color:var(--td);align-self:center">Quick:</span>
+            <span style="font-size:0.72rem;color:var(--text-dim);align-self:center">Quick:</span>
             {%for pg_url, pg_label in [('/', '🏠 Home'),('/products','🛒 Products'),('/blog','📝 Blog')]%}
-            <button type="button" onclick="document.getElementById('btn_link_input').value='{{pg_url}}'" style="padding:3px 10px;font-size:0.72rem;border-radius:6px;background:var(--pl);border:1px solid var(--cb);color:var(--td);cursor:pointer">{{pg_label}}</button>
+            <button type="button" onclick="document.getElementById('btn_link_input').value='{{pg_url}}'" style="padding:3px 10px;font-size:0.72rem;border-radius:6px;background:var(--surface);border:1px solid rgba(0,0,0,0.12);color:var(--text-dim);cursor:pointer">{{pg_label}}</button>
             {%endfor%}
         </div>
     </div>
@@ -215,7 +215,7 @@
             <option value="external" {{'selected' if cfg.get('link_type')=='external' else ''}}>New window / tab</option>
         </select>
     </div>
-    <div id="btn_preview" style="margin-top:12px;padding:10px;background:var(--pl);border-radius:10px;text-align:center">
+    <div id="btn_preview" style="margin-top:12px;padding:10px;background:var(--surface);border-radius:10px;text-align:center">
         <span id="btn_preview_el" style="display:inline-block;padding:10px 24px;background:{{cfg.get('bg_color','#000')}};color:{{cfg.get('text_color','#fff')}};border-radius:8px;font-size:0.9rem;font-weight:700">{{cfg.get('text','Button text')}}</span>
     </div>
 </div>

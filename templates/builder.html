@@ -17,14 +17,14 @@
     <a href="{{url_for('admin_bp.dashboard')}}" class="neu-btn">← Back</a>
 </div>
 
-<p style="color:var(--td);font-size:0.85rem;margin-bottom:16px">
+<p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:16px">
     Add, reorder, and configure blocks that appear on your public store page.
     When no blocks are added, the default product grid is shown.
 </p>
 
 <!-- Add Block -->
 <div class="neu-card" style="margin-bottom:20px">
-    <h3 style="font-size:0.9rem;margin-bottom:12px;color:var(--td)">➕ Add Block</h3>
+    <h3 style="font-size:0.9rem;margin-bottom:12px;color:var(--text-dim)">➕ Add Block</h3>
     <form method="POST" action="{{url_for('admin_bp.builder_add')}}">
         <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -48,7 +48,7 @@
         <div style="font-weight:600;font-size:0.9rem;margin-bottom:2px">
             {{block_type_labels.get(block.block_type, block.block_type)}}
         </div>
-        <div style="font-size:0.78rem;color:var(--td);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">
+        <div style="font-size:0.78rem;color:var(--text-dim);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">
             {{block.title or '—'}}
             {%if not block.is_visible%}<span style="color:#ff4757"> · hidden</span>{%endif%}
         </div>
@@ -79,7 +79,7 @@
 <style>
 .block-item { transition: opacity 0.2s; }
 .drag-handle:active { cursor: grabbing; }
-.drag-over { outline: 2px dashed var(--s); border-radius: 12px; }
+.drag-over { outline: 2px dashed var(--accent); border-radius: 12px; }
 </style>
 
 <script>

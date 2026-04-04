@@ -5,10 +5,10 @@
 
 {# ── Search + Title ── #}
 <div style="margin-bottom:14px">
-<h2 style="font-size:1rem;font-weight:700;color:var(--td);margin-bottom:12px">🛍 All Products</h2>
+<h2 style="font-size:1rem;font-weight:700;color:var(--text-dim);margin-bottom:12px">🛍 All Products</h2>
 <div style="position:relative">
 <input id="search-input" type="search" placeholder="Search products…" value="{{q}}"
-    style="width:100%;padding:10px 36px 10px 14px;border-radius:12px;border:none;background:var(--pl);color:var(--td);font-size:0.9rem;box-shadow:inset 2px 2px 6px var(--sd),inset -2px -2px 6px var(--sl);outline:none"
+    style="width:100%;padding:10px 36px 10px 14px;border-radius:12px;border:none;background:var(--surface);color:var(--text-dim);font-size:0.9rem;box-shadow:inset 2px 2px 6px var(--shadow-dark),inset -2px -2px 6px var(--shadow-light);outline:none"
     oninput="filterProducts()">
 <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);opacity:0.5;pointer-events:none">🔍</span>
 </div>
@@ -36,7 +36,7 @@
 {# ── Featured First Product ── #}
 {%set fp = products[0]%}
 <div id="featured-card" class="neu-card" style="margin-bottom:18px;display:flex;gap:14px;align-items:stretch;padding:0;overflow:hidden;cursor:pointer" onclick="window.location='/product/{{fp.id}}'">
-<div style="width:42%;min-height:140px;background:var(--pl);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
+<div style="width:42%;min-height:140px;background:var(--surface);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
 {%if fp.thumbnail%}
 {%set fthumb=r2_url(fp.thumbnail)%}
 {%if fp.thumbnail.endswith('.webm')%}
@@ -51,16 +51,16 @@
 <div style="flex:1;padding:14px 14px 14px 0;display:flex;flex-direction:column;justify-content:space-between;min-width:0">
 <div>
 <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
-{%if fp.category%}<span style="font-size:0.65rem;color:var(--a);border:1px solid var(--a);border-radius:10px;padding:1px 7px">{{fp.category}}</span>{%endif%}
+{%if fp.category%}<span style="font-size:0.65rem;color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:1px 7px">{{fp.category}}</span>{%endif%}
 </div>
-<h3 style="font-size:0.95rem;font-weight:700;color:var(--a);margin:0 0 5px;line-height:1.2">{{fp.name}}</h3>
+<h3 style="font-size:0.95rem;font-weight:700;color:var(--accent);margin:0 0 5px;line-height:1.2">{{fp.name}}</h3>
 {%if fp.description%}
-<p style="font-size:0.75rem;color:var(--tm);line-height:1.4;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">{{fp.description.split('-')[0].strip()}}</p>
+<p style="font-size:0.75rem;color:var(--text-dim);line-height:1.4;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">{{fp.description.split('-')[0].strip()}}</p>
 {%endif%}
 </div>
 <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
-<span style="font-size:0.85rem;font-weight:700;color:var(--td)">{%if fp.is_free%}Free{%else%}⭐ {{fp.price}}{%endif%}</span>
-<span style="font-size:0.7rem;background:var(--s);color:var(--text-on-secondary);padding:3px 10px;border-radius:8px">View →</span>
+<span style="font-size:0.85rem;font-weight:700;color:var(--text-dim)">{%if fp.is_free%}Free{%else%}⭐ {{fp.price}}{%endif%}</span>
+<span style="font-size:0.7rem;background:var(--accent);color:#ffffff;padding:3px 10px;border-radius:8px">View →</span>
 </div>
 </div>
 </div>
@@ -69,9 +69,11 @@
 <div id="products-list">
 {%if products | length > 1%}
 <div class="products-grid" id="products-grid">
+{%set _ratio_map={'portrait':'4/5','landscape':'2/1','square':'1/1'}%}
 {%for p in products[1:]%}
+{%set _ar=_ratio_map.get(p.img_ratio or 'square','1/1')%}
 <div class="product-card" data-name="{{p.name | lower}}" data-category="{{p.category}}" data-free="{{'true' if p.is_free else 'false'}}" onclick="viewProduct({{p.id}})">
-<div class="product-thumbnail">
+<div class="product-thumbnail" style="aspect-ratio:{{_ar}}">
 {%if p.thumbnail%}
 {%set thumb_url=r2_url(p.thumbnail)%}
 {%if p.thumbnail.endswith('.webm')%}
@@ -167,20 +169,20 @@ window.addEventListener('DOMContentLoaded', function() {
 
 <style>
 .filter-btn {
-    background: var(--pl);
+    background: var(--surface);
     border: none;
     border-radius: 20px;
     padding: 5px 12px;
     font-size: 0.75rem;
-    color: var(--tm);
+    color: var(--text-dim);
     cursor: pointer;
-    box-shadow: 3px 3px 8px var(--sd), -3px -3px 8px var(--sl);
+    box-shadow: 3px 3px 8px var(--shadow-dark), -3px -3px 8px var(--shadow-light);
     transition: all 0.15s;
     font-family: inherit;
     white-space: nowrap;
 }
 .filter-btn.active {
-    background: var(--a);
+    background: var(--accent);
     color: #fff;
     box-shadow: none;
 }

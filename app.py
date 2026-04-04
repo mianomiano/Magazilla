@@ -147,6 +147,8 @@ def migrate_database():
          "product.bubble_pos"),
         ("ALTER TABLE product ADD COLUMN IF NOT EXISTS bubble_color VARCHAR(20) DEFAULT 'accent'",
          "product.bubble_color"),
+        ("ALTER TABLE product ADD COLUMN IF NOT EXISTS img_ratio VARCHAR(10) DEFAULT 'square'",
+         "product.img_ratio"),
         ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS label_color VARCHAR(20) DEFAULT 'accent'",
          "blog_post.label_color"),
 
@@ -171,6 +173,10 @@ def migrate_database():
          "blog_post.subtitle"),
         ("ALTER TABLE blog_post ADD COLUMN IF NOT EXISTS category VARCHAR(100) DEFAULT ''",
          "blog_post.category"),
+
+        # gradient background (Task #2)
+        ("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS primary_color_2 VARCHAR(20) DEFAULT NULL",
+         "app_settings.primary_color_2"),
     ]
 
     try:

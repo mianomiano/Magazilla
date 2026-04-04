@@ -1,7 +1,8 @@
 {%extends 'base.html'%}
 {%block content%}
 {%set _lc={'red':('#ff0000','#fff'),'green':('#32ff00','#1a1a1a'),'purple':('#8f00ff','#fff'),'yellow':('#f3ff00','#1a1a1a'),'orange':('#ff6700','#fff'),'black':('#1a1a1a','#fff'),'white':('#ffffff','#1a1a1a')}%}
-{%macro render_bubble(p)%}{%if p.bubble_text%}{%set _bbg=_lc[p.bubble_color][0] if p.bubble_color and p.bubble_color in _lc else 'var(--a)'%}{%set _btx=_lc[p.bubble_color][1] if p.bubble_color and p.bubble_color in _lc else '#fff'%}{%set _bpos={'tl':'top:8px;left:8px','tr':'top:8px;right:8px','bl':'bottom:8px;left:8px','br':'bottom:8px;right:8px'}.get(p.bubble_pos or 'tr','top:8px;right:8px')%}{%set _brad='2px' if p.bubble_shape=='rect' else '8px'%}<span style="position:absolute;{{_bpos}};z-index:3;background:{{_bbg}};color:{{_btx}};font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;padding:3px 7px;border-radius:{{_brad}};line-height:1.3;white-space:nowrap;max-width:70%;overflow:hidden;text-overflow:ellipsis">{{p.bubble_text}}</span>{%endif%}{%endmacro%}
+{%set _ratio_map={'portrait':'4/5','landscape':'2/1','square':'1/1'}%}
+{%macro render_bubble(p)%}{%if p.bubble_text%}{%set _bbg=_lc[p.bubble_color][0] if p.bubble_color and p.bubble_color in _lc else 'var(--accent)'%}{%set _btx=_lc[p.bubble_color][1] if p.bubble_color and p.bubble_color in _lc else '#fff'%}{%set _bpos={'tl':'top:8px;left:8px','tr':'top:8px;right:8px','bl':'bottom:8px;left:8px','br':'bottom:8px;right:8px'}.get(p.bubble_pos or 'tr','top:8px;right:8px')%}{%set _brad='2px' if p.bubble_shape=='rect' else '8px'%}<span style="position:absolute;{{_bpos}};z-index:3;background:{{_bbg}};color:{{_btx}};font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;padding:3px 7px;border-radius:{{_brad}};line-height:1.3;white-space:nowrap;max-width:70%;overflow:hidden;text-overflow:ellipsis">{{p.bubble_text}}</span>{%endif%}{%endmacro%}
 {%if settings.logo_path or settings.app_name%}
 <header class="header">
 <div class="header-inner">
@@ -49,8 +50,9 @@
 {%if grid_products%}
 <div class="products-grid">
 {%for p in grid_products%}
+{%set _ar=_ratio_map.get(p.img_ratio or 'square','1/1')%}
 <div class="product-card" data-category="{{p.category}}" data-free="{{'true' if p.is_free else 'false'}}" onclick="viewProduct({{p.id}})">
-<div class="product-thumbnail">
+<div class="product-thumbnail" style="aspect-ratio:{{_ar}}">
 {%if p.thumbnail%}
 {%set thumb_url=r2_url(p.thumbnail)%}
 {%if p.thumbnail.endswith('.webm')%}
@@ -83,8 +85,9 @@
 {%set fp = all_products.get(cfg.get('product_id'))%}
 {%if fp%}
 {%set tu = r2_url(fp.thumbnail) if fp.thumbnail else ''%}
+{%set _fp_ar = {'portrait':'4/5','landscape':'2/1','square':'1/1'}.get(fp.img_ratio or 'square','1/1')%}
 <div class="content" style="margin-bottom:0">
-<div class="post-banner-wrap" style="width:100%;aspect-ratio:16/9;border-radius:var(--card-radius,14px);overflow:hidden;position:relative;background:var(--pl);cursor:pointer" onclick="viewProduct({{fp.id}})">
+<div class="post-banner-wrap" style="width:100%;aspect-ratio:{{_fp_ar}};border-radius:var(--card-radius,14px);overflow:hidden;position:relative;background:var(--surface);cursor:pointer" onclick="viewProduct({{fp.id}})">
   {%if fp.thumbnail%}
     {%if fp.thumbnail.endswith('.webm')%}
     <video autoplay loop muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><source src="{{tu}}" type="video/webm"></video>
@@ -98,7 +101,7 @@
   <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.72) 0%,rgba(0,0,0,0.4) 50%,rgba(0,0,0,0) 100%);z-index:1"></div>
   <div style="position:absolute;bottom:0;left:0;right:0;padding:clamp(12px,3vw,28px) clamp(14px,3vw,30px);z-index:2">
     {%if fp.category%}
-    {%set _fbg=_lc[fp.label_color][0] if fp.label_color and fp.label_color in _lc else 'var(--a)'%}{%set _ftx=_lc[fp.label_color][1] if fp.label_color and fp.label_color in _lc else '#fff'%}
+    {%set _fbg=_lc[fp.label_color][0] if fp.label_color and fp.label_color in _lc else 'var(--accent)'%}{%set _ftx=_lc[fp.label_color][1] if fp.label_color and fp.label_color in _lc else '#fff'%}
     <span style="display:inline-block;font-size:clamp(0.52rem,1.1vw,0.68rem);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;background:{{_fbg}};color:{{_ftx}};border-radius:20px;padding:2px 10px;margin-bottom:clamp(5px,1vw,10px)">{{fp.category}}</span>
     {%endif%}
     <h2 style="font-weight:900;font-size:clamp(1rem,3.5vw,2.2rem);color:#fff;margin:0 0 clamp(6px,1.5vw,14px);line-height:1.15;text-shadow:0 2px 12px rgba(0,0,0,0.7)">{{fp.name}}</h2>
@@ -136,7 +139,7 @@
 
 {%if pt == 'banner_245'%}
 {# ── 24:5 banner ── #}
-<div class="post-banner-wrap" style="width:100%;aspect-ratio:24/5;border-radius:var(--card-radius,14px);overflow:hidden;position:relative;background:var(--pl)">
+<div class="post-banner-wrap" style="width:100%;aspect-ratio:24/5;border-radius:var(--card-radius,14px);overflow:hidden;position:relative;background:var(--surface)">
   {%if post.cover_image%}
     {%if post.cover_image.endswith('.webm') or post.cover_image.endswith('.mp4')%}
     <video autoplay loop muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><source src="{{cover_url}}"></video>
@@ -149,7 +152,7 @@
   <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.72) 0%,rgba(0,0,0,0.45) 45%,rgba(0,0,0,0) 100%);z-index:1"></div>
   <div style="position:absolute;bottom:0;left:0;right:0;padding:clamp(8px,1.5vw,16px) clamp(14px,2.5vw,24px);display:flex;align-items:flex-end;gap:10px;z-index:2">
     {%if post.category%}
-    {%set _pbg245=_lc[post.label_color][0] if post.label_color and post.label_color in _lc else 'var(--a)'%}{%set _ptx245=_lc[post.label_color][1] if post.label_color and post.label_color in _lc else '#fff'%}
+    {%set _pbg245=_lc[post.label_color][0] if post.label_color and post.label_color in _lc else 'var(--accent)'%}{%set _ptx245=_lc[post.label_color][1] if post.label_color and post.label_color in _lc else '#fff'%}
     <span style="flex-shrink:0;font-size:clamp(0.5rem,1vw,0.65rem);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;background:{{_pbg245}};color:{{_ptx245}};border-radius:20px;padding:2px 8px;margin-bottom:2px">{{post.category}}</span>
     {%endif%}
     <div style="font-weight:900;font-size:clamp(0.85rem,2.5vw,1.6rem);color:#fff;line-height:1.2;text-transform:uppercase;letter-spacing:0.01em;text-shadow:0 2px 8px rgba(0,0,0,0.7)">{{post.title}}</div>
@@ -157,7 +160,7 @@
 </div>
 {%else%}
 {# ── 16:9 banner (default) ── #}
-<div class="post-banner-wrap" style="width:100%;aspect-ratio:16/9;border-radius:var(--card-radius,14px);overflow:hidden;position:relative;background:var(--pl)">
+<div class="post-banner-wrap" style="width:100%;aspect-ratio:16/9;border-radius:var(--card-radius,14px);overflow:hidden;position:relative;background:var(--surface)">
   {%if post.cover_image%}
     {%if post.cover_image.endswith('.webm') or post.cover_image.endswith('.mp4')%}
     <video autoplay loop muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><source src="{{cover_url}}"></video>
@@ -170,12 +173,12 @@
   <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.72) 0%,rgba(0,0,0,0.45) 45%,rgba(0,0,0,0) 100%);z-index:1"></div>
   <div style="position:absolute;bottom:0;left:0;right:0;padding:clamp(12px,2.5vw,26px) clamp(14px,2.5vw,28px);z-index:2">
     {%if post.category%}
-    {%set _pbg169=_lc[post.label_color][0] if post.label_color and post.label_color in _lc else 'var(--a)'%}{%set _ptx169=_lc[post.label_color][1] if post.label_color and post.label_color in _lc else '#fff'%}
+    {%set _pbg169=_lc[post.label_color][0] if post.label_color and post.label_color in _lc else 'var(--accent)'%}{%set _ptx169=_lc[post.label_color][1] if post.label_color and post.label_color in _lc else '#fff'%}
     <span style="display:inline-block;font-size:clamp(0.52rem,1.1vw,0.68rem);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;background:{{_pbg169}};color:{{_ptx169}};border-radius:20px;padding:2px 10px;margin-bottom:clamp(5px,1vw,10px)">{{post.category}}</span>
     {%endif%}
     <div style="font-weight:900;font-size:clamp(0.95rem,3vw,1.9rem);color:#fff;line-height:1.15;text-transform:uppercase;letter-spacing:0.01em;text-shadow:0 2px 10px rgba(0,0,0,0.7);margin-bottom:{{'clamp(4px,0.8vw,8px)' if post.subtitle else '0'}}">{{post.title}}</div>
     {%if post.subtitle%}
-    <div style="font-size:clamp(0.75rem,2vw,1.3rem);font-weight:600;color:var(--a);line-height:1.3;text-shadow:0 1px 4px rgba(0,0,0,0.5)">{{post.subtitle}}</div>
+    <div style="font-size:clamp(0.75rem,2vw,1.3rem);font-weight:600;color:var(--accent);line-height:1.3;text-shadow:0 1px 4px rgba(0,0,0,0.5)">{{post.subtitle}}</div>
     {%endif%}
   </div>
 </div>
@@ -195,7 +198,7 @@
 <div style="font-size:2rem;margin-bottom:8px">💜</div>
 <h3 style="font-weight:800;font-size:1.1rem;margin-bottom:8px">{{cfg.get('title', 'Support Us')}}</h3>
 {%if cfg.get('description')%}
-<p style="color:var(--td);font-size:0.88rem;margin-bottom:18px;line-height:1.5">{{cfg.get('description')}}</p>
+<p style="color:var(--text-dim);font-size:0.88rem;margin-bottom:18px;line-height:1.5">{{cfg.get('description')}}</p>
 {%endif%}
 <button class="neu-btn neu-btn-primary" style="width:100%;max-width:280px" onclick="handleDonation({{cfg.get('amount')|int if cfg.get('amount') else 50}}, this)">
 {{cfg.get('button_text', 'Donate ⭐')}}
@@ -228,11 +231,11 @@
 {%set cfg = block.get_config()%}
 <div class="content" style="margin-bottom:0;padding:4px 0">
 {%if cfg.get('style') == 'dots'%}
-<div style="text-align:center;color:var(--td);font-size:1.2rem;letter-spacing:8px">· · ·</div>
+<div style="text-align:center;color:var(--text-dim);font-size:1.2rem;letter-spacing:8px">· · ·</div>
 {%elif cfg.get('style') == 'space'%}
 <div style="height:24px"></div>
 {%else%}
-<hr style="border:none;border-top:1px solid var(--cb);margin:8px 0">
+<hr style="border:none;border-top:1px solid rgba(0,0,0,0.12);margin:8px 0">
 {%endif%}
 </div>
 
@@ -245,7 +248,7 @@
 <h3 style="font-weight:700;font-size:1rem;margin-bottom:10px">{{cfg.get('heading')}}</h3>
 {%endif%}
 {%if cfg.get('body')%}
-<div style="color:var(--td);font-size:0.9rem;line-height:1.65">{{cfg.get('body')|safe}}</div>
+<div style="color:var(--text-dim);font-size:0.9rem;line-height:1.65">{{cfg.get('body')|safe}}</div>
 {%endif%}
 </div>
 </div>
@@ -279,8 +282,9 @@
 {%if products%}
 <div class="products-grid">
 {%for p in products%}
+{%set _ar=_ratio_map.get(p.img_ratio or 'square','1/1')%}
 <div class="product-card" data-category="{{p.category}}" data-free="{{'true' if p.is_free else 'false'}}" onclick="viewProduct({{p.id}})">
-<div class="product-thumbnail">
+<div class="product-thumbnail" style="aspect-ratio:{{_ar}}">
 {%if p.thumbnail%}
 {%set thumb_url=r2_url(p.thumbnail)%}
 {%if p.thumbnail.endswith('.webm')%}
@@ -347,7 +351,7 @@ function cslide(postId, idx, e) {
     slides.style.transform = 'translateX(-' + (idx * 100) + '%)';
     for (var i = 0; i < total; i++) {
         var dot = document.getElementById('cdot-' + postId + '-' + i);
-        if (dot) dot.style.background = i === idx ? 'var(--a)' : 'rgba(255,255,255,0.4)';
+        if (dot) dot.style.background = i === idx ? 'var(--accent)' : 'rgba(255,255,255,0.4)';
     }
 }
 

@@ -3,8 +3,9 @@
 <div class="content">
 <a href="{{url_for('public_bp.index')}}" class="back-btn">← Back</a>
 
+{%set _detail_ar = {'portrait':'4/5','landscape':'2/1','square':'1/1'}.get(product.img_ratio or 'square','1/1')%}
 <div class="product-detail">
-<div class="product-detail-image">
+<div class="product-detail-image" style="aspect-ratio:{{_detail_ar}}">
 {%if product.thumbnail%}
 {%set thumb_url=r2_url(product.thumbnail)%}
 {%if product.thumbnail.endswith('.webm')%}
@@ -15,7 +16,7 @@
 <img src="{{thumb_url}}" alt="{{product.name}}">
 {%endif%}
 {%else%}
-<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem;color:var(--text-muted)">🎨</div>
+<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem;color:var(--text-dim)">🎨</div>
 {%endif%}
 </div>
 
@@ -48,7 +49,7 @@
 
 <div class="product-detail-actions" id="actions-container">
 {%if product.is_pwyw%}
-    <p style="font-size:0.84rem;color:var(--td);margin-bottom:12px;text-align:center">Support with any amount you choose, or get it free:</p>
+    <p style="font-size:0.84rem;color:var(--text-dim);margin-bottom:12px;text-align:center">Support with any amount you choose, or get it free:</p>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <input type="number" id="pwyw-amount" class="neu-input" min="1" max="9999" value="50" placeholder="Stars amount..." style="flex:1;text-align:center">
         <span style="font-size:1.3rem">⭐</span>
@@ -91,17 +92,17 @@
 {%set gallery = product.get_images()%}
 {%if gallery%}
 <div style="margin-top:24px">
-<div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px">🖼️ Gallery</div>
+<div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:10px">🖼️ Gallery</div>
 <div id="prod-gallery-track" style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none">
 {%for img_key in gallery%}
 {%set img_url=r2_url(img_key)%}
-<div style="flex:0 0 100%;width:100%;scroll-snap-align:start;border-radius:12px;overflow:hidden;background:var(--primary-light);flex-shrink:0">
+<div style="flex:0 0 100%;width:100%;scroll-snap-align:start;border-radius:12px;overflow:hidden;background:var(--surface);flex-shrink:0">
 {%if img_key.endswith('.webm') or img_key.endswith('.mp4')%}
-<video autoplay loop muted playsinline style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">
+<video autoplay loop muted playsinline style="width:100%;aspect-ratio:{{_detail_ar}};object-fit:cover;display:block">
 <source src="{{img_url}}" type="{{'video/webm' if img_key.endswith('.webm') else 'video/mp4'}}">
 </video>
 {%else%}
-<img src="{{img_url}}" alt="Product image {{loop.index}}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">
+<img src="{{img_url}}" alt="Product image {{loop.index}}" style="width:100%;aspect-ratio:{{_detail_ar}};object-fit:cover;display:block">
 {%endif%}
 </div>
 {%endfor%}
@@ -109,7 +110,7 @@
 {%if gallery|length > 1%}
 <div style="display:flex;justify-content:center;gap:6px;margin-top:8px" id="prod-gallery-dots">
 {%for img_key in gallery%}
-<div class="pgdot" data-idx="{{loop.index0}}" style="width:7px;height:7px;border-radius:50%;background:{{'var(--secondary)' if loop.first else 'var(--card-border)'}};cursor:pointer;transition:background 0.2s"></div>
+<div class="pgdot" data-idx="{{loop.index0}}" style="width:7px;height:7px;border-radius:50%;background:{{'var(--accent)' if loop.first else 'var(--card-border)'}};cursor:pointer;transition:background 0.2s"></div>
 {%endfor%}
 </div>
 {%endif%}
@@ -140,7 +141,7 @@
     function updateDots() {
         const idx = getIdx();
         dots.forEach((d,i) => {
-            d.style.background = i === idx ? 'var(--secondary)' : 'var(--card-border)';
+            d.style.background = i === idx ? 'var(--accent)' : 'var(--card-border)';
             d.style.transform = i === idx ? 'scale(1.4)' : 'scale(1)';
         });
     }

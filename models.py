@@ -17,6 +17,7 @@ class Product(db.Model):
     bubble_shape = db.Column(db.String(10), default='rounded')  # 'rect' or 'rounded'
     bubble_pos = db.Column(db.String(4), default='tr')  # 'tl','tr','bl','br'
     bubble_color = db.Column(db.String(20), default='accent')
+    img_ratio = db.Column(db.String(10), default='square')  # 'square' (1:1), 'portrait' (4:5), 'landscape' (2:1)
     thumbnail = db.Column(db.String(500))
     images = db.Column(db.Text, default='[]')          # JSON array of R2 keys
     file_path = db.Column(db.String(500))
@@ -68,11 +69,12 @@ class AppSettings(db.Model):
     logo_path = db.Column(db.String(500), default='')
     
     # Colors
-    primary_color = db.Column(db.String(20), default='#090c11')
-    secondary_color = db.Column(db.String(20), default='#afe81f')
-    accent_color = db.Column(db.String(20), default='#1534fe')
+    primary_color = db.Column(db.String(20), default='#e2e2e2')
+    secondary_color = db.Column(db.String(20), default='#5a6270')
+    accent_color = db.Column(db.String(20), default='#5a6270')
     text_color = db.Column(db.String(20), default='')
     card_color = db.Column(db.String(20), default='')
+    primary_color_2 = db.Column(db.String(20), nullable=True, default=None)
     
     # Appearance settings
     font_family = db.Column(db.String(50), default='inter')  # inter, balsamiq, grandstander, montserrat, russo

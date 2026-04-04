@@ -48,7 +48,7 @@
             {%endif%}
         </select>
         {%if not blog_categories%}
-        <div style="font-size:0.72rem;color:var(--tm);margin-top:4px">No blog categories set yet — add them in Settings → Blog Post Categories.</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-top:4px">No blog categories set yet — add them in Settings → Blog Post Categories.</div>
         {%endif%}
     </div>
 
@@ -60,11 +60,11 @@
     <div class="neu-input-group">
     <label>Category Label Color <span style="font-size:0.73rem;font-weight:normal;opacity:0.6">(color of the category tag on this post)</span></label>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px" id="blc_swatches">
-    {%for lname,lhex in [('accent','var(--a)'),('red','#ff0000'),('green','#32ff00'),('purple','#8f00ff'),('yellow','#f3ff00'),('orange','#ff6700'),('black','#1a1a1a'),('white','#f5f5f5')]%}
+    {%for lname,lhex in [('accent','var(--accent)'),('red','#ff0000'),('green','#32ff00'),('purple','#8f00ff'),('yellow','#f3ff00'),('orange','#ff6700'),('black','#1a1a1a'),('white','#f5f5f5')]%}
     <label title="{{lname}}" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
     <input type="radio" name="label_color" value="{{lname}}" {{'checked' if (post.label_color if post else 'accent')==lname else ''}} style="display:none" onchange="updateBlcUI()">
     <span style="display:block;width:28px;height:28px;border-radius:50%;background:{{lhex}};border:2px solid rgba(0,0,0,0.08);transition:box-shadow 0.15s" class="blc-dot"></span>
-    <span style="font-size:0.6rem;text-transform:capitalize;color:var(--td)">{{lname}}</span>
+    <span style="font-size:0.6rem;text-transform:capitalize;color:var(--text-dim)">{{lname}}</span>
     </label>
     {%endfor%}
     </div>
@@ -84,17 +84,17 @@
                 <div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
                         <strong>16:9 Banner</strong>
-                        <span style="font-size:0.68rem;background:var(--a);color:#fff;border-radius:20px;padding:2px 8px">1920 × 1080</span>
+                        <span style="font-size:0.68rem;background:var(--accent);color:#fff;border-radius:20px;padding:2px 8px">1920 × 1080</span>
                     </div>
                     <!-- preview shape -->
-                    <div style="width:100%;max-width:280px;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:var(--pl);position:relative">
+                    <div style="width:100%;max-width:280px;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:var(--surface);position:relative">
                         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.6) 40%,rgba(0,0,0,0) 100%)"></div>
                         <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 14px">
                             <div style="font-weight:800;font-size:0.85rem;color:#fff;line-height:1.2;margin-bottom:3px">TITLE BLOG POST</div>
-                            <div style="font-size:0.7rem;color:var(--a);font-weight:600">Subtitle in accent colour</div>
+                            <div style="font-size:0.7rem;color:var(--accent);font-weight:600">Subtitle in accent colour</div>
                         </div>
                     </div>
-                    <div style="font-size:0.72rem;color:var(--tm);margin-top:4px">Full image with gradient overlay — big title + subtitle</div>
+                    <div style="font-size:0.72rem;color:var(--text-dim);margin-top:4px">Full image with gradient overlay — big title + subtitle</div>
                 </div>
             </label>
 
@@ -105,16 +105,16 @@
                 <div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
                         <strong>24:5 Banner</strong>
-                        <span style="font-size:0.68rem;background:var(--pl);color:var(--td);border-radius:20px;padding:2px 8px;border:1px solid var(--pl)">1920 × 400</span>
+                        <span style="font-size:0.68rem;background:var(--surface);color:var(--text-dim);border-radius:20px;padding:2px 8px;border:1px solid var(--surface)">1920 × 400</span>
                     </div>
                     <!-- preview shape -->
-                    <div style="width:100%;max-width:280px;aspect-ratio:24/5;border-radius:14px;overflow:hidden;background:var(--pl);position:relative">
+                    <div style="width:100%;max-width:280px;aspect-ratio:24/5;border-radius:14px;overflow:hidden;background:var(--surface);position:relative">
                         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.6) 40%,rgba(0,0,0,0) 100%)"></div>
                         <div style="position:absolute;bottom:0;left:0;right:0;padding:8px 14px">
                             <div style="font-weight:800;font-size:0.8rem;color:#fff;line-height:1.2">TITLE BLOG POST 24:5 — SINGLE LINE</div>
                         </div>
                     </div>
-                    <div style="font-size:0.72rem;color:var(--tm);margin-top:4px">Wide banner — title only, no subtitle</div>
+                    <div style="font-size:0.72rem;color:var(--text-dim);margin-top:4px">Wide banner — title only, no subtitle</div>
                 </div>
             </label>
 
@@ -125,7 +125,7 @@
 <!-- Cover image -->
 <div class="neu-card" style="margin-bottom:14px">
     {%if post and post.cover_image%}
-    <p style="font-size:0.8rem;color:var(--td);margin-bottom:8px">Current cover:</p>
+    <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:8px">Current cover:</p>
     <img src="{{r2_url(post.cover_image)}}" style="max-width:100%;max-height:200px;border-radius:12px;object-fit:cover;margin-bottom:12px">
     {%endif%}
     <div class="neu-input-group">
@@ -143,7 +143,7 @@
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
         {%for img_key in post.get_images()%}
         {%set ig_url=r2_url(img_key)%}
-        <div style="width:70px;height:70px;border-radius:8px;overflow:hidden;background:var(--pl)">
+        <div style="width:70px;height:70px;border-radius:8px;overflow:hidden;background:var(--surface)">
         {%if img_key.endswith('.webm') or img_key.endswith('.mp4')%}
         <video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"><source src="{{ig_url}}"></video>
         {%else%}
@@ -152,7 +152,7 @@
         </div>
         {%endfor%}
         </div>
-        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;color:var(--td);margin-bottom:8px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;color:var(--text-dim);margin-bottom:8px">
             <input type="checkbox" name="clear_images" value="1"> Remove all existing gallery images
         </label>
         {%endif%}
@@ -189,7 +189,7 @@ function updateBlcUI() {
     document.querySelectorAll('#blc_swatches label').forEach(function(lbl) {
         var r = lbl.querySelector('input[type=radio]');
         var dot = lbl.querySelector('.blc-dot');
-        dot.style.boxShadow = r.checked ? '0 0 0 3px var(--a)' : '';
+        dot.style.boxShadow = r.checked ? '0 0 0 3px var(--accent)' : '';
     });
 }
 document.addEventListener('DOMContentLoaded', updateBlcUI);
@@ -209,7 +209,7 @@ function previewBlogGallery(input) {
     if (!input.files.length) return;
     Array.from(input.files).slice(0,10).forEach(f => {
         const wrap = document.createElement('div');
-        wrap.style.cssText = 'width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--pl)';
+        wrap.style.cssText = 'width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--surface)';
         if (f.type.startsWith('video/')) {
             const v = document.createElement('video');
             v.autoplay = v.loop = v.muted = v.playsInline = true;

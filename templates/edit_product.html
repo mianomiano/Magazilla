@@ -46,24 +46,24 @@
 <label>Bubble / Badge <span style="font-size:0.73rem;font-weight:normal;opacity:0.6">(optional overlay on thumbnail — max 15 chars)</span></label>
 <input type="text" name="bubble_text" class="neu-input" maxlength="15" value="{{product.bubble_text if product else ''}}" placeholder="e.g. NEW, HOT, -50%…" style="margin-bottom:10px">
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-<span style="font-size:0.75rem;font-weight:600;color:var(--td);align-self:center;min-width:52px">Shape:</span>
+<span style="font-size:0.75rem;font-weight:600;color:var(--text-dim);align-self:center;min-width:52px">Shape:</span>
 {%for sv,sl in [('rounded','Rounded'),('rect','Rectangle')]%}
-<label style="cursor:pointer;display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;background:var(--pl);font-size:0.8rem" class="bubble-shape-lbl">
+<label style="cursor:pointer;display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;background:var(--surface);font-size:0.8rem" class="bubble-shape-lbl">
 <input type="radio" name="bubble_shape" value="{{sv}}" {{'checked' if (product.bubble_shape if product else 'rounded')==sv else ''}} style="margin:0">{{sl}}
 </label>
 {%endfor%}
 </div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-<span style="font-size:0.75rem;font-weight:600;color:var(--td);align-self:center;min-width:52px">Position:</span>
+<span style="font-size:0.75rem;font-weight:600;color:var(--text-dim);align-self:center;min-width:52px">Position:</span>
 {%for pv,pl in [('tl','↖ Top Left'),('tr','↗ Top Right'),('bl','↙ Bot Left'),('br','↘ Bot Right')]%}
-<label style="cursor:pointer;display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;background:var(--pl);font-size:0.8rem" class="bubble-pos-lbl">
+<label style="cursor:pointer;display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;background:var(--surface);font-size:0.8rem" class="bubble-pos-lbl">
 <input type="radio" name="bubble_pos" value="{{pv}}" {{'checked' if (product.bubble_pos if product else 'tr')==pv else ''}} style="margin:0">{{pl}}
 </label>
 {%endfor%}
 </div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-<span style="font-size:0.75rem;font-weight:600;color:var(--td);min-width:52px">Color:</span>
-{%for lname,lhex in [('accent','var(--a)'),('red','#ff0000'),('green','#32ff00'),('purple','#8f00ff'),('yellow','#f3ff00'),('orange','#ff6700'),('black','#1a1a1a'),('white','#f5f5f5')]%}
+<span style="font-size:0.75rem;font-weight:600;color:var(--text-dim);min-width:52px">Color:</span>
+{%for lname,lhex in [('accent','var(--accent)'),('red','#ff0000'),('green','#32ff00'),('purple','#8f00ff'),('yellow','#f3ff00'),('orange','#ff6700'),('black','#1a1a1a'),('white','#f5f5f5')]%}
 <label title="{{lname}}" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px" class="bubble-color-lbl">
 <input type="radio" name="bubble_color" value="{{lname}}" {{'checked' if (product.bubble_color if product else 'accent')==lname else ''}} style="display:none" onchange="updateBubbleColorUI()">
 <span style="display:block;width:24px;height:24px;border-radius:50%;background:{{lhex}};border:2px solid rgba(0,0,0,0.1);transition:box-shadow 0.15s" class="bubble-cdot"></span>
@@ -75,11 +75,11 @@
 <div class="neu-input-group">
 <label>Category Label Color <span style="font-size:0.73rem;font-weight:normal;opacity:0.6">(color of the category tag on this product)</span></label>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px" id="lc_swatches">
-{%for lname,lhex in [('accent','var(--a)'),('red','#ff0000'),('green','#32ff00'),('purple','#8f00ff'),('yellow','#f3ff00'),('orange','#ff6700'),('black','#1a1a1a'),('white','#f5f5f5')]%}
+{%for lname,lhex in [('accent','var(--accent)'),('red','#ff0000'),('green','#32ff00'),('purple','#8f00ff'),('yellow','#f3ff00'),('orange','#ff6700'),('black','#1a1a1a'),('white','#f5f5f5')]%}
 <label title="{{lname}}" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
 <input type="radio" name="label_color" value="{{lname}}" {{'checked' if (product.label_color if product else 'accent')==lname else ''}} style="display:none" onchange="updateLcUI()">
 <span style="display:block;width:28px;height:28px;border-radius:50%;background:{{lhex}};border:2px solid rgba(0,0,0,0.08);transition:box-shadow 0.15s" class="lc-dot"></span>
-<span style="font-size:0.6rem;text-transform:capitalize;color:var(--td)">{{lname}}</span>
+<span style="font-size:0.6rem;text-transform:capitalize;color:var(--text-dim)">{{lname}}</span>
 </label>
 {%endfor%}
 </div>
@@ -90,11 +90,11 @@
 <label>Pricing Type</label>
 <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
 {%for ptval, ptlabel, ptdesc in [('free','🆓 Free','Anyone downloads without paying'),('paid','⭐ Paid','Fixed price in Stars'),('pwyw','💝 Pay What You Want','Optional payment — always free to download')]%}
-<label style="cursor:pointer;display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;background:var(--pl);border:2px solid transparent;transition:border 0.15s" class="ptype-lbl">
+<label style="cursor:pointer;display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;background:var(--surface);border:2px solid transparent;transition:border 0.15s" class="ptype-lbl">
 <input type="radio" name="product_type" value="{{ptval}}" {{'checked' if _cur_ptype==ptval else ''}} onchange="togglePriceField()" style="margin-top:3px;flex-shrink:0">
 <span>
 <span style="font-weight:700;font-size:0.88rem">{{ptlabel}}</span>
-<span style="display:block;font-size:0.73rem;color:var(--td);margin-top:2px">{{ptdesc}}</span>
+<span style="display:block;font-size:0.73rem;color:var(--text-dim);margin-top:2px">{{ptdesc}}</span>
 </span>
 </label>
 {%endfor%}
@@ -115,6 +115,21 @@
 </label>
 </div>
 {%endif%}
+
+{%set _cur_ratio = product.img_ratio if product else 'square'%}
+<div class="neu-input-group">
+<label>Photo Ratio <span style="font-size:0.73rem;font-weight:normal;opacity:0.6">(how the image is cropped in cards, detail page, and gallery)</span></label>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+{%for rv,rl,ricon,rdesc in [('square','Square','⬛','1:1 — default'),('portrait','Portrait','📱','4:5 — taller'),('landscape','Landscape','🖼️','2:1 — wider')]%}
+<label style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border-radius:10px;background:var(--surface);border:2px solid transparent;transition:border 0.15s;min-width:80px;text-align:center" class="ratio-lbl">
+<input type="radio" name="img_ratio" value="{{rv}}" {{'checked' if _cur_ratio==rv else ''}} onchange="updateRatioUI()" style="display:none">
+<span style="font-size:1.4rem">{{ricon}}</span>
+<span style="font-size:0.8rem;font-weight:700;color:var(--text-dim)">{{rl}}</span>
+<span style="font-size:0.65rem;color:var(--text-dim)">{{rdesc}}</span>
+</label>
+{%endfor%}
+</div>
+</div>
 
 <div class="neu-input-group">
 <label>Thumbnail</label>
@@ -143,7 +158,7 @@
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
 {%for img_key in product.get_images()%}
 {%set ig_url=r2_url(img_key)%}
-<div style="position:relative;width:70px;height:70px;border-radius:8px;overflow:hidden;background:var(--pl)">
+<div style="position:relative;width:70px;height:70px;border-radius:8px;overflow:hidden;background:var(--surface)">
 {%if img_key.endswith('.webm') or img_key.endswith('.mp4')%}
 <video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"><source src="{{ig_url}}"></video>
 {%else%}
@@ -152,7 +167,7 @@
 </div>
 {%endfor%}
 </div>
-<label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;color:var(--td);margin-bottom:8px">
+<label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;color:var(--text-dim);margin-bottom:8px">
 <input type="checkbox" name="clear_images" value="1"> Remove all existing gallery images
 </label>
 {%endif%}
@@ -184,7 +199,7 @@ function updateBubbleColorUI() {
     document.querySelectorAll('.bubble-color-lbl').forEach(function(lbl) {
         var r = lbl.querySelector('input[type=radio]');
         var dot = lbl.querySelector('.bubble-cdot');
-        dot.style.boxShadow = r.checked ? '0 0 0 3px var(--a)' : '';
+        dot.style.boxShadow = r.checked ? '0 0 0 3px var(--accent)' : '';
     });
 }
 function togglePriceField() {
@@ -193,20 +208,28 @@ function togglePriceField() {
     if (pf) pf.style.display = (ptype && ptype.value === 'paid') ? '' : 'none';
     document.querySelectorAll('.ptype-lbl').forEach(function(lbl) {
         var r = lbl.querySelector('input[type=radio]');
-        lbl.style.borderColor = r.checked ? 'var(--a)' : 'transparent';
-        lbl.style.background = r.checked ? 'rgba(0,0,0,0.12)' : 'var(--pl)';
+        lbl.style.borderColor = r.checked ? 'var(--accent)' : 'transparent';
+        lbl.style.background = r.checked ? 'rgba(0,0,0,0.12)' : 'var(--surface)';
     });
 }
 document.addEventListener('DOMContentLoaded', function() {
     togglePriceField();
     updateLcUI();
     updateBubbleColorUI();
+    updateRatioUI();
 });
 function updateLcUI() {
     document.querySelectorAll('#lc_swatches label').forEach(function(lbl) {
         var r = lbl.querySelector('input[type=radio]');
         var dot = lbl.querySelector('.lc-dot');
-        dot.style.boxShadow = r.checked ? '0 0 0 3px var(--a)' : '';
+        dot.style.boxShadow = r.checked ? '0 0 0 3px var(--accent)' : '';
+    });
+}
+function updateRatioUI() {
+    document.querySelectorAll('.ratio-lbl').forEach(function(lbl) {
+        var r = lbl.querySelector('input[type=radio]');
+        lbl.style.borderColor = r.checked ? 'var(--accent)' : 'transparent';
+        lbl.style.background = r.checked ? 'rgba(0,0,0,0.12)' : 'var(--surface)';
     });
 }
 function previewGallery(input) {
@@ -217,7 +240,7 @@ function previewGallery(input) {
     label.textContent = input.files.length + ' file(s) selected';
     Array.from(input.files).slice(0,10).forEach(f => {
         const wrap = document.createElement('div');
-        wrap.style.cssText = 'width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--pl)';
+        wrap.style.cssText = 'width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--surface)';
         if (f.type.startsWith('video/')) {
             const v = document.createElement('video');
             v.autoplay = v.loop = v.muted = v.playsInline = true;

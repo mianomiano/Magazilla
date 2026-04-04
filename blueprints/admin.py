@@ -266,6 +266,8 @@ def new_product():
         if _bpos not in ('tl','tr','bl','br'): _bpos = 'tr'
         _bcolor = request.form.get('bubble_color', 'accent')
         if _bcolor not in _valid_bcolors: _bcolor = 'accent'
+        _iratio = request.form.get('img_ratio', 'square')
+        if _iratio not in ('square', 'portrait', 'landscape'): _iratio = 'square'
         product = Product(
             name=name,
             description=description,
@@ -278,6 +280,7 @@ def new_product():
             bubble_shape=_bshape,
             bubble_pos=_bpos,
             bubble_color=_bcolor,
+            img_ratio=_iratio,
         )
         
         if 'thumbnail' in request.files:
@@ -375,6 +378,8 @@ def edit_product(pid):
         product.bubble_pos = _bp if _bp in ('tl','tr','bl','br') else 'tr'
         _bc = request.form.get('bubble_color', 'accent')
         product.bubble_color = _bc if _bc in _valid_bcolors else 'accent'
+        _ir = request.form.get('img_ratio', 'square')
+        product.img_ratio = _ir if _ir in ('square', 'portrait', 'landscape') else 'square'
         product.is_active = request.form.get('is_active') == 'on'
         
         if 'thumbnail' in request.files:
@@ -543,17 +548,24 @@ def appearance():
     
     if request.method == 'POST':
         # Colors
-        primary_color = request.form.get('primary_color', '#090c11')
-        secondary_color = request.form.get('secondary_color', '#afe81f')
-        accent_color = request.form.get('accent_color', '#1534fe')
+        primary_color = request.form.get('primary_color', '#e2e2e2')
+        secondary_color = request.form.get('secondary_color', '#5a6270')
+        primary_color_2 = request.form.get('primary_color_2', '').strip()
         text_color = request.form.get('text_color', '').strip()
         card_color = request.form.get('card_color', '').strip()
 
-        for color in [primary_color, secondary_color, accent_color]:
+        for color in [primary_color, secondary_color]:
             valid, error = validate_color(color)
             if not valid:
                 flash(error, 'error')
                 return render_template('appearance.html', settings=app_settings)
+
+        if primary_color_2:
+            valid, error = validate_color(primary_color_2)
+            if not valid:
+                primary_color_2 = None
+        else:
+            primary_color_2 = None
 
         for color in [text_color, card_color]:
             if color:
@@ -564,7 +576,7 @@ def appearance():
 
         app_settings.primary_color = primary_color
         app_settings.secondary_color = secondary_color
-        app_settings.accent_color = accent_color
+        app_settings.primary_color_2 = primary_color_2
         app_settings.text_color = text_color
         app_settings.card_color = card_color
         

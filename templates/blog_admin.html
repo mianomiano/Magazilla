@@ -24,7 +24,7 @@
 <div class="admin-product-list">
 {%for post in posts%}
 <div class="admin-product-item">
-    <div class="admin-product-thumb" style="background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:1.4rem">
+    <div class="admin-product-thumb" style="background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:1.4rem">
         {%if post.cover_image%}
         <img src="{{r2_url(post.cover_image)}}" alt="{{post.title}}" style="width:100%;height:100%;object-fit:cover">
         {%else%}
@@ -35,7 +35,7 @@
         <div class="admin-product-name">
             {{post.title}}
             {%if not post.is_published%}
-            <span style="color:var(--tm)">(Draft)</span>
+            <span style="color:var(--text-dim)">(Draft)</span>
             {%endif%}
         </div>
         <div class="admin-product-meta">
