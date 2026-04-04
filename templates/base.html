@@ -32,17 +32,33 @@
     {% set brightness = (bg_r * 299 + bg_g * 587 + bg_b * 114) / 1000 %}
     {% set is_dark = brightness < 128 %}
 
-    {# Neumorphic shadow-dark: darken bg by 30 points #}
-    {% set sd_r = [bg_r - 30, 0]|max %}
-    {% set sd_g = [bg_g - 30, 0]|max %}
-    {% set sd_b = [bg_b - 30, 0]|max %}
+    {# Neumorphic shadow-dark: darken bg by amount based on brightness #}
+    {% if brightness < 30 %}
+        {# Very dark bg — dark shadow is pure black, not much to darken #}
+        {% set dark_shift = 5 %}
+    {% elif is_dark %}
+        {% set dark_shift = 20 %}
+    {% else %}
+        {% set dark_shift = 30 %}
+    {% endif %}
+    {% set sd_r = [bg_r - dark_shift, 0]|max %}
+    {% set sd_g = [bg_g - dark_shift, 0]|max %}
+    {% set sd_b = [bg_b - dark_shift, 0]|max %}
     {% set shadow_dark = '#%02x%02x%02x' % (sd_r, sd_g, sd_b) %}
 
-    {# Neumorphic shadow-light: lighten bg for dark themes, #fff for light #}
+    {# Neumorphic shadow-light: lighten bg significantly so shadows are visible #}
+    {% if brightness < 30 %}
+        {# Extremely dark bg — need large lift for visible highlight #}
+        {% set light_shift = 70 %}
+    {% elif is_dark %}
+        {% set light_shift = 50 %}
+    {% else %}
+        {% set light_shift = 0 %}
+    {% endif %}
     {% if is_dark %}
-        {% set sl_r = [bg_r + 25, 255]|min %}
-        {% set sl_g = [bg_g + 25, 255]|min %}
-        {% set sl_b = [bg_b + 25, 255]|min %}
+        {% set sl_r = [bg_r + light_shift, 255]|min %}
+        {% set sl_g = [bg_g + light_shift, 255]|min %}
+        {% set sl_b = [bg_b + light_shift, 255]|min %}
         {% set shadow_light = '#%02x%02x%02x' % (sl_r, sl_g, sl_b) %}
     {% else %}
         {% set shadow_light = '#ffffff' %}
