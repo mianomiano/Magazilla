@@ -4,6 +4,12 @@
     --accent: #5a6270;
     --text: #3c3c3c;
     --text-dim: #888888;
+    /* Neumorphic shadow fallbacks — overridden dynamically by base.html */
+    --shadow-dark: #bebebe;
+    --shadow-light: #ffffff;
+    --card-border: rgba(0,0,0,0.08);
+    --shadow-color: rgba(0,0,0,0.12);
+    --hover-overlay: rgba(0,0,0,0.04);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0 }
@@ -786,7 +792,15 @@ video::-webkit-media-controls { display: none !important }
    =============================== */
 
 .settings-section,
-.appearance-section,
+.appearance-section {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 4px 4px 12px var(--shadow-dark), -4px -4px 12px var(--shadow-light);
+}
+
 section,
 .neu-card,
 div.neu-card {

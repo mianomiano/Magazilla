@@ -297,14 +297,15 @@
         
         /* ==================== INPUTS ==================== */
         
-        input,
+        input:not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]),
         textarea,
         select,
         .neu-input,
         .neu-select {
             background: var(--bg) !important;
-            border: 1px solid var(--card-border) !important;
+            border: none !important;
             color: var(--text) !important;
+            box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light) !important;
         }
         
         input::placeholder,
@@ -318,9 +319,8 @@
         select:focus,
         .neu-input:focus,
         .neu-select:focus {
-            border-color: var(--accent) !important;
             outline: none !important;
-            box-shadow: 0 0 0 2px var(--accent) !important;
+            box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light), 0 0 0 2px var(--accent) !important;
         }
         
         /* ==================== HEADER/LOGO ==================== */
@@ -553,9 +553,14 @@
 
         {% if settings.button_style == 'flat' %}
         button, .btn, .neu-btn, .neu-btn-primary, .filter-btn,
-        .neu-card, .neu-card-inset, .product-card, .card,
-        .neu-input, input, textarea, select {
+        .product-card, .card {
             box-shadow: none !important;
+        }
+        /* Inputs get border in flat mode instead of inset shadows */
+        input:not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+        textarea, select, .neu-input, .neu-select {
+            box-shadow: none !important;
+            border: 1px solid var(--card-border) !important;
         }
 
         {% elif settings.button_style == 'bubble' %}
