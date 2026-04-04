@@ -352,9 +352,9 @@
             <!-- Background SVG Section -->
             <div class="settings-section">
                 <h3>🖼️ Background SVG</h3>
-                <p style="font-size:12px;color:#9aa0a6;margin:0 0 10px">Paste SVG code to use as a decorative page background. Leave empty for no background.</p>
+                <p style="font-size:12px;color:var(--text-dim);margin:0 0 10px">Paste SVG code to use as a decorative page background. Leave empty for no background.</p>
                 <textarea name="background_svg" rows="6" placeholder="<svg xmlns=...>...</svg>"
-                    style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;color:#e8eaed;font-family:monospace;font-size:12px;resize:vertical">{{ settings.background_svg or '' }}</textarea>
+                    style="width:100%;font-family:monospace;font-size:12px;resize:vertical">{{ settings.background_svg or '' }}</textarea>
                 <div style="margin-top:14px;display:flex;align-items:center;gap:12px">
                     <label style="font-size:13px;white-space:nowrap">Visibility %</label>
                     <input type="range" name="svg_opacity" id="svgOpacity"
@@ -364,7 +364,7 @@
                     <span id="svgOpacityVal" style="font-size:13px;min-width:36px">{{ settings.svg_opacity or 15 }}%</span>
                 </div>
                 {% if settings.background_svg %}
-                <div style="margin-top:8px;font-size:12px;color:#9aa0a6">✅ Background SVG is active ({{ settings.svg_opacity or 15 }}% opacity). Clear the field and save to remove it.</div>
+                <div style="margin-top:8px;font-size:12px;color:var(--text-dim)">✅ Background SVG is active ({{ settings.svg_opacity or 15 }}% opacity). Clear the field and save to remove it.</div>
                 {% endif %}
             </div>
             
@@ -444,11 +444,12 @@
 
 .btn-back {
     padding: 10px 20px;
-    background: rgba(255,255,255,0.1);
+    background: var(--surface);
     border-radius: 8px;
-    color: #e8eaed;
+    color: var(--text);
     text-decoration: none;
     font-size: 14px;
+    box-shadow: 3px 3px 7px var(--shadow-dark), -3px -3px 7px var(--shadow-light);
 }
 
 .appearance-layout {
@@ -476,16 +477,17 @@
 }
 
 .settings-section {
-    background: #1e2733;
-    border-radius: 12px;
+    background: var(--surface) !important;
+    border-radius: 14px;
     padding: 20px;
-    border: 1px solid rgba(255,255,255,0.05);
+    border: none;
+    box-shadow: 4px 4px 12px var(--shadow-dark), -4px -4px 12px var(--shadow-light);
 }
 
 .settings-section h3 {
     margin: 0 0 16px 0;
     font-size: 14px;
-    color: #9aa0a6;
+    color: var(--text-dim) !important;
 }
 
 /* Color Inputs */
@@ -502,7 +504,7 @@
 
 .color-row label {
     font-size: 14px;
-    color: #e8eaed;
+    color: var(--text) !important;
 }
 
 .color-input-wrap {
@@ -526,18 +528,19 @@
 
 .color-input-wrap input[type="color"]::-webkit-color-swatch {
     border-radius: 6px;
-    border: 2px solid rgba(255,255,255,0.1);
+    border: 2px solid var(--card-border);
 }
 
 .color-text {
     width: 80px;
     padding: 8px;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: var(--bg) !important;
+    border: 1px solid var(--card-border) !important;
     border-radius: 6px;
-    color: #e8eaed;
+    color: var(--text) !important;
     font-size: 12px;
     font-family: monospace;
+    box-shadow: none !important;
 }
 
 /* Option Grid */
@@ -584,21 +587,23 @@
     align-items: center;
     gap: 8px;
     padding: 12px;
-    background: rgba(0,0,0,0.2);
+    background: var(--bg);
     border-radius: 10px;
     border: 2px solid transparent;
     transition: all 0.2s;
     font-size: 12px;
-    color: #9aa0a6;
+    color: var(--text-dim);
+    box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light);
 }
 
 .option-card input:checked + .option-preview {
     border-color: var(--accent);
-    background: rgba(255,255,255,0.07);
+    background: var(--bg);
+    box-shadow: 3px 3px 7px var(--shadow-dark), -3px -3px 7px var(--shadow-light);
 }
 
 .option-card:hover .option-preview {
-    background: rgba(255,255,255,0.05);
+    background: var(--bg);
 }
 
 /* Button Preview Styles */
@@ -607,13 +612,13 @@
     padding: 8px 16px;
     font-size: 11px;
     font-weight: 600;
-    color: #e8eaed;
+    color: var(--text);
     border-radius: 8px;
 }
 
 .style-soft {
     background: var(--bg);
-    box-shadow: 3px 3px 6px rgba(0,0,0,0.35), -2px -2px 5px rgba(255,255,255,0.05);
+    box-shadow: 3px 3px 6px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
 }
 
 .style-flat {
@@ -624,8 +629,8 @@
 
 .style-bubble {
     background: var(--bg);
-    border: 1px solid rgba(255,255,255,0.12);
-    box-shadow: 0 4px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+    border: 1px solid var(--card-border);
+    box-shadow: 0 4px 0 rgba(0,0,0,0.3);
 }
 
 .style-glow {
@@ -703,7 +708,7 @@
 /* Size Hint Text */
 .size-hint {
     font-size: 0.7rem;
-    color: #808080;
+    color: var(--text-dim) !important;
     margin-top: 4px;
     display: block;
 }
@@ -723,10 +728,12 @@
 .toggle-slider {
     width: 48px;
     height: 26px;
-    background: rgba(0,0,0,0.3);
+    background: var(--bg);
     border-radius: 13px;
     position: relative;
     transition: background 0.3s;
+    box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light);
+    flex-shrink: 0;
 }
 
 .toggle-slider::after {
@@ -734,51 +741,55 @@
     position: absolute;
     width: 20px;
     height: 20px;
-    background: #9aa0a6;
+    background: var(--text-dim);
     border-radius: 50%;
     top: 3px;
     left: 3px;
     transition: all 0.3s;
+    box-shadow: 1px 1px 3px var(--shadow-dark);
 }
 
 .toggle-option input:checked + .toggle-slider {
-    background: rgba(175, 232, 31, 0.3);
+    background: var(--accent);
+    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.15);
 }
 
 .toggle-option input:checked + .toggle-slider::after {
     transform: translateX(22px);
-    background: #afe81f;
+    background: #fff;
 }
 
 .toggle-label {
     font-size: 14px;
-    color: #e8eaed;
+    color: var(--text) !important;
 }
 
 /* Save Button */
 .save-btn {
     padding: 16px 32px;
-    background: linear-gradient(135deg, #afe81f, #8bc418);
+    background: var(--accent);
     border: none;
     border-radius: 12px;
-    color: #090c11;
+    color: var(--accent-on, #1a1a1a);
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
+    box-shadow: 3px 3px 8px var(--shadow-dark), -2px -2px 6px var(--shadow-light);
 }
 
 .save-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(175, 232, 31, 0.4);
+    box-shadow: 0 4px 20px var(--shadow-color);
 }
 
 /* Preview Panel */
 .preview-panel {
-    background: #1e2733;
-    border-radius: 12px;
+    background: var(--surface);
+    border-radius: 14px;
     padding: 20px;
-    border: 1px solid rgba(255,255,255,0.05);
+    border: none;
+    box-shadow: 4px 4px 12px var(--shadow-dark), -4px -4px 12px var(--shadow-light);
     position: sticky;
     top: 20px;
 }
@@ -786,7 +797,7 @@
 .preview-panel h3 {
     margin: 0 0 16px 0;
     font-size: 14px;
-    color: #9aa0a6;
+    color: var(--text-dim) !important;
     text-align: center;
 }
 
@@ -794,13 +805,13 @@
     background: var(--preview-primary, #090c11);
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid var(--card-border);
 }
 
 .preview-header {
     padding: 16px;
     text-align: center;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid var(--card-border);
     min-height: 60px;
     display: flex;
     align-items: center;
@@ -822,11 +833,12 @@
 
 .pf-btn {
     padding: 5px 10px;
-    background: rgba(255,255,255,0.05);
+    background: var(--bg);
     border-radius: 12px;
     font-size: 10px;
-    color: #9aa0a6;
+    color: var(--text-dim);
     white-space: nowrap;
+    box-shadow: 1px 1px 3px var(--shadow-dark), -1px -1px 3px var(--shadow-light);
 }
 
 .pf-btn.active {
@@ -842,14 +854,15 @@
 }
 
 .preview-card {
-    background: #0f1419;
+    background: var(--preview-primary, #090c11);
     border-radius: 8px;
     overflow: hidden;
+    box-shadow: 2px 2px 5px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
 }
 
 .pc-image {
     aspect-ratio: 1;
-    background: rgba(255,255,255,0.03);
+    background: var(--hover-overlay);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -863,7 +876,7 @@
 .pc-name {
     font-size: 10px;
     font-weight: 600;
-    color: #e8eaed;
+    color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

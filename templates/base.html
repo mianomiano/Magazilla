@@ -177,14 +177,12 @@
             color: var(--text-dim) !important;
         }
         
-        /* Highlighted text, prices, important numbers */
+        /* Highlighted text, prices, important numbers — NOT headings globally */
         .product-price,
         .price,
         .stars-amount,
-        .stat-value,
         .highlight,
-        .accent-text,
-        h1, h2, h3 {
+        .accent-text {
             color: var(--accent) !important;
         }
         
@@ -313,7 +311,7 @@
         
         /* ==================== INPUTS ==================== */
         
-        input:not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+        input:not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
         textarea,
         select,
         .neu-input,
@@ -322,6 +320,10 @@
             border: none !important;
             color: var(--text) !important;
             box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light) !important;
+        }
+        input[type="range"] {
+            background: var(--bg) !important;
+            border: none !important;
         }
         
         input::placeholder,
@@ -613,8 +615,33 @@
         .neu-card, .product-card, .card {
             box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light) !important;
         }
-        .neu-input, input:not([type="color"]):not([type="checkbox"]):not([type="radio"]), textarea, select {
+        .neu-input, input:not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select {
             box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light) !important;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--range-pct, 50%), var(--bg) var(--range-pct, 50%), var(--bg) 100%);
+            box-shadow: inset 1px 1px 3px var(--shadow-dark), inset -1px -1px 3px var(--shadow-light) !important;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 2px 2px 5px var(--shadow-dark), -1px -1px 3px var(--shadow-light);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: none;
+            background: var(--accent);
+            cursor: pointer;
         }
         {% endif %}
 

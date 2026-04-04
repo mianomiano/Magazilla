@@ -167,7 +167,7 @@
 .admin-header h1 {
     margin: 0;
     font-size: 24px;
-    color: #e8eaed;
+    color: var(--text) !important;
 }
 
 .stats-grid {
@@ -178,13 +178,14 @@
 }
 
 .stat-card {
-    background: linear-gradient(135deg, #1e2733 0%, #262f3d 100%);
-    border-radius: 12px;
+    background: var(--surface);
+    border-radius: 14px;
     padding: 20px;
     display: flex;
     align-items: center;
     gap: 16px;
-    border: 1px solid rgba(255,255,255,0.05);
+    border: none;
+    box-shadow: 4px 4px 12px var(--shadow-dark), -4px -4px 12px var(--shadow-light);
 }
 
 .stat-icon {
@@ -199,12 +200,12 @@
 .stat-value {
     font-size: 28px;
     font-weight: 700;
-    color: #e8eaed;
+    color: var(--accent) !important;
 }
 
 .stat-label {
     font-size: 13px;
-    color: #9aa0a6;
+    color: var(--text-dim) !important;
 }
 
 .table-container {
@@ -227,7 +228,7 @@
 }
 
 .data-table th {
-    background: rgba(0,0,0,0.15);
+    background: var(--hover-overlay);
     font-weight: 600;
     font-size: 12px;
     text-transform: uppercase;
@@ -255,7 +256,7 @@
 }
 
 .data-table tbody tr:hover {
-    background: rgba(255,255,255,0.02);
+    background: var(--hover-overlay);
 }
 
 .inactive-row {
@@ -328,30 +329,33 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--accent);
+    color: var(--accent-on, #1a1a1a);
+    box-shadow: 3px 3px 7px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
 }
 
 .btn-secondary {
-    background: rgba(255,255,255,0.1);
-    color: #e8eaed;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 3px 3px 7px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
 }
 
 .btn-secondary:hover {
-    background: rgba(255,255,255,0.15);
+    box-shadow: 1px 1px 4px var(--shadow-dark), -1px -1px 3px var(--shadow-light);
 }
 
 .btn-small {
     padding: 6px 12px;
     font-size: 12px;
-    background: rgba(255,255,255,0.1);
-    color: #e8eaed;
+    background: var(--surface);
+    color: var(--text);
     border-radius: 6px;
     text-decoration: none;
+    box-shadow: 2px 2px 5px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
 }
 
 .btn-small:hover {
-    background: rgba(255,255,255,0.15);
+    box-shadow: inset 1px 1px 3px var(--shadow-dark), inset -1px -1px 3px var(--shadow-light);
 }
 
 .empty-state {
@@ -372,7 +376,7 @@
 }
 
 .empty-message p {
-    color: #9aa0a6;
+    color: var(--text-dim) !important;
     margin: 0;
 }
 
