@@ -40,7 +40,7 @@
 {%if block.block_type == 'product_grid'%}
 <div class="neu-card" style="margin-bottom:16px">
     <p style="font-size:0.8rem;color:var(--tm);margin-bottom:14px;line-height:1.5">
-        Choose which products to feature in this grid (minimum 3 recommended). A "Browse All" link is always added automatically below the grid.
+        Choose which products to feature in this grid (minimum 3 recommended).
     </p>
     {%if products%}
     <div style="display:flex;flex-direction:column;gap:8px">
@@ -181,6 +181,62 @@
         </select>
     </div>
 </div>
+
+{%elif block.block_type == 'button_block'%}
+<div class="neu-card" style="margin-bottom:16px">
+    <div class="neu-input-group">
+        <label>Button Text</label>
+        <input type="text" name="btn_text" class="neu-input" value="{{cfg.get('text', '')}}" placeholder="e.g. View All Products" maxlength="60">
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+        <div style="flex:1">
+            <label style="font-size:0.8rem;font-weight:600;color:var(--td);display:block;margin-bottom:6px">Background</label>
+            <input type="color" name="btn_bg_color" id="btn_bg_color" value="{{cfg.get('bg_color','#000000')}}" style="width:100%;height:38px;border:none;border-radius:8px;cursor:pointer">
+        </div>
+        <div style="flex:1">
+            <label style="font-size:0.8rem;font-weight:600;color:var(--td);display:block;margin-bottom:6px">Text Color</label>
+            <input type="color" name="btn_text_color" id="btn_text_color" value="{{cfg.get('text_color','#ffffff')}}" style="width:100%;height:38px;border:none;border-radius:8px;cursor:pointer">
+        </div>
+    </div>
+    <div class="neu-input-group">
+        <label>Link URL</label>
+        <input type="text" name="btn_custom_link" id="btn_link_input" class="neu-input" value="{{cfg.get('link','')}}" placeholder="e.g. /products or https://...">
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+            <span style="font-size:0.72rem;color:var(--td);align-self:center">Quick:</span>
+            {%for pg_url, pg_label in [('/', '🏠 Home'),('/products','🛒 Products'),('/blog','📝 Blog')]%}
+            <button type="button" onclick="document.getElementById('btn_link_input').value='{{pg_url}}'" style="padding:3px 10px;font-size:0.72rem;border-radius:6px;background:var(--pl);border:1px solid var(--cb);color:var(--td);cursor:pointer">{{pg_label}}</button>
+            {%endfor%}
+        </div>
+    </div>
+    <div class="neu-input-group">
+        <label>Open in</label>
+        <select name="btn_link_type" class="neu-input">
+            <option value="internal" {{'selected' if cfg.get('link_type','internal')=='internal' else ''}}>Same window</option>
+            <option value="external" {{'selected' if cfg.get('link_type')=='external' else ''}}>New window / tab</option>
+        </select>
+    </div>
+    <div id="btn_preview" style="margin-top:12px;padding:10px;background:var(--pl);border-radius:10px;text-align:center">
+        <span id="btn_preview_el" style="display:inline-block;padding:10px 24px;background:{{cfg.get('bg_color','#000')}};color:{{cfg.get('text_color','#fff')}};border-radius:8px;font-size:0.9rem;font-weight:700">{{cfg.get('text','Button text')}}</span>
+    </div>
+</div>
+<script>
+(function(){
+    var txtEl = document.querySelector('input[name=btn_text]');
+    var bgEl = document.getElementById('btn_bg_color');
+    var tcEl = document.getElementById('btn_text_color');
+    var prev = document.getElementById('btn_preview_el');
+    function updatePreview(){
+        if(prev){
+            prev.textContent = txtEl.value || 'Button text';
+            prev.style.background = bgEl.value;
+            prev.style.color = tcEl.value;
+        }
+    }
+    if(txtEl) txtEl.addEventListener('input', updatePreview);
+    if(bgEl) bgEl.addEventListener('input', updatePreview);
+    if(tcEl) tcEl.addEventListener('input', updatePreview);
+})();
+</script>
 {%endif%}
 
 <button type="submit" class="neu-btn neu-btn-primary neu-btn-full">💾 Save Block</button>

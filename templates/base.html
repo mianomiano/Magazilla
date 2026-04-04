@@ -535,13 +535,15 @@
         body, button, input, textarea, select { font-family: 'Inter', -apple-system, sans-serif !important; }
         {% endif %}
         
-        /* ==================== BUTTON STYLE ==================== */
-        
+        /* ==================== BUTTON / CARD STYLE (consistent) ==================== */
+
         {% if settings.button_style == 'flat' %}
-        button, .btn, .neu-btn, .neu-btn-primary, .filter-btn {
+        button, .btn, .neu-btn, .neu-btn-primary, .filter-btn,
+        .neu-card, .neu-card-inset, .product-card, .card,
+        .neu-input, input, textarea, select {
             box-shadow: none !important;
         }
-        
+
         {% elif settings.button_style == 'bubble' %}
         button, .btn, .neu-btn, .neu-btn-primary {
             box-shadow: 0 4px 0 rgba(0,0,0,0.3) !important;
@@ -550,7 +552,10 @@
             box-shadow: 0 1px 0 rgba(0,0,0,0.3) !important;
             transform: translateY(3px) !important;
         }
-        
+        .neu-card, .product-card, .card {
+            box-shadow: 0 4px 0 rgba(0,0,0,0.25) !important;
+        }
+
         {% elif settings.button_style == 'glow' %}
         button, .btn, .neu-btn, .neu-btn-primary, .download-btn, .buy-btn {
             box-shadow: 0 0 20px {{secondary}}66 !important;
@@ -558,50 +563,44 @@
         button:hover, .btn:hover, .neu-btn:hover {
             box-shadow: 0 0 30px {{secondary}}99 !important;
         }
-        
+        .neu-card, .product-card, .card {
+            box-shadow: 0 0 16px {{secondary}}44 !important;
+        }
+
         {% else %}
         /* Soft (default) */
         button, .btn, .neu-btn, .neu-btn-primary {
             box-shadow: 0 2px 8px var(--shadow-color) !important;
         }
+        .neu-card, .product-card, .card {
+            box-shadow: 0 2px 12px var(--shadow-color) !important;
+        }
         {% endif %}
-        
+
         /* ==================== BUTTON ROUNDNESS ==================== */
-        
+
         {% if settings.button_roundness == 'sharp' %}
-        button, .btn, .neu-btn, .filter-btn, .product-card, 
-        .badge, input, textarea, select, .modal-content { 
-            border-radius: 4px !important; 
-        }
-        
+        :root { --card-radius: 4px; }
+        button, .btn, .neu-btn, .filter-btn, .product-card,
+        .neu-card, .badge, input, textarea, select, .modal-content,
+        .post-banner-wrap { border-radius: 4px !important; }
+
         {% elif settings.button_roundness == 'pill' %}
-        button, .btn, .neu-btn, .filter-btn { 
-            border-radius: 50px !important; 
-        }
-        .product-card, .modal-content { 
-            border-radius: 20px !important; 
-        }
-        .badge { 
-            border-radius: 12px !important; 
-        }
-        input, textarea, select {
-            border-radius: 12px !important;
-        }
-        
+        :root { --card-radius: 20px; }
+        button, .btn, .neu-btn, .filter-btn { border-radius: 50px !important; }
+        .product-card, .neu-card, .modal-content,
+        .post-banner-wrap { border-radius: 20px !important; }
+        .badge { border-radius: 12px !important; }
+        input, textarea, select { border-radius: 12px !important; }
+
         {% else %}
         /* Rounded (default) */
-        button, .btn, .neu-btn, .filter-btn { 
-            border-radius: 12px !important; 
-        }
-        .product-card { 
-            border-radius: 16px !important; 
-        }
-        input, textarea, select {
-            border-radius: 8px !important;
-        }
-        .badge {
-            border-radius: 6px !important;
-        }
+        :root { --card-radius: 14px; }
+        button, .btn, .neu-btn, .filter-btn { border-radius: 12px !important; }
+        .product-card { border-radius: 16px !important; }
+        .neu-card, .post-banner-wrap { border-radius: 14px !important; }
+        input, textarea, select { border-radius: 8px !important; }
+        .badge { border-radius: 6px !important; }
         {% endif %}
         
         /* ==================== CARD SIZE ==================== */

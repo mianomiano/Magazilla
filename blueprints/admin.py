@@ -235,6 +235,14 @@ def new_product():
         label_color = request.form.get('label_color', 'accent')
         if label_color not in ('accent','red','green','purple','yellow','orange','black','white'):
             label_color = 'accent'
+        _valid_bcolors = ('accent','red','green','purple','yellow','orange','black','white')
+        _btext = request.form.get('bubble_text', '').strip()[:15]
+        _bshape = request.form.get('bubble_shape', 'rounded')
+        if _bshape not in ('rect', 'rounded'): _bshape = 'rounded'
+        _bpos = request.form.get('bubble_pos', 'tr')
+        if _bpos not in ('tl','tr','bl','br'): _bpos = 'tr'
+        _bcolor = request.form.get('bubble_color', 'accent')
+        if _bcolor not in _valid_bcolors: _bcolor = 'accent'
         product = Product(
             name=name,
             description=description,
@@ -242,7 +250,11 @@ def new_product():
             is_free=is_free,
             is_pwyw=is_pwyw,
             category=category,
-            label_color=label_color
+            label_color=label_color,
+            bubble_text=_btext,
+            bubble_shape=_bshape,
+            bubble_pos=_bpos,
+            bubble_color=_bcolor,
         )
         
         if 'thumbnail' in request.files:
@@ -332,6 +344,14 @@ def edit_product(pid):
         product.category = category
         lc = request.form.get('label_color', 'accent')
         product.label_color = lc if lc in ('accent','red','green','purple','yellow','orange','black','white') else 'accent'
+        _valid_bcolors = ('accent','red','green','purple','yellow','orange','black','white')
+        product.bubble_text = request.form.get('bubble_text', '').strip()[:15]
+        _bs = request.form.get('bubble_shape', 'rounded')
+        product.bubble_shape = _bs if _bs in ('rect', 'rounded') else 'rounded'
+        _bp = request.form.get('bubble_pos', 'tr')
+        product.bubble_pos = _bp if _bp in ('tl','tr','bl','br') else 'tr'
+        _bc = request.form.get('bubble_color', 'accent')
+        product.bubble_color = _bc if _bc in _valid_bcolors else 'accent'
         product.is_active = request.form.get('is_active') == 'on'
         
         if 'thumbnail' in request.files:
@@ -650,6 +670,7 @@ BLOCK_TYPE_LABELS = {
     'ad_banner':        '📢 Ad Banner',
     'divider':          '─ Divider',
     'text_section':     '📄 Text Section',
+    'button_block':     '🔘 Button',
 }
 
 
@@ -742,6 +763,13 @@ def builder_edit(bid):
 
         elif block.block_type == 'divider':
             cfg['style'] = request.form.get('divider_style', 'line')
+
+        elif block.block_type == 'button_block':
+            cfg['text'] = request.form.get('btn_text', '').strip()[:60]
+            cfg['bg_color'] = request.form.get('btn_bg_color', '#000000').strip() or '#000000'
+            cfg['text_color'] = request.form.get('btn_text_color', '#ffffff').strip() or '#ffffff'
+            cfg['link'] = request.form.get('btn_custom_link', '').strip() or '#'
+            cfg['link_type'] = request.form.get('btn_link_type', 'internal')
 
         block.set_config(cfg)
         db.session.commit()
