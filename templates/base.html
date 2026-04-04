@@ -18,19 +18,32 @@
     {% set bg = settings.primary_color %}
     {% set accent = settings.secondary_color %}
 
-    {# Derive surface — use card_color if set, else same as bg #}
-    {% if settings.card_color %}
-        {% set surface = settings.card_color %}
-    {% else %}
-        {% set surface = bg %}
-    {% endif %}
-
-    {# Bg brightness for light/dark detection #}
+    {# Bg RGB — needed for surface derivation and shadows #}
     {% set bg_r = bg[1:3]|int(base=16) %}
     {% set bg_g = bg[3:5]|int(base=16) %}
     {% set bg_b = bg[5:7]|int(base=16) %}
     {% set brightness = (bg_r * 299 + bg_g * 587 + bg_b * 114) / 1000 %}
     {% set is_dark = brightness < 128 %}
+
+    {# Derive surface — use card_color if set, else auto-lift for dark themes so cards are visible #}
+    {% if settings.card_color %}
+        {% set surface = settings.card_color %}
+    {% elif brightness < 30 %}
+        {# Very dark bg (near black): lift surface by 22 to make cards clearly visible #}
+        {% set sf_r = [bg_r + 22, 255]|min %}
+        {% set sf_g = [bg_g + 22, 255]|min %}
+        {% set sf_b = [bg_b + 22, 255]|min %}
+        {% set surface = '#%02x%02x%02x' % (sf_r, sf_g, sf_b) %}
+    {% elif is_dark %}
+        {# Dark bg: lift surface by 12 #}
+        {% set sf_r = [bg_r + 12, 255]|min %}
+        {% set sf_g = [bg_g + 12, 255]|min %}
+        {% set sf_b = [bg_b + 12, 255]|min %}
+        {% set surface = '#%02x%02x%02x' % (sf_r, sf_g, sf_b) %}
+    {% else %}
+        {# Light bg: surface = bg (no lift needed, shadows do the work) #}
+        {% set surface = bg %}
+    {% endif %}
 
     {# Neumorphic shadow-dark: darken bg by amount based on brightness #}
     {% if brightness < 30 %}
@@ -276,7 +289,6 @@
         .card,
         .neu-card {
             background: var(--surface) !important;
-            border: 1px solid var(--card-border) !important;
             color: var(--text) !important;
         }
         
