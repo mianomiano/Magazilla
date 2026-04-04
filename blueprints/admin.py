@@ -13,6 +13,29 @@ import json
 
 admin_bp = Blueprint('admin_bp', __name__)
 
+_DANGEROUS_TAGS = r'iframe|script|object|embed|applet|base|form|input|link|meta|style'
+
+def _sanitize_html(html: str) -> str:
+    """Strip dangerous HTML tags (iframe, script, object, embed…) from user content."""
+    if not html:
+        return html
+    # Remove tag pairs with content: <iframe ...>...</iframe>
+    html = re.sub(
+        r'<(' + _DANGEROUS_TAGS + r')\b[^>]*>.*?</\1>',
+        '', html, flags=re.IGNORECASE | re.DOTALL
+    )
+    # Remove remaining self-closing / unclosed opening tags
+    html = re.sub(
+        r'<(' + _DANGEROUS_TAGS + r')\b[^>]*/?>',
+        '', html, flags=re.IGNORECASE
+    )
+    # Strip on* event handlers from any tag
+    html = re.sub(r'\s+on\w+\s*=\s*["\'][^"\']*["\']', '', html, flags=re.IGNORECASE)
+    html = re.sub(r'\s+on\w+\s*=\s*\S+', '', html, flags=re.IGNORECASE)
+    # Strip javascript: hrefs/src
+    html = re.sub(r'(href|src)\s*=\s*["\']?\s*javascript:[^"\'>\s]*["\']?', '', html, flags=re.IGNORECASE)
+    return html
+
 
 @admin_bp.route('/login', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
@@ -881,7 +904,7 @@ def blog_new():
             slug=slug,
             subtitle=request.form.get('subtitle', '').strip(),
             excerpt=request.form.get('excerpt', '').strip(),
-            content=request.form.get('content', '').strip(),
+            content=_sanitize_html(request.form.get('content', '').strip()),
             tags=request.form.get('tags', '').strip(),
             category=request.form.get('category', '').strip(),
             label_color=_blc if _blc in ('accent','red','green','purple','yellow','orange','black','white') else 'accent',
@@ -931,7 +954,7 @@ def blog_edit(pid):
         post.slug = _unique_slug(title, exclude_id=post.id)
         post.subtitle = request.form.get('subtitle', '').strip()
         post.excerpt = request.form.get('excerpt', '').strip()
-        post.content = request.form.get('content', '').strip()
+        post.content = _sanitize_html(request.form.get('content', '').strip())
         post.tags = request.form.get('tags', '').strip()
         post.category = request.form.get('category', '').strip()
         _blc2 = request.form.get('label_color', 'accent')

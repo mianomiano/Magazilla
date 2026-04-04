@@ -88,6 +88,8 @@
 .blog-content blockquote { border-left:3px solid var(--s);padding-left:14px;color:var(--td);margin:16px 0;font-style:italic }
 .blog-content code { background:var(--pl);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.87em }
 .blog-content pre { background:var(--pl);padding:14px;border-radius:10px;overflow-x:auto;font-family:monospace;font-size:0.85em;margin-bottom:14px }
+/* Safety: hide any iframe/embed that escapes sanitization */
+.blog-content iframe, .blog-content embed, .blog-content object, .blog-content script { display:none !important; width:0 !important; height:0 !important; }
 #gallery-track::-webkit-scrollbar { display:none }
 </style>
 
