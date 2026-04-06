@@ -18,6 +18,33 @@ def get_product(pid):
     return jsonify(product.to_dict())
 
 
+@api_bp.route('/test-invoice', methods=['POST'])
+@limiter.limit("10 per minute")
+@telegram_auth_required
+def create_test_invoice():
+    """Create a hardcoded 15-Stars test invoice — no product needed"""
+    try:
+        user_id = get_telegram_user_id()
+        bot_token = Config.BOT_TOKEN
+        url = f"https://api.telegram.org/bot{bot_token}/createInvoiceLink"
+        payload = {
+            'title': 'Test Payment',
+            'description': 'Stars payment test — 15 ⭐',
+            'payload': json.dumps({'type': 'test', 'user_id': user_id}),
+            'provider_token': '',
+            'currency': 'XTR',
+            'prices': json.dumps([{'label': 'Test Item', 'amount': 15}])
+        }
+        response = requests.post(url, data=payload, timeout=10)
+        result = response.json()
+        if result.get('ok'):
+            return jsonify({'invoice_link': result['result']})
+        else:
+            return jsonify({'error': result.get('description', 'Failed'), 'raw': result}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @api_bp.route('/create-invoice-link', methods=['POST'])
 @limiter.limit("10 per minute")
 @telegram_auth_required

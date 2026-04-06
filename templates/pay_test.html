@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Stars Payment Test</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f0f0f;
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: #1c1c1e;
+    border-radius: 20px;
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  .star-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+
+  .desc {
+    font-size: 15px;
+    color: #8e8e93;
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+
+  .price-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #2c2c2e;
+    border-radius: 999px;
+    padding: 8px 20px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffd700;
+    margin: 20px 0 28px;
+  }
+
+  .pay-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    background: #ffd700;
+    color: #000;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: 0.2px;
+  }
+  .pay-btn:active { transform: scale(0.97); opacity: 0.85; }
+  .pay-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .status {
+    margin-top: 20px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    display: none;
+  }
+  .status.success { background: #1a3a1a; color: #4cd964; border: 1px solid #2d6b2d; }
+  .status.error   { background: #3a1a1a; color: #ff6b6b; border: 1px solid #6b2d2d; }
+  .status.info    { background: #1a2a3a; color: #5ac8fa; border: 1px solid #2d4a6b; }
+
+  .debug {
+    margin-top: 16px;
+    background: #111;
+    border-radius: 10px;
+    padding: 12px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #555;
+    text-align: left;
+    word-break: break-all;
+    display: none;
+  }
+
+  .tg-note {
+    margin-top: 14px;
+    font-size: 12px;
+    color: #48484a;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <span class="star-icon">⭐</span>
+  <div class="title">Test Item</div>
+  <div class="desc">Telegram Stars payment verification test</div>
+  <div class="price-badge">⭐ 15 Stars</div>
+
+  <button class="pay-btn" id="payBtn" onclick="startPayment()">
+    Pay 15 Stars ⭐
+  </button>
+
+  <div class="status" id="status"></div>
+  <pre class="debug" id="debug"></pre>
+  <div class="tg-note" id="tgNote"></div>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+
+function showStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status ' + type;
+  el.style.display = 'block';
+}
+
+function showDebug(obj) {
+  const el = document.getElementById('debug');
+  el.textContent = JSON.stringify(obj, null, 2);
+  el.style.display = 'block';
+}
+
+function setBtn(label, disabled) {
+  const btn = document.getElementById('payBtn');
+  btn.textContent = label;
+  btn.disabled = disabled;
+}
+
+// Show context info on load
+window.addEventListener('load', () => {
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    const note = document.getElementById('tgNote');
+    const user = tg.initDataUnsafe?.user;
+    if (user) {
+      note.textContent = `Logged in as: ${user.first_name} (ID: ${user.id})`;
+    } else {
+      note.textContent = 'No Telegram user detected — open inside Telegram';
+    }
+  } else {
+    document.getElementById('tgNote').textContent = 'Telegram WebApp SDK not available';
+  }
+});
+
+async function startPayment() {
+  // Must be inside Telegram WebApp
+  if (!tg || !tg.initData) {
+    showStatus('⚠️ Open this page inside Telegram', 'error');
+    return;
+  }
+
+  setBtn('Creating invoice…', true);
+  showStatus('Contacting Telegram…', 'info');
+
+  try {
+    const resp = await fetch('/api/test-invoice', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Telegram-Init-Data': tg.initData
+      },
+      body: JSON.stringify({})
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok || data.error) {
+      showStatus('❌ Failed to create invoice: ' + (data.error || resp.status), 'error');
+      showDebug(data);
+      setBtn('Pay 15 Stars ⭐', false);
+      return;
+    }
+
+    showStatus('Invoice created — opening payment…', 'info');
+
+    tg.openInvoice(data.invoice_link, (status) => {
+      if (status === 'paid') {
+        showStatus('✅ Payment successful! Stars received.', 'success');
+        setBtn('Paid ✓', true);
+        tg.HapticFeedback?.notificationOccurred('success');
+      } else if (status === 'cancelled') {
+        showStatus('Payment cancelled.', 'info');
+        setBtn('Pay 15 Stars ⭐', false);
+      } else if (status === 'failed') {
+        showStatus('❌ Payment failed.', 'error');
+        setBtn('Try Again', false);
+      } else {
+        showStatus('Status: ' + status, 'info');
+        setBtn('Pay 15 Stars ⭐', false);
+      }
+    });
+
+  } catch (err) {
+    showStatus('❌ Network error: ' + err.message, 'error');
+    setBtn('Pay 15 Stars ⭐', false);
+  }
+}
+</script>
+</body>
+</html>

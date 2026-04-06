@@ -23,6 +23,12 @@ def _get_app_categories():
     return []
 
 
+@public_bp.route('/pay-test')
+def pay_test():
+    """Minimal Stars payment test page — no dependencies on any app settings"""
+    return render_template('pay_test.html')
+
+
 @public_bp.route('/')
 def index():
     """Main shop page"""
